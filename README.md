@@ -35,16 +35,16 @@ Run the following commands to sync the database schema and load the test data:
 
 Bash
  Generate the Prisma Client
-npx prisma generate
+ 1 npx prisma generate
 
  Apply migrations to create tables
-npx prisma migrate dev
+ 2 npx prisma migrate dev
 
  Seed the database with Billers, Agents, and Users
-npx prisma db seed
+3 npx prisma db seed
 
  Team Roles & Workflow
-To avoid code conflicts, please follow this workflow:
+ # To avoid code conflicts, please follow this workflow:
 
 Never push directly to main.
 
@@ -56,7 +56,7 @@ Push to your branch: git push origin feat/your-feature-name
 
 Open a Pull Request (PR) on GitHub for review.
 
-🛠 Tech Stack
+ # Tech Stack
 Framework: Fastify (Node.js)
 
 Database: PostgreSQL
