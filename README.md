@@ -1,4 +1,4 @@
-   Derash Bill Aggregator Backend
+  # Derash Bill Aggregator Backend
 
 This is the central backend system for the Derash Bill Aggregator project. It handles bill management, agent transactions, and administrative reporting.
 
@@ -34,13 +34,13 @@ DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/derash_db?schema=public"
 Run the following commands to sync the database schema and load the test data:
 
 Bash
-# Generate the Prisma Client
+ Generate the Prisma Client
 npx prisma generate
 
-# Apply migrations to create tables
+ Apply migrations to create tables
 npx prisma migrate dev
 
-# Seed the database with Billers, Agents, and Users
+ Seed the database with Billers, Agents, and Users
 npx prisma db seed
 
  Team Roles & Workflow
