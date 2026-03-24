@@ -1,123 +1,214 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 import { format } from "date-fns";
 
-// ------------------ Mock Data ------------------
+// ------------------ Types ------------------
+
 interface Transaction {
   id: string;
-  billReference: string;
-  customerName: string;
-  amountPaid: number;
-  status: "PAID" | "PARTIALLY_PAID" | "PENDING";
-  paidAt: string;
+  transactionId: string;
+  amount: number;
+  total_amount: number;
+  status: "INITIATED" | "PENDING" | "SUCCESSFUL" | "FAILED" | "REVERSED" | "TIMEOUT";
+  createdAt: string;
+  bill: {
+    bill_reference: string;
+    customer: {
+      full_name: string;
+    };
+    biller: {
+      name: string;
+    };
+  };
 }
 
-const mockTransactions: Transaction[] = [
-  { id: "TRX001", billReference: "BILL1001", customerName: "John Doe", amountPaid: 500, status: "PAID", paidAt: "2026-03-16" },
-  { id: "TRX002", billReference: "BILL1002", customerName: "Jane Smith", amountPaid: 600, status: "PARTIALLY_PAID", paidAt: "2026-03-17" },
-  { id: "TRX003", billReference: "BILL1003", customerName: "Bob Johnson", amountPaid: 0, status: "PENDING", paidAt: "2026-03-17" },
-];
+interface DashboardStats {
+  totalTransactions: number;
+  successfulTransactions: number;
+  pendingTransactions: number;
+  failedTransactions: number;
+  totalRevenue: number;
+}
 
 // ------------------ Component ------------------
+
 export default function Dashboard() {
-  const [transactions] = useState(mockTransactions);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter transactions by date
-  const filteredTransactions = transactions.filter((t) => {
-    const paidDate = new Date(t.paidAt);
-    const from = startDate ? new Date(startDate) : null;
-    const to = endDate ? new Date(endDate) : null;
+  // ------------------ Fetch Data ------------------
 
-    if (from && paidDate < from) return false;
-    if (to && paidDate > to) return false;
-    return true;
-  });
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await fetch("/api/agent/dashboard");
+        const data = await response.json();
 
-  const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.amountPaid, 0);
+        setStats(data.stats);
+        setTransactions(data.recentTransactions);
+      } catch (error) {
+        console.error("Failed to load dashboard", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  // ------------------ Chart Data ------------------
+
+  const chartData = transactions.map((t) => ({
+    date: format(new Date(t.createdAt), "MM-dd"),
+    revenue: t.total_amount,
+  }));
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Agent Dashboard" links={agentLinks}>
+        <div className="text-center py-10">Loading dashboard...</div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout title="Agent Dashboard" links={agentLinks}>
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-6 text-center">
-          <h3 className="font-bold mb-2">Total Transactions</h3>
-          <p className="text-3xl font-bold text-blue-600">{filteredTransactions.length}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-6 text-center">
-          <h3 className="font-bold mb-2">Total Amount Paid</h3>
-          <p className="text-3xl font-bold text-green-600">${totalAmount}</p>
-        </div>
-      </div>
+      <div className="space-y-8">
+        <h1 className="text-3xl font-bold">
+          Agent Performance Overview
+        </h1>
 
-      {/* Filter by Date */}
-      <div className="flex gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Start Date</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">End Date</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border p-2 rounded"
-          />
-        </div>
-      </div>
+        {/* ---------------- KPI Cards ---------------- */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <KpiCard title="Total Transactions" value={stats.totalTransactions} />
+            <KpiCard title="Successful" value={stats.successfulTransactions} />
+            <KpiCard title="Pending" value={stats.pendingTransactions} />
+            <KpiCard title="Failed" value={stats.failedTransactions} />
+            <KpiCard title="Total Revenue (ETB)" value={stats.totalRevenue} />
+          </div>
+        )}
 
-      {/* Transactions Table */}
-      <div className="bg-white shadow rounded-lg overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-3 text-left">Bill Reference</th>
-              <th>Customer</th>
-              <th>Amount Paid</th>
-              <th>Status</th>
-              <th>Paid Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.map((t) => (
-              <tr key={t.id} className="border-t hover:bg-gray-50 transition">
-                <td className="p-3">{t.billReference}</td>
-                <td>{t.customerName}</td>
-                <td>${t.amountPaid}</td>
-                <td>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs text-white ${
-                      t.status === "PAID"
-                        ? "bg-green-500"
-                        : t.status === "PARTIALLY_PAID"
-                        ? "bg-yellow-500"
-                        : "bg-gray-500"
-                    }`}
-                  >
-                    {t.status}
-                  </span>
-                </td>
-                <td>{format(new Date(t.paidAt), "yyyy-MM-dd")}</td>
-              </tr>
-            ))}
-            {filteredTransactions.length === 0 && (
+        {/* ---------------- Revenue Chart ---------------- */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <h3 className="text-xl font-semibold mb-4 text-blue-600">
+            Revenue Trend
+          </h3>
+
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#2563eb"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* ---------------- Recent Transactions ---------------- */}
+        <div className="bg-white shadow rounded-lg overflow-x-auto">
+          <h3 className="text-xl font-semibold p-4">
+            Recent Transactions
+          </h3>
+
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
               <tr>
-                <td colSpan={5} className="text-center py-4 text-gray-500">
-                  No transactions found.
-                </td>
+                <th className="p-3 text-left">Transaction ID</th>
+                <th>Customer</th>
+                <th>Biller</th>
+                <th>Bill Ref</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {transactions.map((t) => (
+                <tr key={t.id} className="border-t hover:bg-gray-50">
+                  <td className="p-3">{t.transactionId}</td>
+                  <td>{t.bill.customer.full_name}</td>
+                  <td>{t.bill.biller.name}</td>
+                  <td>{t.bill.bill_reference}</td>
+                  <td>{t.total_amount} ETB</td>
+                  <td>
+                    <StatusBadge status={t.status} />
+                  </td>
+                  <td>{format(new Date(t.createdAt), "yyyy-MM-dd")}</td>
+                </tr>
+              ))}
+
+              {transactions.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                    No transactions available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+// ------------------ Reusable Components ------------------
+
+function KpiCard({
+  title,
+  value,
+}: {
+  title: string;
+  value: number;
+}) {
+  return (
+    <div className="bg-white shadow rounded-lg p-6 text-center">
+      <h3 className="font-medium text-gray-500">{title}</h3>
+      <p className="text-3xl font-bold text-blue-600 mt-2">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: string;
+}) {
+  const color =
+    status === "SUCCESSFUL"
+      ? "bg-green-500"
+      : status === "FAILED"
+      ? "bg-red-500"
+      : status === "PENDING"
+      ? "bg-yellow-500"
+      : "bg-gray-500";
+
+  return (
+    <span
+      className={`px-2 py-1 rounded-full text-xs text-white ${color}`}
+    >
+      {status}
+    </span>
   );
 }

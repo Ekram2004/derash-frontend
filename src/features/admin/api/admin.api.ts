@@ -38,7 +38,7 @@ export interface ReportData {
 export const adminApi = {
   async getStats(): Promise<Stats> {
     return {
-      totalUsers: 50,
+      totalUsers: 22,
       totalAgents: 10,
       totalBillers: 12,
       totalTransactions: 1200,

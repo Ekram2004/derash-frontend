@@ -10,15 +10,15 @@ export default function PublicNavbar() {
 
       <div className="flex items-center gap-8">
 
-        <Link to="/" className=" text-black hover:text-red-600">
+        <Link to="/" className=" text-gray-700 hover:text-red-600">
           Home
         </Link>
 
-        <Link to="/about" className="text-black hover:text-red-600">
+        <Link to="/about" className="text-gray-700 hover:text-red-600">
           About
         </Link>
 
-        <Link to="/contact" className="text-black hover:text-red-600">
+        <Link to="/contact" className="text-gray-700 hover:text-red-600">
           Contact
         </Link>
 

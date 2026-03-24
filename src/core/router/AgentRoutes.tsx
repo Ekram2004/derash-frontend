@@ -6,6 +6,7 @@ import ProtectedRoute from "@/shared/components/common/ProtectedRoute";
 import Dashboard from "../../features/agent/pages/Dashboard";
 import PayBill from "@/features/agent/pages/PayBill";
 import Transactions from "@/features/agent/pages/Transactions";
+import Reports from "@/features/agent/pages/Reports";
 
 export default function AgentRoutes() {
   return (
@@ -45,6 +46,15 @@ export default function AgentRoutes() {
           </ProtectedRoute>
         }
       />
+       <Route
+        path="reports"
+        element={
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
+    
   );
 }

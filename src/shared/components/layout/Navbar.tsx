@@ -1,4 +1,4 @@
-// src/shared/components/Navbar.tsx
+// src/shared/components/layout/Navbar.tsx
 import { useState, useRef, useEffect } from "react";
 import { BellIcon, ChevronDownIcon, ArrowRightOnRectangleIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 
@@ -24,18 +24,15 @@ export default function Navbar({ userName, onLogout }: Props) {
 
   return (
     <div className="flex justify-between items-center bg-white shadow px-6 py-4 rounded-xl mb-6">
-      {/* Left side: search */}
+      {/* Left side (optional logo or nav items) */}
       <div className="flex items-center gap-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/* You can add logo or navigation here */}
       </div>
 
-      {/* Right side: notifications + profile */}
-      <div className="flex items-center gap-4 relative">
-        
+      
+      <div className="flex items-center gap-4 relative ml-auto">
+       
+        {/* Profile + Logout */}
         <div ref={dropdownRef} className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -47,7 +44,7 @@ export default function Navbar({ userName, onLogout }: Props) {
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
               <button
                 onClick={onLogout}
                 className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-red-50 text-red-600"

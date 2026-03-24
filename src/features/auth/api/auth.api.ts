@@ -1,29 +1,55 @@
 // src/features/auth/api/auth.api.ts
-interface User {
+import { users } from "../../../mocks/data/users";
+
+export interface User {
   name: string;
   email: string;
   role: "ADMIN" | "AGENT" | "BILLER";
 }
 
-interface LoginResponse {
-  user: User;
+interface FullUser {
+  name: string;
+  email: string;
+  password: string;
+  role: "ADMIN" | "AGENT" | "BILLER";
 }
 
-const users: User[] = [
-  { name: "Admin User", email: "admin@derash.com", role: "ADMIN" },
-  { name: "Agent User", email: "agent@derash.com", role: "AGENT" },
-  { name: "Biller User", email: "biller@derash.com", role: "BILLER" },
-];
+export interface LoginResponse {
+  user: User;
+}
 
 // Mock login API
 export const loginApi = (email: string, password: string): Promise<LoginResponse> => {
   return new Promise((resolve, reject) => {
-    const user = users.find(u => u.email === email);
-    // Simple password check for mock
-    if (user && password.includes(user.role.toLowerCase())) {
-      resolve({ user });
+    // Find user by email and password
+    const user = (users as FullUser[]).find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (user) {
+      // Exclude password before returning
+      const { password, ...userWithoutPassword } = user;
+      resolve({ user: userWithoutPassword });
     } else {
       reject(new Error("Invalid credentials"));
     }
   });
 };
+
+/*
+// src/features/auth/api/auth.api.ts
+export const loginApi = async (email: string, password: string): Promise<LoginResponse> => {
+  const response = await fetch("https://api.derash.com/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Invalid credentials or network error");
+  }
+
+  const data = await response.json();
+  // data should have { user: { name, email, role } } format
+  return data;
+};*/

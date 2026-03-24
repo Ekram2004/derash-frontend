@@ -1,21 +1,9 @@
 // src/features/admin/pages/BillersPage.tsx
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import { adminLinks } from "../adminLinks";
 import Modal from "../../../shared/components/Modal";
-
-
-// ✅ Updated Biller type (matches Prisma)
-export interface Biller {
-  id: string;
-  name: string;
-  code: string;
-  category: string;
-  allowsPartial: boolean;
-  apiEndPoint?: string;
-  isActive: boolean;
-}
+import BillerTable, { type Biller } from "../components/BillerTable";
 
 export default function BillersPage() {
   const [billers, setBillers] = useState<Biller[]>([]);
@@ -24,16 +12,14 @@ export default function BillersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBiller, setEditingBiller] = useState<Biller | null>(null);
 
-  // ✅ Updated form
   const [form, setForm] = useState({
     name: "",
     code: "",
     category: "",
     allowsPartial: false,
-    apiEndPoint: "",
   });
 
-  // ✅ Mock initial data (replace later with API)
+  // Mock initial data
   useEffect(() => {
     setBillers([
       {
@@ -55,7 +41,7 @@ export default function BillersPage() {
     ]);
   }, []);
 
-  // ✅ Search filter
+  // Filtered billers
   const filtered = billers.filter(
     (b) =>
       b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -63,7 +49,7 @@ export default function BillersPage() {
       b.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ Open Add
+  // Open Add
   const openAddModal = () => {
     setEditingBiller(null);
     setForm({
@@ -71,12 +57,11 @@ export default function BillersPage() {
       code: "",
       category: "",
       allowsPartial: false,
-      apiEndPoint: "",
     });
     setIsModalOpen(true);
   };
 
-  // ✅ Open Edit
+  // Open Edit
   const openEditModal = (biller: Biller) => {
     setEditingBiller(biller);
     setForm({
@@ -84,18 +69,15 @@ export default function BillersPage() {
       code: biller.code,
       category: biller.category,
       allowsPartial: biller.allowsPartial,
-      apiEndPoint: biller.apiEndPoint || "",
     });
     setIsModalOpen(true);
   };
 
-  // ✅ Save (mock)
+  // Save
   const handleSave = () => {
     if (editingBiller) {
       setBillers((prev) =>
-        prev.map((b) =>
-          b.id === editingBiller.id ? { ...b, ...form } : b
-        )
+        prev.map((b) => (b.id === editingBiller.id ? { ...b, ...form } : b))
       );
     } else {
       setBillers((prev) => [
@@ -111,21 +93,18 @@ export default function BillersPage() {
     setIsModalOpen(false);
   };
 
-  // ✅ Toggle active
+  // Toggle active
   const toggleStatus = (id: string) => {
     setBillers((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, isActive: !b.isActive } : b
-      )
+      prev.map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b))
     );
   };
 
-  // ✅ Delete
+  // Delete
   const deleteBiller = (id: string) => {
     setBillers((prev) => prev.filter((b) => b.id !== id));
   };
 
- 
   return (
     <DashboardLayout title="Manage Billers" links={adminLinks}>
       {/* Top Bar */}
@@ -137,78 +116,21 @@ export default function BillersPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="border p-2 rounded-lg w-64"
         />
-
-        <div className="flex gap-2">
-          
-
-          <button
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-            onClick={openAddModal}
-          >
-            Add Biller
-          </button>
-        </div>
+        <button
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          onClick={openAddModal}
+        >
+          Add Biller
+        </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white shadow-lg rounded-xl overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-3">Name</th>
-              <th>Code</th>
-              <th>Category</th>
-              <th>Partial</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.map((biller) => (
-              <tr key={biller.id} className="border-t hover:bg-gray-50">
-                <td className="p-3">{biller.name}</td>
-                <td>{biller.code}</td>
-                <td>{biller.category}</td>
-                <td>{biller.allowsPartial ? "Yes" : "No"}</td>
-
-                <td>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs text-white ${
-                      biller.isActive ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  >
-                    {biller.isActive ? "active" : "disabled"}
-                  </span>
-                </td>
-
-                <td className="flex gap-2">
-                  <button
-                    className="text-blue-600 hover:underline"
-                    onClick={() => openEditModal(biller)}
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => deleteBiller(biller.id)}
-                  >
-                    Delete
-                  </button>
-
-                  <button
-                    className="text-gray-600 hover:underline"
-                    onClick={() => toggleStatus(biller.id)}
-                  >
-                    {biller.isActive ? "Disable" : "Enable"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <BillerTable
+        billers={filtered}
+        onEdit={openEditModal}
+        onDelete={deleteBiller}
+        onToggleStatus={toggleStatus}
+      />
 
       {/* Modal */}
       <Modal
@@ -222,46 +144,33 @@ export default function BillersPage() {
             placeholder="Biller Name"
             className="border p-2 rounded-lg"
             value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
-
           <input
             type="text"
             placeholder="Code (e.g. EEU)"
             className="border p-2 rounded-lg"
             value={form.code}
-            onChange={(e) =>
-              setForm({ ...form, code: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
           />
-
           <input
             type="text"
             placeholder="Category"
             className="border p-2 rounded-lg"
             value={form.category}
-            onChange={(e) =>
-              setForm({ ...form, category: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
           />
-
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={form.allowsPartial}
               onChange={(e) =>
-                setForm({
-                  ...form,
-                  allowsPartial: e.target.checked,
-                })
+                setForm({ ...form, allowsPartial: e.target.checked })
               }
             />
             Allows Partial Payment
           </label>
 
-          
           <div className="flex justify-end gap-2">
             <button
               className="px-4 py-2 bg-gray-300 rounded-lg"
@@ -269,7 +178,6 @@ export default function BillersPage() {
             >
               Cancel
             </button>
-
             <button
               className="px-4 py-2 bg-blue-600 text-white rounded-lg"
               onClick={handleSave}

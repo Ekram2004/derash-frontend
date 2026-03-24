@@ -1,3 +1,5 @@
+// derash-frontend/src/features/biller/api/biller.api.ts
+
 export interface BillerStats {
   totalBills: number;
   paidBills: number;
@@ -18,14 +20,6 @@ export interface ReportData {
   revenue: number;
 }
 
-export interface NotificationLog {
-  id: string;
-  type: "SMS" | "Email";
-  message: string;
-  status: "sent" | "failed";
-  date: string;
-}
-
 export const billerApi = {
   async getStats(): Promise<BillerStats> {
     return {
@@ -38,20 +32,8 @@ export const billerApi = {
 
   async getBills(): Promise<Bill[]> {
     return [
-      {
-        id: "1",
-        customerName: "John Doe",
-        amount: 1200,
-        status: "paid",
-        date: "2026-03-01",
-      },
-      {
-        id: "2",
-        customerName: "Jane Smith",
-        amount: 800,
-        status: "unpaid",
-        date: "2026-03-02",
-      },
+      { id: "1", customerName: "John Doe", amount: 1200, status: "paid", date: "2026-03-01" },
+      { id: "2", customerName: "Jane Smith", amount: 800, status: "unpaid", date: "2026-03-02" },
     ];
   },
 
@@ -60,18 +42,6 @@ export const billerApi = {
       { month: "Jan", revenue: 50000 },
       { month: "Feb", revenue: 70000 },
       { month: "Mar", revenue: 90000 },
-    ];
-  },
-
-  async getNotifications(): Promise<NotificationLog[]> {
-    return [
-      {
-        id: "1",
-        type: "SMS",
-        message: "Bill reminder sent",
-        status: "sent",
-        date: "2026-03-01",
-      },
     ];
   },
 };

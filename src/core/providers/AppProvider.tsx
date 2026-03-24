@@ -7,7 +7,7 @@ interface AppProviderProps {
   children: ReactNode;
 }
 
-const AUTO_LOGOUT_MINUTES = 2;
+const AUTO_LOGOUT_MINUTES = 10;
 const WARNING_MINUTES = 1;
 
 export default function AppProvider({ children }: AppProviderProps) {
