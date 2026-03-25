@@ -1,20 +1,8 @@
-// src/features/auth/pages/LoginPage.tsx
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginApi } from "../api/auth.api";
 import { useAuthStore } from "../store/auth.store";
 import PublicLayout from "../../../shared/components/layout/PublicLayout";
-
-// Define user types
-interface User {
-  name: string;
-  email: string;
-  role: "ADMIN" | "AGENT" | "BILLER";
-}
-
-interface LoginResponse {
-  user: User;
-}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,18 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const login = useAuthStore((s) => s.login);
-  const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
-
-  // Redirect logged-in users based on role
-  useEffect(() => {
-    if (token) {
-      const userRole = useAuthStore.getState().user?.role;
-      if (userRole === "ADMIN") navigate("/admin/dashboard");
-      else if (userRole === "AGENT") navigate("/agent/dashboard");
-      else if (userRole === "BILLER") navigate("/biller/dashboard");
-    }
-  }, [token, navigate]);
 
   const validateFields = () => {
     const errors = { email: "", password: "" };
@@ -67,27 +44,34 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const data: LoginResponse = await loginApi(email, password);
+      const res = await loginApi({ email, password });
 
-      // Save user & token in store
-      login(data.user);
+      if (res.status === "SUCCESS") {
+        const token = res.data.token;
+        const user = res.data.user;
 
-      // Navigate based on role
-      switch (data.user.role) {
-        case "ADMIN":
-          navigate("/admin/dashboard");
-          break;
-        case "AGENT":
-          navigate("/agent/dashboard");
-          break;
-        case "BILLER":
-          navigate("/biller/dashboard");
-          break;
-        default:
-          setApiError("Unknown user role");
+        localStorage.setItem("token", token);
+        login(user);
+
+        switch (user.role) {
+          case "SYSTEM_ADMIN":
+            navigate("/admin/dashboard");
+            break;
+          case "AGENT_USER":
+            navigate("/agent/dashboard");
+            break;
+          case "BILLER_USER":
+            navigate("/biller/dashboard");
+            break;
+          default:
+            navigate("/");
+        }
+      } else {
+        setApiError(res.message || "Invalid credentials");
       }
-    } catch (err: any) {
-      setApiError(err.message || "Invalid credentials or network error");
+    } catch (err) {
+      console.error(err);
+      setApiError("Invalid credentials or network error");
     } finally {
       setLoading(false);
     }
@@ -100,7 +84,9 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-center text-red-600">
             WELCOME TO DERASH
           </h2>
-          <h2 className="text-2xl font-bold text-center text-red-600">Log In</h2>
+          <h2 className="text-2xl font-bold text-center text-red-600">
+            Log In
+          </h2>
 
           {apiError && (
             <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
@@ -109,7 +95,6 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-4">
-            {/* Email input */}
             <div>
               <input
                 type="email"
@@ -130,7 +115,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Password input */}
             <div>
               <input
                 type="password"
@@ -153,7 +137,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Login button */}
             <button
               className={`w-full rounded-lg py-3 font-semibold text-white ${
                 loading
@@ -167,19 +150,18 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Links */}
           <p className="text-sm text-gray-500 text-center">
             Forgot your password?{" "}
-            <Link to="/forgot-password" className="text-red-600 hover:underline">
+            <a href="/forgot-password" className="text-red-600 hover:underline">
               Reset here
-            </Link>
+            </a>
           </p>
 
           <p className="text-sm text-gray-500 text-center">
             Don’t have an account?{" "}
-            <Link to="/register" className="text-red-600 hover:underline">
+            <a href="/register" className="text-red-600 hover:underline">
               Sign up
-            </Link>
+            </a>
           </p>
         </div>
       </div>

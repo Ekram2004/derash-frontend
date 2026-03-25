@@ -3,7 +3,7 @@ import PublicRoutes from "./PublicRoutes";
 import AdminRoutes from "./AdminRoutes";
 import AgentRoutes from "./AgentRoutes";
 import BillerRoutes from "./BillerRoutes";
-import LoginPage from "../.././features/auth/pages/LoginPage";
+import LoginPage from "../../features/auth/pages/LoginPage";
 
 export default function AppRouter() {
   return (

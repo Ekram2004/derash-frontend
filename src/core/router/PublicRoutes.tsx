@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import Home from "../.././features/public-site/pages/Home";
-import About from "../.././features/public-site/pages/About";
-import Contact from "../.././features/public-site/pages/Contact";
+import Home from "../../features/public-site/pages/Home";
+import About from "../../features/public-site/pages/About";
+import Contact from "../../features/public-site/pages/Contact";
 
 export default function PublicRoutes() {
   return (
