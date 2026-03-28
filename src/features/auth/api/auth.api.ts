@@ -1,3 +1,12 @@
+ feat/login-integration
+import api from "../../../services/api";
+
+
+export const loginApi = async (data: any) => {
+  const response = await api.post("/auth/login", data);
+  return response.data; // Returns the full { status, message, data, timestamp }
+};
+
 // src/features/auth/api/auth.api.ts
 import { users } from "../../../mocks/data/users";
 
@@ -53,3 +62,4 @@ export const loginApi = async (email: string, password: string): Promise<LoginRe
   // data should have { user: { name, email, role } } format
   return data;
 };*/
+
