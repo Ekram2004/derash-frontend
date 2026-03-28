@@ -10,6 +10,9 @@ export default function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // ✅ Add state for show/hide password
+  const [showPassword, setShowPassword] = useState(false);
 
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
@@ -79,8 +82,8 @@ export default function LoginPage() {
 
   return (
     <PublicLayout>
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 space-y-6">
+      <div className="min-h-[70vh] flex items-start justify-center px-4 pt-16">
+        <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-8 space-y-5">
           <h2 className="text-2xl font-bold text-center text-red-600">
             WELCOME TO DERASH
           </h2>
@@ -94,11 +97,15 @@ export default function LoginPage() {
             </div>
           )}
 
+ 
           <div className="space-y-4">
+
+          <div className="space-y-3">
+            {/* Email input */}
             <div>
               <input
                 type="email"
-                className={`w-full border rounded p-3 outline-none focus:ring-2 ${
+                className={`w-full border rounded p-2.5 outline-none focus:ring-2 ${
                   fieldErrors.email
                     ? "border-red-500 focus:ring-red-400"
                     : "border-gray-300 focus:ring-red-400"
@@ -115,10 +122,14 @@ export default function LoginPage() {
               )}
             </div>
 
+ 
             <div>
+
+            {/* Password input with show/hide */}
+            <div className="relative">
               <input
-                type="password"
-                className={`w-full border rounded p-3 outline-none focus:ring-2 ${
+                type={showPassword ? "text" : "password"}
+                className={`w-full border rounded p-2.5 outline-none focus:ring-2 ${
                   fieldErrors.password
                     ? "border-red-500 focus:ring-red-400"
                     : "border-gray-300 focus:ring-red-400"
@@ -130,15 +141,48 @@ export default function LoginPage() {
                   setFieldErrors((prev) => ({ ...prev, password: "" }));
                 }}
               />
+              {/* Toggle button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-5 0-9.27-3-11-7a11.24 11.24 0 0 1 2.76-4.14" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 4.5C7 4.5 2.73 7.5 1 12c1.73 4.5 6 7.5 11 7.5s9.27-3 11-7.5c-1.73-4.5-6-7.5-11-7.5z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+
               {fieldErrors.password && (
-                <p className="text-red-500 text-sm mt-1">
-                  {fieldErrors.password}
-                </p>
+                <p className="text-red-500 text-sm mt-1">{fieldErrors.password}</p>
               )}
             </div>
 
             <button
-              className={`w-full rounded-lg py-3 font-semibold text-white ${
+              className={`w-full rounded-lg py-2.5 font-semibold text-white ${
                 loading
                   ? "bg-red-300 cursor-not-allowed"
                   : "bg-red-600 hover:bg-red-700"

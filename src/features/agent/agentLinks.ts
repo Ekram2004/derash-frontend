@@ -11,4 +11,8 @@ export const agentLinks = [
     label: "Transactions",
     path: "/agent/transactions",
   },
+  {
+    label: "Reports",
+    path: "/agent/reports",
+  },
 ];

@@ -72,7 +72,7 @@ export default function Contact() {
             <div>
               <h3 className="font-semibold text-red-600 mb-1">Address</h3>
               <p className="text-gray-700">
-                National Information Security Agency, Addis Ababa, Ethiopia
+                National Information Security Administration, Addis Ababa, Ethiopia
               </p>
             </div>
           </div>
