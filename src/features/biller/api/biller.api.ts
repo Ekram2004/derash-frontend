@@ -1,4 +1,5 @@
-
+<<<<<<< HEAD
+=======
 // derash-frontend/src/features/biller/api/biller.api.ts
 
 export interface BillerStats {
@@ -7,13 +8,15 @@ export interface BillerStats {
   unpaidBills: number;
   totalRevenue: number;
 }
-
+>>>>>>> origin/frontend-dagi
 
 import api from "@/services/api";
 
 export const uploadBillsCsv = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file); // 'file' must match the key your backend expects
+
+z
   const response = await api.post("/billers/upload-bills", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -23,7 +26,7 @@ export const uploadBillsCsv = async (file: File) => {
   return response.data; // This returns { status, message, data: { total, success, failed } }
 };
 
-
+=======
 export const billerApi = {
   async getStats(): Promise<BillerStats> {
     return {
@@ -49,4 +52,4 @@ export const billerApi = {
     ];
   },
 };
-
+>>>>>>> origin/frontend-dagi
