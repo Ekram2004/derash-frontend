@@ -5,4 +5,3 @@ export const loginApi = async (data: any) => {
   const response = await api.post("/auth/login", data);
   return response.data; // Returns the full { status, message, data, timestamp }
 };
-z

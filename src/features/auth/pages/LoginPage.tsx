@@ -123,7 +123,7 @@ export default function LoginPage() {
             </div>
 
  
-            <div>
+           <div>
 
             {/* Password input with show/hide */}
             <div className="relative">
@@ -207,8 +207,11 @@ export default function LoginPage() {
               Sign up
             </a>
           </p>
-        </div>
-      </div>
+            </div>
+            </div>
+          </div>
+          </div>
     </PublicLayout>
   );
 }
+
