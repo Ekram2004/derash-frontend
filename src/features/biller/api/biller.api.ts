@@ -18,3 +18,8 @@ export const getBillerStats = async () => {
   const response = await api.get("/billers/stats");
   return response.data;
 };
+
+export const getBillerBills = async () => {
+  const response = await api.get("/bills");
+  return response.data; 
+};
