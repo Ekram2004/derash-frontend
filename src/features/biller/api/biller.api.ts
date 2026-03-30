@@ -15,7 +15,7 @@ export const uploadBillsCsv = async (file: File) => {
 };
 
 export const getBillerStats = async () => {
-  const response = await api.get("/billers/stats");
+  const response = await api.get("/stats");
   return response.data;
 };
 
@@ -23,3 +23,10 @@ export const getBillerBills = async () => {
   const response = await api.get("/bills");
   return response.data; 
 };
+
+export const getBillerReport = async (fromDate?: string, toDate?: string) => {
+  const response = await api.get('/report', {
+    params: { fromDate, toDate }
+  });
+  return response.data;
+}

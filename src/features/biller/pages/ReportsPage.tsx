@@ -8,6 +8,7 @@ import {
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/solid";
 import * as XLSX from "xlsx";
+import { getBillerReport } from "../api/biller.api";
 
 interface ReportRow {
   bill_reference: string;
@@ -39,6 +40,22 @@ export default function ReportsPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
+  const loadReport = async () => {
+    try {
+      setLoading(true);
+      const response = await getBillerReport(fromDate, toDate);
+
+      if (response.status === 'SUCCESS') {
+        setData(response.data.rows);
+        setSummary(response.data.summary);
+      }
+    } catch (error) {
+      console.error('Report fetch failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const billerLinks = [
     { label: "Dashboard", path: "/biller", icon: HomeIcon },
     { label: "Upload Bills", path: "/biller/upload", icon: DocumentArrowUpIcon },
@@ -48,49 +65,8 @@ export default function ReportsPage() {
 
   useEffect(() => {
     // 🔄 Replace with real API call later
-    setTimeout(() => {
-      const mockData: ReportRow[] = [
-        {
-          bill_reference: "AAWSA-1001",
-          customer_name: "Abel Tesfaye",
-          period: "Jan 2026",
-          amount_due: 1200,
-          amount_paid: 1200,
-          remaining_bal: 0,
-          status: "PAID",
-          payment_method: "CASH",
-          createdAt: "2026-01-01",
-        },
-        {
-          bill_reference: "AAWSA-1002",
-          customer_name: "Meron Bekele",
-          period: "Jan 2026",
-          amount_due: 900,
-          amount_paid: 300,
-          remaining_bal: 600,
-          status: "PARTIALLY_PAID",
-          payment_method: "BANK_TRANSFER",
-          createdAt: "2026-01-02",
-        },
-      ];
-
-      setData(mockData);
-
-      setSummary({
-        totalBills: mockData.length,
-        totalCollected: mockData.reduce(
-          (sum, row) => sum + row.amount_paid,
-          0
-        ),
-        totalOutstanding: mockData.reduce(
-          (sum, row) => sum + row.remaining_bal,
-          0
-        ),
-      });
-
-      setLoading(false);
-    }, 800);
-  }, []);
+    loadReport();
+  }, [fromDate, toDate]);
 
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(data);

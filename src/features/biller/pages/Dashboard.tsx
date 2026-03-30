@@ -8,6 +8,7 @@ import {
   CurrencyDollarIcon,
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/solid";
+import { getBillerStats } from "../api/biller.api";
 
 interface BillerStats {
   totalBills: number;
@@ -31,18 +32,20 @@ export default function BillerDashboard() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // 🔄 Replace later with real API call
-    setTimeout(() => {
-      setStats({
-        totalBills: 1200,
-        paidBills: 950,
-        unpaidBills: 200,
-        partiallyPaidBills: 50,
-        revenue: 350000,
-        thisMonthRevenue: 80000,
-      });
-      setLoading(false);
-    }, 800);
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const response = await getBillerStats();
+        if (response.status === 'SUCCESS') {
+          setStats(response.data);
+        }
+      } catch (error) {
+        console.error("Dashboard error:", error);
+      } finally {
+        setLoading(false)
+      }
+    };
+    fetchStats();
   }, []);
 
   const collectionRate =
