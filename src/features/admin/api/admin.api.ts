@@ -65,4 +65,21 @@ export const adminApi = {
     const response = await api.get("/admin/stats");
     return response.data.data;
   },
+
+  getBillers: async () => {
+    const response = await api.get("/billers");
+    return response.data.data;
+  },
+  createBiller: async (data: any) => {
+    const response = await api.post("/billers", data);
+    return response.data;
+  },
+  updateBiller: async (id: string, data: any) => {
+    const response = await api.put(`/billers/${id}`, data);
+    return response.data;
+  },
+  deleteBiller: async (id: string) => {
+    const response = await api.delete(`/billers/${id}`);
+    return response.data;
+  },
 };
