@@ -20,13 +20,17 @@ export default function BillersPage() {
     allowsPartial: false,
   });
 
-  // Mock initial data
-  useEffect(() => {
-    const load = async () => {
+  const loadData = async () => {
+    try {
       const data = await adminApi.getBillers();
       setBillers(data);
-    };
-    load();
+    } catch (error) {
+      console.error("Failed to load billers", error);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   // Filtered billers
@@ -81,19 +85,30 @@ export default function BillersPage() {
   };
 
   // Toggle active
-  const toggleStatus = (id: string) => {
-    setBillers((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, isActive: !b.isActive } : b))
-    );
+  const toggleStatus = async (id: string) => {
+    try {
+      const billerToToggle = billers.find((b) => b.id === id);
+      if (!billerToToggle) return;
+
+      await adminApi.updateBiller(id, {
+        ...billerToToggle,
+        isActive: !billerToToggle.isActive,
+      });
+
+      await loadData();
+      alert("Biller status updated successfully!");
+    } catch (error: any) {
+      console.error("Error toggling status:", error);
+      alert(error.response?.data?.message || "Failed to update status");
+    }
   };
 
   // Delete
   const deleteBiller = async (id: string) => {
     if (window.confirm("Delete this Biller organization?")) {
       try {
-        await adminApi.deleteBiller(id); // This deletes from the DB
+        await adminApi.deleteBiller(id); 
 
-        // 🚀 THE FIX: Refresh the list after deleting
         const freshBillersList = await adminApi.getBillers();
         setBillers(freshBillersList);
         alert("Biller deleted successfully!");

@@ -13,14 +13,26 @@ interface FormState {
   agent_id?: string;
   biller_id?: string;
 }
+interface Biller {
+  id: string;
+  name: string;
+}
+
+interface Agent {
+  id: string;
+  name: string;
+}
+
+
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-
+  const [billers, setBillers] = useState<Biller[]>([]); 
+  const [agents, setAgents] = useState<Agent[]>([]);   
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
@@ -28,18 +40,31 @@ export default function UsersPage() {
     role: "SYSTEM_ADMIN",
   });
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  
+useEffect(() => {
+  const loadData = async () => {
     try {
-      const data = await adminApi.getUsers();
-      setUsers(data);
+      const usersData = await adminApi.getUsers();
+      setUsers(usersData);
+const billersData = await adminApi.getBillers(); 
+setBillers(billersData);
+
+const agentsData = await adminApi.getAgents(); 
+setAgents(agentsData);
+      const response = await adminApi.getCurrentUser();
+      console.log("My User Data:", response);
+
+      if (response && response.id) {
+        setCurrentUserId(String(response.id));
+      } else if (response && response.user && response.user.id) {
+        setCurrentUserId(String(response.user.id));
+      }
     } catch (error) {
-      console.error("Failed to load users", error);
+      console.error("Initialization failed:", error);
     }
   };
+  loadData();
+}, []);
 
   const filtered = users.filter(
     (u) =>
@@ -62,10 +87,12 @@ export default function UsersPage() {
   const openEditModal = (user: User) => {
     setEditingUser(user);
     setForm({
-      name: user.fullName, 
+      name: user.fullName,
       email: user.email,
       password: "",
       role: user.role,
+      agent_id: user.agentId,
+      biller_id: user.billerId,
     });
     setIsModalOpen(true);
   };
@@ -73,35 +100,23 @@ export default function UsersPage() {
   const handleSave = async () => {
     try {
       const payload: any = {
-        fullName: form.name, 
+        fullName: form.name,
         email: form.email,
         role: form.role,
-        billerId: form.biller_id,
-        agentId: form.agent_id,
-
       };
 
-      if (form.password) {
-        payload.password = form.password;
-      }
-
-      if (form.role === "AGENT_USER") {
-        payload.agentId = form.agent_id;
-      }
-
-      if (form.role === "BILLER_USER") {
-        payload.billerId = form.biller_id;
-      }
+      if (form.password) payload.password = form.password;
+      if (form.role === "AGENT_USER") payload.agentId = form.agent_id;
+      if (form.role === "BILLER_USER") payload.billerId = form.biller_id;
 
       if (editingUser) {
         await adminApi.updateUser(editingUser.id, payload);
       } else {
         await adminApi.createUser(payload);
       }
+
       const freshUsersList = await adminApi.getUsers();
       setUsers(freshUsersList);
-
-      // await loadUsers();
       setIsModalOpen(false);
     } catch (error: any) {
       alert(error.response?.data?.message || "Operation failed");
@@ -110,27 +125,21 @@ export default function UsersPage() {
 
   const toggleStatus = async (id: string) => {
     try {
-      
       await adminApi.toggleStatus(id);
-
       const updatedUsers = await adminApi.getUsers();
       setUsers(updatedUsers);
-      alert("User status updated successfully!"); 
     } catch (error: any) {
-      console.error("Error toggling status:", error);
-      alert(error.response?.data?.message || "Failed to update user status."); 
+      alert(error.response?.data?.message || "Failed to update status.");
     }
   };
-
-
 
   const deleteUser = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await adminApi.deleteUser(id);
         setUsers((prev) => prev.filter((u) => u.id !== id));
-      } catch {
-        alert("Failed to delete user");
+      } catch (error: any) {
+        alert(error.response?.data?.message || "Failed to delete user");
       }
     }
   };
@@ -165,25 +174,24 @@ export default function UsersPage() {
       </div>
 
       <div className="bg-white shadow rounded-xl overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm text-left">
           <thead className="bg-gray-50">
             <tr>
               <th className="p-3">Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Role</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {filtered.map((user) => (
               <tr key={user.id} className="border-t">
-                <td className="p-3">{user.fullName}</td>
-                <td>{user.email}</td>
-                <td>{user.role}</td>
-
-                <td>
+                <td className="p-3 font-medium">{user.fullName}</td>
+                <td className="p-3">{user.email}</td>
+                <td className="p-3">{user.role}</td>
+                <td className="p-3">
                   <span
                     className={`px-2 py-1 text-xs text-white rounded-full ${
                       user.status === "active" ? "bg-green-500" : "bg-red-500"
@@ -192,11 +200,27 @@ export default function UsersPage() {
                     {user.status}
                   </span>
                 </td>
+                <td className="p-3 flex gap-3">
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => openEditModal(user)}
+                  >
+                    Edit
+                  </button>
 
-                <td className="flex gap-2">
-                  <button onClick={() => openEditModal(user)}>Edit</button>
-                  <button onClick={() => deleteUser(user.id)}>Delete</button>
-                  <button onClick={() => toggleStatus(user.id)}>
+                  {String(user.id) !== currentUserId && (
+                    <button
+                      className="text-red-600 hover:underline"
+                      onClick={() => deleteUser(user.id)}
+                    >
+                      Delete
+                    </button>
+                  )}
+
+                  <button
+                    className="text-gray-600 hover:underline"
+                    onClick={() => toggleStatus(user.id)}
+                  >
                     {user.status === "active" ? "Disable" : "Enable"}
                   </button>
                 </td>
@@ -227,7 +251,11 @@ export default function UsersPage() {
           />
 
           <input
-            placeholder="Password"
+            placeholder={
+              editingUser
+                ? "Password (leave blank to keep current)"
+                : "Password"
+            }
             type="password"
             className="border p-2 rounded"
             value={form.password}
@@ -252,31 +280,45 @@ export default function UsersPage() {
           </select>
 
           {form.role === "AGENT_USER" && (
-            <input
-              placeholder="Agent ID"
-              className="border p-2 rounded"
-              value={form.agent_id || ""}
+            <select
+              className="border p-2 rounded bg-blue-50"
+              value={form.agent_id}
               onChange={(e) => setForm({ ...form, agent_id: e.target.value })}
-            />
+            >
+              <option value="">Select Agent</option>
+              {agents.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
           )}
 
           {form.role === "BILLER_USER" && (
-            <input
-              placeholder="Biller ID"
-              className="border p-2 rounded"
-              value={form.biller_id || ""}
+            <select
+              className="border p-2 rounded bg-yellow-50"
+              value={form.biller_id}
               onChange={(e) => setForm({ ...form, biller_id: e.target.value })}
-            />
+            >
+              <option value="">Select Biller</option>
+              {billers.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
           )}
 
           <button
             disabled={!isFormValid}
             onClick={handleSave}
-            className={`p-2 text-white rounded ${
-              isFormValid ? "bg-red-600" : "bg-gray-400"
+            className={`p-2 text-white rounded transition ${
+              isFormValid
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-gray-400 cursor-not-allowed"
             }`}
           >
-            Save
+            {editingUser ? "Update User" : "Create User"}
           </button>
         </div>
       </Modal>

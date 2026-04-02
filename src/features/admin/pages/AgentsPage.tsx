@@ -1,8 +1,10 @@
 // src/features/admin/pages/AgentsPage.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import { adminLinks } from "../adminLinks";
 import Modal from "../../../shared/components/Modal";
+import { adminApi } from "../api/admin.api";
+
 
 // Local Agent type (since no backend yet)
 interface Agent {
@@ -10,31 +12,13 @@ interface Agent {
   name: string;
   code: string;
   api_key?: string;
-  isActive: boolean;
+  isEnabled: boolean;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: "1",
-      name: "Abel Telecom",
-      code: "ABL001",
-      api_key: "key_12345",
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: "2",
-      name: "Zemen Utilities",
-      code: "ZEM002",
-      api_key: "",
-      isActive: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
   ]);
 
   const [search, setSearch] = useState("");
@@ -45,8 +29,21 @@ export default function AgentsPage() {
     name: "",
     code: "",
     api_key: "",
-    isActive: true,
+    isEnabled: true,
   });
+
+  const loadAgents = async () => {
+    try {
+      const data = await adminApi.getAgents();
+      setAgents(data);
+    } catch (error) {
+      console.error('Failed to fetch agents:', error);
+      alert('Failed to load agents');
+    }
+  };
+  useEffect(() => {
+    loadAgents();
+  }, []);
 
   // Filter agents
   const filteredAgents = agents.filter(
@@ -58,7 +55,7 @@ export default function AgentsPage() {
   // Open Add Modal
   const openAddModal = () => {
     setEditingAgent(null);
-    setForm({ name: "", code: "", api_key: "", isActive: true });
+    setForm({ name: "", code: "", api_key: "", isEnabled: true });
     setIsModalOpen(true);
   };
 
@@ -69,58 +66,67 @@ export default function AgentsPage() {
       name: agent.name,
       code: agent.code,
       api_key: agent.api_key || "",
-      isActive: agent.isActive,
+      isEnabled: agent.isEnabled,
     });
     setIsModalOpen(true);
   };
 
   // Save Agent
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.code) {
       alert("Name and Code are required");
       return;
     }
-
-    if (editingAgent) {
-      // Update
-      setAgents((prev) =>
-        prev.map((a) =>
-          a.id === editingAgent.id
-            ? { ...a, ...form, updatedAt: new Date() }
-            : a
-        )
-      );
-    } else {
-      // Create
-      const newAgent: Agent = {
-        id: Date.now().toString(),
-        ...form,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      setAgents((prev) => [...prev, newAgent]);
+    try {
+      if (editingAgent) {
+        await adminApi.updateAgent(editingAgent.id, {
+          ...form,
+          api_key: editingAgent.api_key
+        });
+      } else {
+        // Create
+        await adminApi.createAgent(form);
+      }
+      await loadAgents();
+      setIsModalOpen(false);
+      alert("Agent saved successfully!");
+    } catch (error: any) {
+      console.error("Error saving agent:", error);
+      alert(error.response?.data?.message || "Failed to save agent.");
     }
-
-    setIsModalOpen(false);
   };
 
   // Toggle Status
-  const toggleStatus = (id: string) => {
-    setAgents((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? { ...a, isActive: !a.isActive, updatedAt: new Date() }
-          : a
-      )
-    );
+  const toggleStatus = async(id: string, currentStatus: boolean) => {
+    try {
+      const agentToToggle = agents.find(a => a.id === id);
+      if (!agentToToggle) {
+        alert("Agent not found for status toggle.");
+        return;
+      }
+
+      await adminApi.updateAgent(id, { ...agentToToggle, isEnabled: !currentStatus });
+      await loadAgents();
+      alert('Agent status updated successfully!');
+    } catch (error: any) {
+      console.error('Error toggling agent status:', error);
+      alert(error.response?.data?.message || "Failed to toggle agent status");
+    }
   };
 
   // Delete
-  const deleteAgent = (id: string) => {
-    setAgents((prev) => prev.filter((a) => a.id !== id));
+ const deleteAgent = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this Agent?")) {
+      try {
+        await adminApi.deleteAgent(id);
+        await loadAgents(); 
+        alert("Agent deleted successfully!");
+      } catch (error: any) {
+        console.error("Error deleting agent:", error);
+        alert(error.response?.data?.message || "Failed to delete agent.");
+      }
+    }
   };
-
   return (
     <DashboardLayout title="Manage Agents" links={adminLinks}>
       {/* Top Section */}
@@ -163,10 +169,10 @@ export default function AgentsPage() {
                 <td className="border">
                   <span
                     className={`px-2 py-1 rounded-full text-xs text-white ${
-                      agent.isActive ? "bg-green-500" : "bg-red-500"
+                      agent.isEnabled ? "bg-green-500" : "bg-red-500"
                     }`}
                   >
-                    {agent.isActive ? "Active" : "Inactive"}
+                    {agent.isEnabled ? "Active" : "Inactive"}
                   </span>
                 </td>
                 <td className="border space-x-2 p-2">
@@ -184,9 +190,9 @@ export default function AgentsPage() {
                   </button>
                   <button
                     className="text-gray-600 hover:underline"
-                    onClick={() => toggleStatus(agent.id)}
+                    onClick={() => toggleStatus(agent.id, agent.isEnabled)}
                   >
-                    {agent.isActive ? "Disable" : "Enable"}
+                    {agent.isEnabled ? "Disable" : "Enable"}
                   </button>
                 </td>
               </tr>
@@ -230,9 +236,9 @@ export default function AgentsPage() {
             <label>Active:</label>
             <input
               type="checkbox"
-              checked={form.isActive}
+              checked={form.isEnabled}
               onChange={(e) =>
-                setForm({ ...form, isActive: e.target.checked })
+                setForm({ ...form, isEnabled: e.target.checked })
               }
             />
           </div>
