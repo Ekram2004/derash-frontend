@@ -1,11 +1,12 @@
+import api from "@/services/api";
+
 export interface User {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
   role: string;
   status: "active" | "disabled";
 }
-
 export interface Agent {
   id: string;
   name: string;
@@ -36,43 +37,49 @@ export interface ReportData {
 }
 
 export const adminApi = {
-  async getStats(): Promise<Stats> {
-    return {
-      totalUsers: 22,
-      totalAgents: 10,
-      totalBillers: 12,
-      totalTransactions: 1200,
-      totalRevenue: 50000,
-    };
+  getUsers: async () => {
+    const response = await api.get("/admin/users");
+    return response.data.data;
   },
 
-  async getUsers(): Promise<User[]> {
-    return [
-      { id: "1", name: "Alice", email: "alice@test.com", role: "admin", status: "active" },
-      { id: "2", name: "Bob", email: "bob@test.com", role: "agent", status: "disabled" },
-    ];
+  createUser: async (userData: any) => {
+    const response = await api.post("/admin/users", userData);
+    return response.data;
   },
 
-  async getAgents(): Promise<Agent[]> {
-    return [
-      { id: "1", name: "Awash Bank", phone: "1234567890", commission: 5, status: "active" },
-      { id: "2", name: "Berhan Bank", phone: "0987654321", commission: 7, status: "pending" },
-      { id: "3", name: "Telebirr", phone: "1234567890", commission: 5, status: "active" },
-      { id: "4", name: "CBE", phone: "0987654321", commission: 7, status: "pending" },
-    ];
+  updateUser: async (id: string, userData: any) => {
+    const response = await api.put(`/admin/users/${id}`, userData);
+    return response.data;
   },
 
-  async getBillers(): Promise<Biller[]> {
-    return [
-      { id: "1", name: "Federal & Regional tax payers", serviceType: "tax", status: "active" },
-      { id: "2", name: "Ethiopian Electric Utility", serviceType: "Electricity", status: "disabled" },
-    ];
+  deleteUser: async (id: string) => {
+    const response = await api.delete(`/admin/users/${id}`);
+    return response.data;
   },
 
-  async getReports(): Promise<ReportData[]> {
-    return [
-      { name: "Agents", totalTransactions: 500, totalRevenue: 20000 },
-      { name: "Billers", totalTransactions: 700, totalRevenue: 30000 },
-    ];
+  toggleStatus: async (id: string) => {
+    const response = await api.patch(`/admin/users/${id}/toggle-status`);
+    return response.data;
+  },
+  getStats: async () => {
+    const response = await api.get("/admin/stats");
+    return response.data.data;
+  },
+
+  getBillers: async () => {
+    const response = await api.get("/billers");
+    return response.data.data;
+  },
+  createBiller: async (data: any) => {
+    const response = await api.post("/billers", data);
+    return response.data;
+  },
+  updateBiller: async (id: string, data: any) => {
+    const response = await api.put(`/billers/${id}`, data);
+    return response.data;
+  },
+  deleteBiller: async (id: string) => {
+    const response = await api.delete(`/billers/${id}`);
+    return response.data;
   },
 };

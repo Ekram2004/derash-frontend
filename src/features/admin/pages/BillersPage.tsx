@@ -4,6 +4,7 @@ import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import { adminLinks } from "../adminLinks";
 import Modal from "../../../shared/components/Modal";
 import BillerTable, { type Biller } from "../components/BillerTable";
+import { adminApi } from "../api/admin.api";
 
 export default function BillersPage() {
   const [billers, setBillers] = useState<Biller[]>([]);
@@ -21,24 +22,11 @@ export default function BillersPage() {
 
   // Mock initial data
   useEffect(() => {
-    setBillers([
-      {
-        id: "1",
-        name: "Ethiopian Electric Utility",
-        code: "EEU",
-        category: "UTILITY",
-        allowsPartial: false,
-        isActive: true,
-      },
-      {
-        id: "2",
-        name: "Federal Revenue",
-        code: "FR",
-        category: "TAX",
-        allowsPartial: true,
-        isActive: false,
-      },
-    ]);
+    const load = async () => {
+      const data = await adminApi.getBillers();
+      setBillers(data);
+    };
+    load();
   }, []);
 
   // Filtered billers
@@ -74,23 +62,22 @@ export default function BillersPage() {
   };
 
   // Save
-  const handleSave = () => {
-    if (editingBiller) {
-      setBillers((prev) =>
-        prev.map((b) => (b.id === editingBiller.id ? { ...b, ...form } : b))
-      );
-    } else {
-      setBillers((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          isActive: true,
-          ...form,
-        },
-      ]);
-    }
+  const handleSave = async() => {
+    try {
+      if (editingBiller) {
+        await adminApi.updateBiller(editingBiller.id, form);
+      } else {
+        await adminApi.createBiller(form);
+      }
 
-    setIsModalOpen(false);
+      const freshData = await adminApi.getBillers();
+      setBillers(freshData);
+      setIsModalOpen(false);
+      alert("Biller saved successfully!");
+    } catch (error: any) {
+      console.error("Error saving biller:", error);
+      alert(error.response?.data?.message || "Failed to save biller.");
+    }
   };
 
   // Toggle active
@@ -101,10 +88,21 @@ export default function BillersPage() {
   };
 
   // Delete
-  const deleteBiller = (id: string) => {
-    setBillers((prev) => prev.filter((b) => b.id !== id));
-  };
+  const deleteBiller = async (id: string) => {
+    if (window.confirm("Delete this Biller organization?")) {
+      try {
+        await adminApi.deleteBiller(id); // This deletes from the DB
 
+        // 🚀 THE FIX: Refresh the list after deleting
+        const freshBillersList = await adminApi.getBillers();
+        setBillers(freshBillersList);
+        alert("Biller deleted successfully!");
+      } catch (error: any) {
+        console.error("Error deleting biller:", error);
+        alert(error.response?.data?.message || "Failed to delete biller.");
+      }
+    }
+  };
   return (
     <DashboardLayout title="Manage Billers" links={adminLinks}>
       {/* Top Bar */}

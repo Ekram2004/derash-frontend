@@ -6,6 +6,7 @@ import {
   ChartBarIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/solid";
+import { uploadBillsCsv } from "../api/biller.api";
 
 interface UploadResult {
   success: number;
@@ -62,20 +63,23 @@ export default function UploadBillsPage() {
     try {
       setLoading(true);
       setError("");
+      setResult(null);
+      
+      const response = await uploadBillsCsv(file);
 
-      // 🔄 Replace with real API call later
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Mock result
-      setResult({
-        success: 95,
-        failed: 3,
-        duplicates: 2,
-      });
-
-      setFile(null);
-    } catch (err) {
-      setError("Upload failed. Please try again.");
+      if (response.status === "SUCCESS") {
+        setResult({
+          success: response.data.success,
+          failed: response.data.failed,
+          duplicates: 0
+        });
+        setFile(null);
+      } else {
+        setError(response.message || "Upload failed");
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Upload failed. Please check your CSV format.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

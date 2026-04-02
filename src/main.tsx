@@ -5,11 +5,11 @@ import "./index.css"; // make sure your CSS path is correct
 import App from "./App";
 
 async function startApp() {
-  // Only start the MSW (mock service worker) in development
-  if (import.meta.env.DEV) {
-    const { worker } = await import("./mocks/browser");
-    await worker.start();
-  }
+  // // Only start the MSW (mock service worker) in development
+  // if (import.meta.env.DEV) {
+  //   const { worker } = await import("./mocks/browser");
+  //   await worker.start();
+  // }
 
   // Get the root element safely
   const rootEl = document.getElementById("root");

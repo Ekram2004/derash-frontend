@@ -7,6 +7,7 @@ import {
   ChartBarIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/solid";
+import { getBillerBills } from "../api/biller.api";
 
 type BillStatus =
   | "UNPAID"
@@ -38,43 +39,49 @@ export default function BillsPage() {
 
   const billerLinks = [
     { label: "Dashboard", path: "/biller", icon: HomeIcon },
-    { label: "Upload Bills", path: "/biller/upload", icon: DocumentArrowUpIcon },
+    {
+      label: "Upload Bills",
+      path: "/biller/upload",
+      icon: DocumentArrowUpIcon,
+    },
     { label: "Bills", path: "/biller/bills", icon: BanknotesIcon },
     { label: "Reports", path: "/biller/reports", icon: ChartBarIcon },
   ];
 
   useEffect(() => {
-    setTimeout(() => {
-      setBills([
-        {
-          id: "1",
-          bill_reference: "AAWSA-1001",
-          customer_name: "Abel Tesfaye",
-          contract_number: "CN-0001",
-          period: "Jan 2026",
-          amount_due: 1200,
-          amount_paid: 1200,
-          remaining_bal: 0,
-          status: "PAID",
-          due_date: "2026-01-30",
-          createdAt: "2026-01-01",
-        },
-        {
-          id: "2",
-          bill_reference: "AAWSA-1002",
-          customer_name: "Meron Bekele",
-          contract_number: "CN-0002",
-          period: "Jan 2026",
-          amount_due: 900,
-          amount_paid: 300,
-          remaining_bal: 600,
-          status: "PARTIALLY_PAID",
-          due_date: "2026-01-30",
-          createdAt: "2026-01-01",
-        },
-      ]);
-      setLoading(false);
-    }, 600);
+    const fetchBills = async () => {
+      try {
+        setLoading(true);
+        const response = await getBillerBills();
+        if (response.status === "SUCCESS") {
+          const mapped: Bill[] = response.data.map((b: any) => {
+            const amount = Number(b.amount_due ?? 0);
+            const paid = Number(b.amount_paid ?? 0);
+            return {
+              id: b.id,
+              bill_reference: b.bill_reference ?? "",
+              customer_name: b.customer_name ?? "",
+              contract_number: b.contract_number ?? "",
+              period: b.period ?? "",
+              amount_due: amount,
+              amount_paid: paid,
+              remaining_bal: amount - paid,
+              status: b.status,
+              due_date: b.due_date,
+              createdAt: b.createdAt,
+            };
+          });
+          setBills(mapped);
+        } else {
+          console.error("Failed to load bills");
+        }
+      } catch (err) {
+        console.error("Error fetching bills:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBills();
   }, []);
 
   const filteredBills = useMemo(() => {
@@ -83,19 +90,15 @@ export default function BillsPage() {
         bill.bill_reference.toLowerCase().includes(search.toLowerCase()) ||
         bill.customer_name.toLowerCase().includes(search.toLowerCase()) ||
         bill.contract_number.toLowerCase().includes(search.toLowerCase());
-
       const matchesStatus =
         statusFilter === "ALL" || bill.status === statusFilter;
-
       return matchesSearch && matchesStatus;
     });
   }, [bills, search, statusFilter]);
 
   const handleCancelBill = (billId: string) => {
     setBills((prev) =>
-      prev.map((bill) =>
-        bill.id === billId ? { ...bill, status: "CANCELLED" } : bill
-      )
+      prev.map((b) => (b.id === billId ? { ...b, status: "CANCELLED" } : b)),
     );
     setSelectedBill(null);
   };
@@ -144,7 +147,6 @@ export default function BillsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="border p-2 rounded-lg w-full md:w-80"
           />
-
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -163,12 +165,13 @@ export default function BillsPage() {
           <div className="text-center py-10 text-gray-500">
             Loading bills...
           </div>
+        ) : filteredBills.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">No bills found.</div>
         ) : (
           <Table columns={columns} data={filteredBills} />
         )}
       </div>
 
-      {/* Bill Details Modal */}
       {selectedBill && (
         <BillDetailsModal
           bill={selectedBill}
@@ -195,18 +198,33 @@ function BillDetailsModal({
         <h2 className="text-lg font-semibold mb-4">
           Bill Details - {bill.bill_reference}
         </h2>
-
         <div className="space-y-2 text-sm text-gray-600">
-          <p><strong>Customer:</strong> {bill.customer_name}</p>
-          <p><strong>Contract:</strong> {bill.contract_number}</p>
-          <p><strong>Period:</strong> {bill.period}</p>
-          <p><strong>Amount Due:</strong> ETB {bill.amount_due.toLocaleString()}</p>
-          <p><strong>Paid:</strong> ETB {bill.amount_paid.toLocaleString()}</p>
-          <p><strong>Remaining:</strong> ETB {bill.remaining_bal.toLocaleString()}</p>
-          <p><strong>Status:</strong> {bill.status}</p>
-          <p><strong>Due Date:</strong> {bill.due_date}</p>
+          <p>
+            <strong>Customer:</strong> {bill.customer_name}
+          </p>
+          <p>
+            <strong>Contract:</strong> {bill.contract_number}
+          </p>
+          <p>
+            <strong>Period:</strong> {bill.period}
+          </p>
+          <p>
+            <strong>Amount Due:</strong> ETB {bill.amount_due.toLocaleString()}
+          </p>
+          <p>
+            <strong>Paid:</strong> ETB {bill.amount_paid.toLocaleString()}
+          </p>
+          <p>
+            <strong>Remaining:</strong> ETB{" "}
+            {bill.remaining_bal.toLocaleString()}
+          </p>
+          <p>
+            <strong>Status:</strong> {bill.status}
+          </p>
+          <p>
+            <strong>Due Date:</strong> {bill.due_date ?? "-"}
+          </p>
         </div>
-
         <div className="flex justify-end gap-3 mt-6">
           {bill.status !== "CANCELLED" && bill.status !== "PAID" && (
             <button
@@ -216,7 +234,6 @@ function BillDetailsModal({
               Cancel Bill
             </button>
           )}
-
           <button
             onClick={onClose}
             className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg"
@@ -237,10 +254,11 @@ function StatusBadge({ status }: { status: BillStatus }) {
     CANCELLED: "bg-gray-200 text-gray-700",
     EXPIRED: "bg-purple-100 text-purple-700",
   };
-
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
-      {status}
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status]}`}
+    >
+      {status.replaceAll("_", " ")}
     </span>
   );
 }
