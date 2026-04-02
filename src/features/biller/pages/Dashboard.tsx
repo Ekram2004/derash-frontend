@@ -73,11 +73,10 @@ export default function BillerDashboard() {
               value={stats.totalBills}
               icon={<ClipboardDocumentListIcon className="w-6 h-6 text-blue-600" />}
             />
-
             <StatCard
               title="Paid Bills"
               value={stats.paidBills}
-              icon={<CurrencyDollarIcon className="w-6 h-6 text-green-600" />}
+              icon={<CurrencyDollarIcon className="w-6 h-6 text-green-600" />} 
             />
 
             <StatCard

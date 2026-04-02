@@ -1,12 +1,16 @@
 import api from "@/services/api";
+import axios from "axios";
 
 export interface User {
+  billerId: string;
+  agentId: string;
   id: string;
   fullName: string;
   email: string;
   role: string;
   status: "active" | "disabled";
 }
+
 export interface Agent {
   id: string;
   name: string;
@@ -62,12 +66,11 @@ export const adminApi = {
     return response.data;
   },
   getStats: async () => {
-    const response = await api.get("/admin/stats");
+    const response = await api.get("/admin/stats"); 
     return response.data.data;
   },
-
   getBillers: async () => {
-    const response = await api.get("/billers");
+    const response = await api.get("/billers"); 
     return response.data.data;
   },
   createBiller: async (data: any) => {
@@ -82,4 +85,26 @@ export const adminApi = {
     const response = await api.delete(`/billers/${id}`);
     return response.data;
   },
+  getAgents: async () => {
+    const response = await api.get("/agents"); 
+    return response.data.data;
+  },
+  createAgent: async (data: any) => {
+    const response = await api.post("/agents", data);
+    return response.data;
+  },
+  updateAgent: async (id: string, data: any) => {
+    const response = await api.put(`/agents/${id}`, data);
+    return response.data;
+  },
+  deleteAgent: async (id: string) => {
+    const response = await api.delete(`/agents/${id}`);
+    return response.data;
+  },
+  getCurrentUser: async () => {
+    const res = await axios.get("/auth/me", {
+      withCredentials: true,
+    });
+    return res.data.data;
+  }
 };
