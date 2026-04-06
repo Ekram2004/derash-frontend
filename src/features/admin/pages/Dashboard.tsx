@@ -27,7 +27,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend,
+  Legend
 );
 
 // 🇪🇹 ETB Formatter
@@ -45,7 +45,6 @@ export default function Dashboard() {
     const load = async () => {
       const data = await adminApi.getStats();
 
-      // 🛡️ Safety defaults (prevents undefined issues)
       setStats({
         totalUsers: data.totalUsers || 0,
         totalAgents: data.totalAgents || 0,
@@ -58,38 +57,41 @@ export default function Dashboard() {
     load();
   }, []);
 
-  if (!stats) return <p>Loading...</p>;
+  if (!stats) return <p className="text-center text-gray-500">Loading...</p>;
 
-  // ✅ Keep ALL values as numbers (important)
   const cardData = [
     {
       title: "Users",
       value: stats.totalUsers,
       icon: <UserGroupIcon className="w-8 h-8 text-blue-500" />,
+      bg: "bg-blue-50",
     },
     {
       title: "Agents",
       value: stats.totalAgents,
       icon: <UsersIcon className="w-8 h-8 text-green-500" />,
+      bg: "bg-green-50",
     },
     {
       title: "Billers",
       value: stats.totalBillers,
       icon: <BanknotesIcon className="w-8 h-8 text-yellow-500" />,
+      bg: "bg-yellow-50",
     },
     {
       title: "Transactions",
       value: stats.totalTransactions,
       icon: <ChartBarIcon className="w-8 h-8 text-purple-500" />,
+      bg: "bg-purple-50",
     },
     {
       title: "Revenue",
       value: stats.totalRevenue,
       icon: <CurrencyDollarIcon className="w-8 h-8 text-red-500" />,
+      bg: "bg-red-50",
     },
   ];
 
-  // 📊 Chart Data (no string parsing anymore 🚀)
   const chartData = {
     labels: cardData.map((c) => c.title),
     datasets: [
@@ -109,36 +111,68 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout title="Dashboard Overview" links={adminLinks}>
-      {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {cardData.map((c) => (
-          <div
-            key={c.title}
-            className="bg-white shadow-lg rounded-lg p-6 flex items-center gap-4"
-          >
-            {c.icon}
-            <div>
-              <p className="text-gray-500">{c.title}</p>
+      {/* Header */}
+      <div className="mb-8">
+      <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
+        Dashboard <span className="text-red-500">Overview</span>
+      </h1>
 
-              <h2 className="text-2xl font-bold">
-                {c.title === "Revenue"
-                  ? formatETB(c.value) // 🇪🇹 ETB formatting here
-                  : c.value}
-              </h2>
-            </div>
-          </div>
-        ))}
+       <p className="mt-2 text-sm md:text-base text-gray-500 max-w-2xl leading-relaxed 
+       font-medium">
+        Monitor users, transactions, and revenue at a glance with real-time insights,
+         performance metrics, and a clear overview of your system activity.
+       </p>
+
+  
+</div>
+      
+      {/* Cards */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
+  {cardData.map((c) => (
+    <div
+      key={c.title}
+      className={`group rounded-2xl p-6 border border-gray-100 bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${c.bg}`}
+    >
+      {/* Icon */}
+      <div className="flex items-center justify-between">
+        <div className="p-3 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-300">
+          {c.icon}
+        </div>
       </div>
 
+      {/* Content */}
+      <div className="mt-5">
+        <p className="text-gray-500 text-sm font-semibold tracking-wide uppercase">
+          {c.title}
+        </p>
+
+        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-2 tracking-tight">
+          {c.title === "Revenue"
+            ? formatETB(c.value)
+            : c.value}
+        </h2>
+
+        {/* subtle underline accent */}
+        <div className="mt-3 h-1 w-10 bg-red-500 rounded-full opacity-70"></div>
+      </div>
+    </div>
+     ))}
+     </div>
       {/* Chart */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h3 className="font-bold text-lg mb-4">Overview Chart</h3>
+      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-semibold text-3xl md:text-4xl text-gray-800">
+            Overview <span className="text-red-500">Chart</span>
+          </h3>
+        </div>
+
         <Bar
           data={chartData}
           options={{
             responsive: true,
             plugins: {
               legend: { position: "bottom" },
+              title: { display: false },
             },
           }}
         />

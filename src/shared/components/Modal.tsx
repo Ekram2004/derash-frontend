@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function Modal({ isOpen, title, children, onClose }: Props) {
-  // Close modal on ESC
+  // Close on ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -24,25 +24,51 @@ export default function Modal({ isOpen, title, children, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
+      {/* Modal Container */}
       <div
-        className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 transform transition-all duration-300 scale-100 hover:scale-105"
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+        className="w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-100 animate-fadeIn"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{title}</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+
           <button
-            className="text-gray-500 hover:text-gray-700 p-1 rounded-full transition"
             onClick={onClose}
             aria-label="Close modal"
+            className="p-2 rounded-full text-gray-500 hover:text-white hover:bg-red-500 transition-all duration-200"
           >
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto">{children}</div>
+
+        {/* Body */}
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+          {children}
+        </div>
       </div>
+
+      {/* Animation Style */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          .animate-fadeIn {
+            animation: fadeIn 0.2s ease-out;
+          }
+        `}
+      </style>
     </div>
   );
 }

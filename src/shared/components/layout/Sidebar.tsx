@@ -23,24 +23,50 @@ export default function Sidebar({ links }: Props) {
   const location = useLocation();
 
   return (
-    <aside className="w-72 bg-white shadow-md flex flex-col p-6">
+    <aside className="w-72 bg-white border-r shadow-sm flex flex-col p-6">
       
-      <ul className="flex-1">
-        {links.map((link) => (
-          <li key={link.path} className="mb-2">
-            <Link
-              to={link.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-150 hover:bg-gray-100 ${
-                location.pathname === link.path ? "bg-blue-600 text-white font-bold" : "text-gray-700"
-              }`}
-            >
-              {link.icon}
-              {link.label}
-            </Link>
-          </li>
-        ))}
+      {/* Logo / Title */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          Admin Panel
+        </h1>
+        <div className="mt-2 h-1 w-12 bg-red-500 rounded-full"></div>
+      </div>
+
+      {/* Links */}
+      <ul className="flex-1 space-y-2">
+        {links.map((link) => {
+          const isActive = location.pathname === link.path;
+
+          return (
+            <li key={link.path}>
+              <Link
+                to={link.path}
+               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium tracking-wide transition-all duration-200 group ${
+  isActive
+    ? "bg-red-500 text-white shadow-md font-semibold"
+    : "text-gray-600 hover:bg-red-50 hover:text-red-600"
+}`}
+              >
+                <span
+                  className={`transition-colors duration-200 ${
+                    isActive
+                      ? "text-white"
+                      : "text-gray-400 group-hover:text-red-500"
+                  }`}
+                >
+                  {link.icon}
+                </span>
+
+                <span>{link.label}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
-      <button className="w-full bg-red-500 text-white py-2 rounded-lg mt-auto hover:bg-red-600 transition">
+
+      {/* Logout */}
+      <button className="w-full mt-6 bg-red-500 text-white py-3 rounded-xl font-semibold shadow-sm hover:bg-red-600 hover:shadow-md transition-all duration-200">
         Logout
       </button>
     </aside>

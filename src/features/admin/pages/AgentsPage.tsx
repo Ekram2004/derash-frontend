@@ -5,23 +5,19 @@ import { adminLinks } from "../adminLinks";
 import Modal from "../../../shared/components/Modal";
 import { adminApi } from "../api/admin.api";
 
-
-// Local Agent type (since no backend yet)
+// Agent type
 interface Agent {
   id: string;
   name: string;
   code: string;
   api_key?: string;
   isEnabled: boolean;
-  createdAt: Date;
-  updatedAt?: Date;
 }
 
 export default function AgentsPage() {
-  const [agents, setAgents] = useState<Agent[]>([
-  ]);
-
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 
@@ -32,34 +28,40 @@ export default function AgentsPage() {
     isEnabled: true,
   });
 
+  // Load agents
   const loadAgents = async () => {
     try {
       const data = await adminApi.getAgents();
       setAgents(data);
     } catch (error) {
-      console.error('Failed to fetch agents:', error);
-      alert('Failed to load agents');
+      console.error("Failed to load agents", error);
     }
   };
+
   useEffect(() => {
     loadAgents();
   }, []);
 
-  // Filter agents
-  const filteredAgents = agents.filter(
+  // Filter
+  const filtered = agents.filter(
     (a) =>
       a.name.toLowerCase().includes(search.toLowerCase()) ||
       a.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Open Add Modal
+  // Open Add
   const openAddModal = () => {
     setEditingAgent(null);
-    setForm({ name: "", code: "", api_key: "", isEnabled: true });
+    setForm({
+      name: "",
+      code: "",
+      api_key: "",
+      isEnabled: true,
+    });
     setIsModalOpen(true);
   };
 
-  // Open Edit Modal
+  // Open Edit
   const openEditModal = (agent: Agent) => {
     setEditingAgent(agent);
     setForm({
@@ -71,22 +73,15 @@ export default function AgentsPage() {
     setIsModalOpen(true);
   };
 
-  // Save Agent
+  // Save
   const handleSave = async () => {
-    if (!form.name || !form.code) {
-      alert("Name and Code are required");
-      return;
-    }
     try {
       if (editingAgent) {
-        await adminApi.updateAgent(editingAgent.id, {
-          ...form,
-          api_key: editingAgent.api_key
-        });
+        await adminApi.updateAgent(editingAgent.id, form);
       } else {
-        // Create
         await adminApi.createAgent(form);
       }
+
       await loadAgents();
       setIsModalOpen(false);
       alert("Agent saved successfully!");
@@ -96,101 +91,126 @@ export default function AgentsPage() {
     }
   };
 
-  // Toggle Status
-  const toggleStatus = async(id: string, currentStatus: boolean) => {
+  // Toggle status (FIXED like biller logic)
+  const toggleStatus = async (id: string) => {
     try {
-      const agentToToggle = agents.find(a => a.id === id);
-      if (!agentToToggle) {
-        alert("Agent not found for status toggle.");
-        return;
-      }
+      const agent = agents.find((a) => a.id === id);
+      if (!agent) return;
 
-      await adminApi.updateAgent(id, { ...agentToToggle, isEnabled: !currentStatus });
+      await adminApi.updateAgent(id, {
+        ...agent,
+        isEnabled: !agent.isEnabled,
+      });
+
       await loadAgents();
-      alert('Agent status updated successfully!');
+      alert("Agent status updated!");
     } catch (error: any) {
-      console.error('Error toggling agent status:', error);
-      alert(error.response?.data?.message || "Failed to toggle agent status");
+      console.error(error);
+      alert("Failed to update status");
     }
   };
 
   // Delete
- const deleteAgent = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this Agent?")) {
+  const deleteAgent = async (id: string) => {
+    if (window.confirm("Delete this agent?")) {
       try {
         await adminApi.deleteAgent(id);
-        await loadAgents(); 
+        await loadAgents();
         alert("Agent deleted successfully!");
       } catch (error: any) {
-        console.error("Error deleting agent:", error);
-        alert(error.response?.data?.message || "Failed to delete agent.");
+        console.error(error);
+        alert("Failed to delete agent");
       }
     }
   };
+
   return (
     <DashboardLayout title="Manage Agents" links={adminLinks}>
-      {/* Top Section */}
-      <div className="flex justify-between mb-4">
-        <input
-          type="text"
-          placeholder="Search by name or code..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded-lg w-64"
-        />
-        <button
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-          onClick={openAddModal}
-        >
-          Add Agent
-        </button>
+      
+      {/* HEADER (same style as biller page) */}
+      <div className="bg-white rounded-2xl border shadow-sm p-6 mb-6 space-y-5">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+            Agents <span className="text-red-500">Management</span>
+          </h1>
+
+          <p className="text-sm text-gray-500 mt-2 max-w-2xl">
+            Manage system agents, API integrations, and access control.
+          </p>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Search agents..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-4 py-2 rounded-lg w-full md:w-1/3"
+          />
+
+          {/* Button */}
+          <button
+            onClick={openAddModal}
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
+          >
+            + Add Agent
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white shadow-lg rounded-xl overflow-x-auto">
-        <table className="w-full text-sm border">
+      {/* TABLE (same professional style as biller) */}
+      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="p-3 border">Name</th>
-              <th className="border">Code</th>
-              <th className="border">API Key</th>
-              <th className="border">Status</th>
-              <th className="border">Actions</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Code</th>
+              <th className="p-3 text-left">API Key</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {filteredAgents.map((agent) => (
-              <tr key={agent.id} className="border-t text-center">
-                <td className="p-3 border">{agent.name}</td>
-                <td className="border">{agent.code}</td>
-                <td className="border">
-                  {agent.api_key ? agent.api_key : "-"}
+            {filtered.map((agent) => (
+              <tr key={agent.id} className="border-t hover:bg-gray-50">
+                <td className="p-3">{agent.name}</td>
+                <td className="p-3">{agent.code}</td>
+                <td className="p-3">
+                  {agent.api_key || "-"}
                 </td>
-                <td className="border">
+
+                {/* Status */}
+                <td className="p-3">
                   <span
-                    className={`px-2 py-1 rounded-full text-xs text-white ${
+                    className={`px-3 py-1 rounded-full text-xs font-medium text-white ${
                       agent.isEnabled ? "bg-green-500" : "bg-red-500"
                     }`}
                   >
                     {agent.isEnabled ? "Active" : "Inactive"}
                   </span>
                 </td>
-                <td className="border space-x-2 p-2">
+
+                {/* Actions */}
+                <td className="p-3 text-right space-x-3">
                   <button
-                    className="text-blue-600 hover:underline"
                     onClick={() => openEditModal(agent)}
+                    className="text-blue-600 hover:underline"
                   >
                     Edit
                   </button>
+
                   <button
-                    className="text-red-600 hover:underline"
                     onClick={() => deleteAgent(agent.id)}
+                    className="text-red-600 hover:underline"
                   >
                     Delete
                   </button>
+
                   <button
+                    onClick={() => toggleStatus(agent.id)}
                     className="text-gray-600 hover:underline"
-                    onClick={() => toggleStatus(agent.id, agent.isEnabled)}
                   >
                     {agent.isEnabled ? "Disable" : "Enable"}
                   </button>
@@ -201,39 +221,38 @@ export default function AgentsPage() {
         </table>
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       <Modal
         isOpen={isModalOpen}
         title={editingAgent ? "Edit Agent" : "Add Agent"}
         onClose={() => setIsModalOpen(false)}
       >
-        <div className="flex flex-col gap-4">
+        <div className="space-y-4">
           <input
             type="text"
             placeholder="Agent Name"
-            className="border p-2 rounded-lg"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="w-full border p-2 rounded-lg"
           />
 
           <input
             type="text"
             placeholder="Agent Code"
-            className="border p-2 rounded-lg"
             value={form.code}
             onChange={(e) => setForm({ ...form, code: e.target.value })}
+            className="w-full border p-2 rounded-lg"
           />
 
           <input
             type="text"
-            placeholder="API Key (optional)"
-            className="border p-2 rounded-lg"
+            placeholder="API Key"
             value={form.api_key}
             onChange={(e) => setForm({ ...form, api_key: e.target.value })}
+            className="w-full border p-2 rounded-lg"
           />
 
           <div className="flex items-center gap-2">
-            <label>Active:</label>
             <input
               type="checkbox"
               checked={form.isEnabled}
@@ -241,24 +260,27 @@ export default function AgentsPage() {
                 setForm({ ...form, isEnabled: e.target.checked })
               }
             />
+            <label>Active</label>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-3 pt-3">
             <button
-              className="px-4 py-2 bg-gray-300 rounded-lg"
               onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 bg-gray-200 rounded-lg"
             >
               Cancel
             </button>
+
             <button
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               onClick={handleSave}
+              className="px-5 py-2 bg-red-600 text-white rounded-lg"
             >
               Save
             </button>
           </div>
         </div>
       </Modal>
+
     </DashboardLayout>
   );
 }
