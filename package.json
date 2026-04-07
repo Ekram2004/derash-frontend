@@ -17,6 +17,7 @@
     "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",
     "js-cookie": "^3.0.5",
+    "lucide-react": "^1.7.0",
     "papaparse": "^5.5.3",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
@@ -51,39 +52,38 @@
   "msw": {
     "workerDirectory": [
       "public"
-    ]
-  ,
-  "name": "derash-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "node index"
-  },
-  "prisma": {
-    "seed": " npx tsx prisma/seed.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "@prisma/adapter-pg": "^7.4.2",
-    "@prisma/client": "^7.4.2",
-    "amqplib": "^0.10.9",
-    "bcrypt": "^6.0.0",
-    "dotenv": "^17.3.1",
-    "fastify": "^5.7.4",
-    "pg": "^8.19.0",
-    "pino": "^10.3.1",
-    "prisma": "^7.4.2",
-    "typescript": "^5.9.3"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^25.3.0",
-    "@types/pg": "^8.18.0",
-    "tsx": "^4.21.0"
-  }
+    ],
+    "name": "derash-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "dev": "node index"
+    },
+    "prisma": {
+      "seed": " npx tsx prisma/seed.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "dependencies": {
+      "@prisma/adapter-pg": "^7.4.2",
+      "@prisma/client": "^7.4.2",
+      "amqplib": "^0.10.9",
+      "bcrypt": "^6.0.0",
+      "dotenv": "^17.3.1",
+      "fastify": "^5.7.4",
+      "pg": "^8.19.0",
+      "pino": "^10.3.1",
+      "prisma": "^7.4.2",
+      "typescript": "^5.9.3"
+    },
+    "devDependencies": {
+      "@types/bcrypt": "^6.0.0",
+      "@types/node": "^25.3.0",
+      "@types/pg": "^8.18.0",
+      "tsx": "^4.21.0"
+    }
   }
 }

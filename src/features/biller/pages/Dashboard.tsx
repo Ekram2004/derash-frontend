@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import {
-  HomeIcon,
   BanknotesIcon,
   ChartBarIcon,
-  DocumentArrowUpIcon,
   CurrencyDollarIcon,
   ClipboardDocumentListIcon,
 } from "@heroicons/react/24/solid";
+
 import { getBillerStats } from "../api/biller.api";
+import { billerLinks } from "../billerLinks"; // ✅ IMPORT REUSABLE LINKS
 
 interface BillerStats {
   totalBills: number;
@@ -36,15 +36,17 @@ export default function BillerDashboard() {
       try {
         setLoading(true);
         const response = await getBillerStats();
-        if (response.status === 'SUCCESS') {
+
+        if (response?.status === "SUCCESS") {
           setStats(response.data);
         }
       } catch (error) {
         console.error("Dashboard error:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     };
+
     fetchStats();
   }, []);
 
@@ -53,60 +55,69 @@ export default function BillerDashboard() {
       ? ((stats.paidBills / stats.totalBills) * 100).toFixed(1)
       : "0";
 
-  const billerLinks = [
-    { label: "Dashboard", path: "/biller", icon: HomeIcon },
-    { label: "Upload Bills", path: "/biller/upload", icon: DocumentArrowUpIcon },
-    { label: "Bills", path: "/biller/bills", icon: BanknotesIcon },
-    { label: "Reports", path: "/biller/reports", icon: ChartBarIcon },
-  ];
-
   return (
     <DashboardLayout title="Biller Dashboard" links={billerLinks}>
       {loading ? (
-        <div className="text-center py-10 text-gray-500">Loading dashboard...</div>
+        <div className="text-center py-10 text-gray-500">
+          Loading dashboard...
+        </div>
       ) : (
         <div className="space-y-8">
+          
           {/* 🔹 Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
               title="Total Bills"
               value={stats.totalBills}
-              icon={<ClipboardDocumentListIcon className="w-6 h-6 text-blue-600" />}
+              icon={
+                <ClipboardDocumentListIcon className="w-6 h-6 text-blue-600" />
+              }
             />
+
             <StatCard
               title="Paid Bills"
               value={stats.paidBills}
-              icon={<CurrencyDollarIcon className="w-6 h-6 text-green-600" />} 
+              icon={
+                <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+              }
             />
 
             <StatCard
               title="Unpaid Bills"
               value={stats.unpaidBills}
-              icon={<BanknotesIcon className="w-6 h-6 text-red-600" />}
+              icon={
+                <BanknotesIcon className="w-6 h-6 text-red-600" />
+              }
             />
 
             <StatCard
               title="Partially Paid"
               value={stats.partiallyPaidBills}
-              icon={<BanknotesIcon className="w-6 h-6 text-yellow-600" />}
+              icon={
+                <BanknotesIcon className="w-6 h-6 text-yellow-600" />
+              }
             />
 
             <StatCard
               title="Total Revenue (ETB)"
               value={stats.revenue}
               isCurrency
-              icon={<CurrencyDollarIcon className="w-6 h-6 text-emerald-600" />}
+              icon={
+                <CurrencyDollarIcon className="w-6 h-6 text-emerald-600" />
+              }
             />
 
             <StatCard
               title="This Month Revenue (ETB)"
               value={stats.thisMonthRevenue}
               isCurrency
-              icon={<ChartBarIcon className="w-6 h-6 text-purple-600" />}
+              icon={
+                <ChartBarIcon className="w-6 h-6 text-purple-600" />
+              }
             />
           </div>
 
-          {/* 🔹 Performance Section */}
+          {/* 🔹 Performance */}
           <div className="bg-white p-6 rounded-xl shadow">
             <h2 className="text-lg font-semibold mb-4">
               Collection Performance
@@ -127,9 +138,11 @@ export default function BillerDashboard() {
             </div>
           </div>
 
-          {/* 🔹 Quick Summary */}
+          {/* 🔹 Summary */}
           <div className="bg-white p-6 rounded-xl shadow">
-            <h2 className="text-lg font-semibold mb-4">Quick Summary</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Quick Summary
+            </h2>
 
             <ul className="space-y-2 text-gray-600 text-sm">
               <li>• Total Bills Issued: {stats.totalBills}</li>
@@ -148,6 +161,9 @@ export default function BillerDashboard() {
   );
 }
 
+/* =========================
+   🔹 Stat Card Component
+========================= */
 interface StatCardProps {
   title: string;
   value: number;
@@ -169,7 +185,9 @@ function StatCard({
       </div>
 
       <p className="text-2xl font-bold mt-2">
-        {isCurrency ? `ETB ${value.toLocaleString()}` : value.toLocaleString()}
+        {isCurrency
+          ? `ETB ${value.toLocaleString()}`
+          : value.toLocaleString()}
       </p>
     </div>
   );

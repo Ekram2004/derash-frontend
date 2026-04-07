@@ -15,4 +15,7 @@ export const agentLinks = [
     label: "Reports",
     path: "/agent/reports",
   },
+  { label: "Settings",
+     path: "/settings" },
+  
 ];
