@@ -24,6 +24,8 @@ export default function BillersPage() {
     code: "",
     category: "",
     allowsPartial: false,
+    isActive: true
+    
   });
 
   const loadData = async () => {
@@ -53,6 +55,7 @@ export default function BillersPage() {
       code: "",
       category: "",
       allowsPartial: false,
+      isActive:true
     });
     setIsModalOpen(true);
   };
@@ -64,6 +67,7 @@ export default function BillersPage() {
       code: biller.code,
       category: biller.category,
       allowsPartial: biller.allowsPartial,
+      isActive: biller.isActive,
     });
     setIsModalOpen(true);
   };
