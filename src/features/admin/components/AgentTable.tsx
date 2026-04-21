@@ -125,14 +125,15 @@ export default function AgentTable({
                 <td className="px-8 py-5">
                   <div className="flex justify-end items-center gap-3">
                     
-                    <button
-                      onClick={() => onEdit(agent)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Edit Agent"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-
+                      <button
+                               onClick={() => onEdit(agent)}
+                            className="flex items-center gap-1 px-2 py-1.5
+                             text-xs font-bold rounded-lg border border-blue-200 
+                               text-blue-600 hover:bg-blue-50 transition"
+                           title="Edit Biller" >
+                             <PencilIcon className="w-4 h-4" />
+                               Edit
+                             </button>
                     <button
                       onClick={() => onToggleStatus(agent.id)}
                       className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition ${
@@ -145,12 +146,13 @@ export default function AgentTable({
                     </button>
 
                     <button
-                      onClick={() => onDelete(agent.id)}
-                      className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete Agent"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
+                     onClick={() => onDelete(agent.id)}
+                     className="px-4 py-1.5 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition flex items-center gap-1.5"
+                     title="Delete Biller"
+                   >
+                     <TrashIcon className="w-4 h-4" />
+                     Delete
+                   </button>
 
                   </div>
                 </td>

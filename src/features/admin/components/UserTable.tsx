@@ -56,7 +56,7 @@ export default function UserTable({
               <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-8 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <th className="px-8 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
                 Management
               </th>
             </tr>
@@ -124,13 +124,14 @@ export default function UserTable({
                     
                     {/* Edit */}
                     <button
-                      onClick={() => onEdit(user)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Edit User"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-
+            onClick={() => onEdit(user)}
+         className="flex items-center gap-1 px-2 py-1.5
+          text-xs font-bold rounded-lg border border-blue-200 
+            text-blue-600 hover:bg-blue-50 transition"
+        title="Edit Biller" >
+          <PencilIcon className="w-4 h-4" />
+            Edit
+          </button>
                     {/* Enable/Disable */}
                     <button
                       onClick={() => onToggleStatus(user.id)}
@@ -145,13 +146,14 @@ export default function UserTable({
 
                     {/* Delete */}
                     {String(user.id) !== currentUserId && (
-                      <button
-                        onClick={() => onDelete(user.id)}
-                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete User"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
+                        <button
+                         onClick={() => onDelete(user.id)}
+                         className="px-4 py-1.5 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition flex items-center gap-1.5"
+                         title="Delete Biller"
+                       >
+                         <TrashIcon className="w-4 h-4" />
+                         Delete
+                       </button>
                     )}
 
                   </div>

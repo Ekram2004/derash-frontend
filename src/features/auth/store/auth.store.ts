@@ -1,3 +1,5 @@
+// src/features/auth/store/auth.store.ts
+
 import { create } from "zustand";
 import Cookies from "js-cookie";
 
@@ -6,14 +8,21 @@ interface User {
   name: string;
   email: string;
   role: "ADMIN" | "AGENT" | "BILLER";
+
+  // ✅ NEW FIELD (safe add)
+  mustChangePassword?: boolean;
 }
 
 // Define the store state
 interface AuthState {
   user: User | null;
   token: string | null;
+
   login: (user: User) => void;
   logout: () => void;
+
+  // ✅ NEW ACTION
+  setMustChangePassword: (value: boolean) => void;
 }
 
 // Cookie key
@@ -31,7 +40,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     Cookies.set(TOKEN_KEY, fakeToken, { expires: 1 / 24 }); // 1 hour
 
     set({
-      user,
+      user: {
+        ...user,
+
+        // ✅ FORCE password change on login (you can remove later)
+        mustChangePassword: true,
+      },
       token: fakeToken,
     });
   },
@@ -44,4 +58,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       token: null,
     });
   },
+
+  // ✅ UPDATE PASSWORD STATUS
+  setMustChangePassword: (value: boolean) =>
+    set((state) => ({
+      user: state.user
+        ? { ...state.user, mustChangePassword: value }
+        : null,
+    })),
 }));

@@ -1,3 +1,5 @@
+// src/core/router/AdminRoutes.tsx
+
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "@/shared/components/common/ProtectedRoute";
 
@@ -10,8 +12,9 @@ import SettingsPage from "../../features/settings/pages/SettingsPage";
 
 export default function AdminRoutes() {
   return (
-    <ProtectedRoute>
-      <Routes>
+    <Routes>
+      {/* ✅ Protected wrapper */}
+      <Route element={<ProtectedRoute />}>
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<UsersPage />} />
@@ -19,7 +22,7 @@ export default function AdminRoutes() {
         <Route path="billers" element={<BillersPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
-      </Routes>
-    </ProtectedRoute>
+      </Route>
+    </Routes>
   );
 }

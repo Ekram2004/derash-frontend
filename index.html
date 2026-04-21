@@ -2,12 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>derash-frontend</title>
+
+    <title>DERASH</title>
+
+    <!-- OPTIONAL: prevent theme flash (important for dark mode UX) -->
+    <script>
+      (function () {
+        try {
+          const theme = localStorage.getItem("derash_theme");
+          if (theme) {
+            const isDark = JSON.parse(theme);
+            if (isDark) {
+              document.documentElement.classList.add("dark");
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
+
   </head>
+
   <body>
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

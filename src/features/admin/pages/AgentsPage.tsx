@@ -143,7 +143,7 @@ export default function AgentsPage() {
   };
 
   return (
-    <DashboardLayout title="Agents Directory" links={adminLinks}>
+    <DashboardLayout title="Manage Agents" links={adminLinks}>
       
       {/* HEADER (same as BillersPage) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6">

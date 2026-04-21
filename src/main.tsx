@@ -1,27 +1,15 @@
-// src/main.tsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css"; // make sure your CSS path is correct
 import App from "./App";
+import "./index.css";
 
-async function startApp() {
-  // // Only start the MSW (mock service worker) in development
-  // if (import.meta.env.DEV) {
-  //   const { worker } = await import("./mocks/browser");
-  //   await worker.start();
-  // }
+import { useThemeStore } from "@/shared/store/theme.store";
 
-  // Get the root element safely
-  const rootEl = document.getElementById("root");
-  if (!rootEl) throw new Error("Root element not found");
+// initialize theme BEFORE render
+useThemeStore.getState().initTheme();
 
-  // Render React
-  createRoot(rootEl).render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
-}
-
-// Start the app
-startApp();
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);

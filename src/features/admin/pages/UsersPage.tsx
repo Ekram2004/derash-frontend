@@ -178,7 +178,8 @@ export default function UsersPage() {
         <div className="max-w-2xl">
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">
             Users{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-400">
+            <span className="text-transparent bg-clip-text
+             bg-gradient-to-r from-red-600 to-rose-400">
               Directory
             </span>
           </h1>

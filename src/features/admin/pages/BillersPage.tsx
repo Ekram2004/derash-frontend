@@ -106,7 +106,7 @@ export default function BillersPage() {
   };
 
   return (
-    <DashboardLayout title="Biller Directory" links={adminLinks}>
+    <DashboardLayout title="manage biller" links={adminLinks}>
       
       {/* Dynamic Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6">
@@ -166,7 +166,7 @@ export default function BillersPage() {
       {/* Creation/Edit Modal */}
       <Modal
         isOpen={isModalOpen}
-        title={editingBiller ? "Entity Configuration" : "New Entity Registration"}
+        title={editingBiller ? "Entity Configuration" : "New  Registration"}
         onClose={() => setIsModalOpen(false)}
       >
         <div className="p-2">
