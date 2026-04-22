@@ -23,83 +23,77 @@ interface Props {
 const contentVariants: Variants = {
   initial: {
     opacity: 0,
-    y: 20,
+    y: 8,
   },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
-      ease: "easeOut",
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1],
     },
   },
   exit: {
     opacity: 0,
-    y: -20,
+    y: 8,
     transition: {
-      duration: 0.3,
-      ease: "easeIn",
+      duration: 0.2,
+      ease: [0.4, 0, 0.2, 1],
     },
   },
 };
 
 const pageTransitionVariants: Variants = {
-  initial: { opacity: 0, x: -20 },
+  initial: { opacity: 0 },
   animate: {
     opacity: 1,
-    x: 0,
     transition: {
-      duration: 0.5,
-      staggerChildren: 0.1,
+      duration: 0.2,
+      staggerChildren: 0.05,
     },
   },
-  exit: { opacity: 0, x: 20, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
 };
 
-// Scroll to Top Component
+// Scroll to Top Button Component
 function ScrollToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const mainContent = document.querySelector("main");
+    if (!mainContent) return;
+
     const toggleVisibility = () => {
-      const mainContent = document.querySelector("main");
-      if (mainContent) {
-        setIsVisible(mainContent.scrollTop > 300);
-      }
+      setIsVisible(mainContent.scrollTop > 400);
     };
 
-    const mainContent = document.querySelector("main");
-    if (mainContent) {
-      mainContent.addEventListener("scroll", toggleVisibility);
-      return () => mainContent.removeEventListener("scroll", toggleVisibility);
-    }
+    mainContent.addEventListener("scroll", toggleVisibility);
+    return () => mainContent.removeEventListener("scroll", toggleVisibility);
   }, []);
 
   const scrollToTop = () => {
     const mainContent = document.querySelector("main");
-    if (mainContent) {
-      mainContent.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
+    mainContent?.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.button
-          initial={{ opacity: 0, scale: 0 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={scrollToTop}
-          className="fixed bottom-4 md:bottom-8 right-4 md:right-8 z-50 w-9 h-9 md:w-11 md:h-11 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
+          className="fixed bottom-6 right-6 z-50 w-10 h-10 bg-white border border-gray-200 text-gray-700 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group"
           aria-label="Scroll to top"
         >
           <svg
-            className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-y-1 transition-transform"
+            className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform duration-200"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -128,8 +122,9 @@ export default function DashboardLayout({ title, links, children }: Props) {
   // Check screen size
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
         setMobileSidebarOpen(false);
       }
     };
@@ -139,9 +134,11 @@ export default function DashboardLayout({ title, links, children }: Props) {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // Close mobile sidebar when route changes
+  // Close mobile sidebar on route change
   useEffect(() => {
-    setMobileSidebarOpen(false);
+    if (mobileSidebarOpen) {
+      setMobileSidebarOpen(false);
+    }
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -150,39 +147,35 @@ export default function DashboardLayout({ title, links, children }: Props) {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-red-100 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-100 rounded-full filter blur-3xl opacity-10 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-50 rounded-full filter blur-3xl opacity-5"></div>
-        
-        {/* Grid Pattern */}
+      {/* Subtle Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
         <svg
-          className="absolute inset-0 w-full h-full opacity-5"
+          className="absolute inset-0 w-full h-full"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <pattern
-              id="dashboard-grid"
-              width="40"
-              height="40"
+              id="grid"
+              width="32"
+              height="32"
               patternUnits="userSpaceOnUse"
             >
               <path
-                d="M 40 0 L 0 0 0 40"
+                d="M 32 0 L 0 0 0 32"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="0.5"
+                className="text-gray-300"
               />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#dashboard-grid)" />
+          <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
       </div>
 
-      {/* Sidebar - Responsive */}
+      {/* Sidebar */}
       <Sidebar 
         title={title} 
         links={links} 
@@ -190,37 +183,20 @@ export default function DashboardLayout({ title, links, children }: Props) {
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Main Content */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="flex-1 flex flex-col overflow-hidden relative z-10"
-      >
-        {/* Navbar with menu click handler */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <Navbar
-            userName={user?.name || "User"}
-            role={user?.role}
-            onLogout={handleLogout}
-            onMenuClick={() => setMobileSidebarOpen(true)}
-          />
-        </motion.div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+        
+        {/* Navbar */}
+        <Navbar
+          userName={user?.name || "User"}
+          role={user?.role}
+          onLogout={handleLogout}
+          onMenuClick={() => setMobileSidebarOpen(true)}
+        />
 
         {/* Password Alert */}
         <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <PasswordAlert />
-          </motion.div>
+          <PasswordAlert />
         </AnimatePresence>
 
         {/* Page Content */}
@@ -231,7 +207,7 @@ export default function DashboardLayout({ title, links, children }: Props) {
           exit="exit"
           className="flex-1 overflow-y-auto overflow-x-hidden"
         >
-          <div className="h-full p-3 md:p-4 lg:p-6 xl:p-8">
+          <div className="h-full p-4 md:p-6 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -241,18 +217,12 @@ export default function DashboardLayout({ title, links, children }: Props) {
                 exit="exit"
                 className="h-full"
               >
-                {/* Children Content */}
-                <motion.div
-                  variants={pageTransitionVariants}
-                  className="space-y-3 md:space-y-4"
-                >
-                  {children}
-                </motion.div>
+                {children}
               </motion.div>
             </AnimatePresence>
           </div>
         </motion.main>
-      </motion.div>
+      </div>
 
       {/* Scroll to Top Button */}
       <ScrollToTopButton />

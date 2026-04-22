@@ -344,15 +344,7 @@ export default function LoginPage() {
                 </motion.button>
               </motion.div>
 
-              {/* Divider */}
-              <motion.div variants={fadeInUp} className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-white text-gray-400">or</span>
-                </div>
-              </motion.div>
+  
 
               {/* Links */}
               <motion.div variants={fadeInUp} className="space-y-3 text-center">
