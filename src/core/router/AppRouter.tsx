@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppProvider from "../providers/AppProvider";
 
+import AppProvider from "../providers/AppProvider"; 
 import PublicRoutes from "./PublicRoutes";
 import AdminRoutes from "./AdminRoutes";
 import AgentRoutes from "./AgentRoutes";

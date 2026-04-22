@@ -66,17 +66,29 @@ export default function UploadBillsPage() {
       setResult(null);
       
       const response = await uploadBillsCsv(file);
+      const result = response.data;
 
-      if (response.status === "SUCCESS") {
-        setResult({
-          success: response.data.success,
-          failed: response.data.failed,
-          duplicates: 0
-        });
-        setFile(null);
+      if (result.duplicates > 0 && result.success === 0) {
+        alert(
+          `⚠️ Upload Blocked: The system detected that all ${result.duplicates} bills in this file have already been uploaded. Duplicate uploads are not allowed.`,
+        );
+      } else if (result.duplicates > 0 && result.success > 0) {
+        alert(
+          ` Upload Partial: ${result.success} new bills were added, but ${result.duplicates} bills were skipped because they already exist in the system.`,
+        );
       } else {
-        setError(response.message || "Upload failed");
+        alert(`Successfully uploaded ${result.success} bills!`);
       }
+        // if (response.status === "SUCCESS") {
+        //   setResult({
+        //     success: response.data.success,
+        //     failed: response.data.failed,
+        //     duplicates: 0,
+        //   });
+        //   setFile(null);
+        // } else {
+        //   setError(response.message || "Upload failed");
+        // }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Upload failed. Please check your CSV format.";
       setError(errorMessage);
