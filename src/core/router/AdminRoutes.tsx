@@ -8,7 +8,7 @@ import UsersPage from "../../features/admin/pages/UsersPage";
 import AgentsPage from "../../features/admin/pages/AgentsPage";
 import BillersPage from "../../features/admin/pages/BillersPage";
 import ReportsPage from "../../features/admin/pages/ReportsPage";
-import SettingsPage from "../../features/settings/pages/SettingsPage";
+import SettingsPage from "../../features/admin/pages/SettingsPage";
 
 export default function AdminRoutes() {
   return (

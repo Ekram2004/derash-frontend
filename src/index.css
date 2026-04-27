@@ -1,19 +1,30 @@
+/* derash-frontend/src/index.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* Optional: custom global styles */
 
-html, body, #root {
-  height: 100%;
+/* ==================== BASE STYLES ==================== */
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    background-color: #f9fafb;
+    transition: background-color 0.2s ease;
+  }
+
+  /* Dark mode body styles */
+  .dark body {
+    background-color: #111827;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  background-color: #f9fafb;
-}
-/* Floating Animation */
+/* ==================== ANIMATIONS ==================== */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px) translateX(0px);
@@ -33,12 +44,43 @@ body {
   animation: float 15s ease-in-out infinite;
 }
 
-/* Smooth scroll behavior */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ==================== SCROLL BEHAVIOR ==================== */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* ==================== CUSTOM SCROLLBAR ==================== */
+/* Light mode scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -58,19 +100,187 @@ html {
   background: linear-gradient(to bottom, #b91c1c, #991b1b);
 }
 
-/* Focus outline for accessibility */
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #ef4444, #dc2626);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #dc2626, #b91c1c);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #dc2626 #f1f1f1;
+}
+
+.dark * {
+  scrollbar-color: #ef4444 #1e293b;
+}
+
+/* ==================== FOCUS OUTLINE ==================== */
 *:focus-visible {
   outline: 2px solid #dc2626;
   outline-offset: 2px;
 }
 
-/* Selection color */
+.dark *:focus-visible {
+  outline-color: #ef4444;
+}
+
+/* ==================== SELECTION COLOR ==================== */
 ::selection {
-  background-color: rgb(116, 153, 253);
+  background-color: #ef4444;
   color: white;
 }
 
-/* Prevent body scroll when mobile menu is open (optional) */
+.dark ::selection {
+  background-color: #dc2626;
+  color: white;
+}
+
+/* ==================== UTILITY CLASSES ==================== */
+/* Prevent body scroll when mobile menu is open */
 body.menu-open {
   overflow: hidden;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Skeleton loading animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1e293b 25%,
+    #334155 50%,
+    #1e293b 75%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==================== TRANSITIONS ==================== */
+/* Smooth theme transition for all elements */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Disable transition for specific elements */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================== TYPOGRAPHY ==================== */
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-semibold tracking-tight;
+}
+
+/* Links */
+a {
+  @apply transition-colors duration-200;
+}
+
+/* ==================== FORM ELEMENTS ==================== */
+/* Input focus styles */
+input:focus,
+textarea:focus,
+select:focus {
+  @apply ring-2 ring-red-500 ring-offset-0;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  @apply ring-red-400;
+}
+
+/* ==================== TABLE STYLES ==================== */
+/* Responsive table wrapper */
+.table-wrapper {
+  @apply overflow-x-auto;
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background-color: white !important;
+  }
+  
+  .dark body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  * {
+    transition: none !important;
+  }
 }

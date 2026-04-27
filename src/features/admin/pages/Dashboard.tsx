@@ -194,7 +194,8 @@ export default function Dashboard() {
       <DashboardLayout title="Dashboard Overview" links={adminLinks}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 
+            border-red-500 border-t-transparent"></div>
             <p className="text-gray-500 mt-3">Loading dashboard data...</p>
           </div>
         </div>
