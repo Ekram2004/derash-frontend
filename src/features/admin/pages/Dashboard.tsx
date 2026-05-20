@@ -1,9 +1,7 @@
 // src/features/admin/pages/Dashboard.tsx
-
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
-import { adminApi } from "../api/admin.api";
-import type { Stats } from "../api/admin.api";
+import { adminApi, type Stats, type Transaction, type TrendData, type PaymentMethods, type TopBiller } from "../api/admin.api";
 import { adminLinks } from "../adminLinks";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import {
@@ -29,7 +27,6 @@ import {
   DevicePhoneMobileIcon,
   CreditCardIcon,
   ArrowTrendingUpIcon,
-  GlobeAltIcon,
   ShieldCheckIcon,
   ClockIcon,
   CheckCircleIcon,
@@ -57,16 +54,16 @@ const formatETB = (amount: number) =>
     minimumFractionDigits: 0,
   }).format(amount);
 
-// Format number with K, M suffixes for better display
+// Format number with K, M suffixes
 const formatNumber = (num: number): string => {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
   return num.toString();
 };
 
-// Extended Stats Interface
+// Extended Stats Interface (combines backend stats + additional data)
 interface ExtendedStats extends Stats {
-  totalBranches: number;
+  totalBranches: number; // placeholder, can be derived later
   financialInstitutions: number;
   mobileWallets: number;
   serviceProviders: number;
@@ -75,29 +72,10 @@ interface ExtendedStats extends Stats {
     transactions: number;
     revenue: number;
   };
-  recentTransactions: Array<{
-    id: string;
-    amount: number;
-    status: 'success' | 'pending' | 'failed';
-    date: string;
-    biller: string;
-    agent: string;
-  }>;
-  transactionTrends: {
-    labels: string[];
-    values: number[];
-  };
-  paymentMethods: {
-    mobile: number;
-    internet: number;
-    agent: number;
-    bank: number;
-  };
-  topBillers: Array<{
-    name: string;
-    transactions: number;
-    revenue: number;
-  }>;
+  recentTransactions: Transaction[];
+  transactionTrends: TrendData;
+  paymentMethods: PaymentMethods;
+  topBillers: TopBiller[];
   systemHealth: {
     uptime: number;
     responseTime: number;
@@ -110,83 +88,73 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
+    const loadDashboardData = async () => {
       try {
-        const data = await adminApi.getStats();
-        
-        // Extended data with mock/demo data for additional features
-        // In production, these would come from the backend
-        setStats({
-          totalUsers: data.totalUsers || 370000,
-          totalAgents: data.totalAgents || 4800,
-          totalBillers: data.totalBillers || 65,
-          totalTransactions: data.totalTransactions || 650000,
-          totalRevenue: data.totalRevenue || 60000000000,
-          totalBranches: 4800,
-          financialInstitutions: 16,
+        // Fetch all required data in parallel
+        const [
+          baseStats,
+          recentTx,
+          trends,
+          paymentMethods,
+          topBillers,
+        ] = await Promise.all([
+          adminApi.getStats(),
+          adminApi.getRecentTransactions(),
+          adminApi.getTransactionTrends(),
+          adminApi.getPaymentMethods(),
+          adminApi.getTopBillers(),
+        ]);
+
+        // Compute monthly growth from transaction trends (compare last two months)
+        let transactionsGrowth = 0;
+        if (trends.values && trends.values.length >= 2) {
+          const lastMonth = trends.values[trends.values.length - 1];
+          const prevMonth = trends.values[trends.values.length - 2];
+          if (prevMonth !== 0) {
+            transactionsGrowth = ((lastMonth - prevMonth) / prevMonth) * 100;
+          }
+        }
+
+        // For users and revenue growth, we don't have historical data yet.
+        // You can either remove these badges or compute from other endpoints if available.
+        // We'll leave them as 0 for now.
+        const usersGrowth = 0;
+        const revenueGrowth = 0;
+
+        // Static / placeholder data for fields not yet provided by backend
+        // In a real implementation, these would come from dedicated endpoints.
+        const extended: ExtendedStats = {
+          ...baseStats,
+          totalBranches: baseStats.totalAgents, // assuming each agent is a branch
+          financialInstitutions: 16, // static, replace with actual data when available
           mobileWallets: 10,
-          serviceProviders: 65,
+          serviceProviders: baseStats.totalBillers,
           monthlyGrowth: {
-            users: 15.5,
-            transactions: 23.8,
-            revenue: 18.2,
+            users: usersGrowth,
+            transactions: transactionsGrowth,
+            revenue: revenueGrowth,
           },
-          recentTransactions: [
-            { id: "TXN001", amount: 1500, status: "success", date: "2024-01-15", biller: "Ethio Telecom", agent: "Commercial Bank" },
-            { id: "TXN002", amount: 2500, status: "success", date: "2024-01-15", biller: "EEU", agent: "Dashen Bank" },
-            { id: "TXN003", amount: 500, status: "pending", date: "2024-01-14", biller: "Water Bureau", agent: "Awash Bank" },
-            { id: "TXN004", amount: 3200, status: "success", date: "2024-01-14", biller: "Ethio Telecom", agent: "CBE" },
-            { id: "TXN005", amount: 1800, status: "failed", date: "2024-01-13", biller: "EEU", agent: "Abyssinia Bank" },
-          ],
-          transactionTrends: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            values: [42000, 45500, 48900, 52300, 56700, 61200, 65800, 71200, 76800, 82300, 87900, 94200],
-          },
-          paymentMethods: {
-            mobile: 45,
-            internet: 20,
-            agent: 25,
-            bank: 10,
-          },
-          topBillers: [
-            { name: "Ethio Telecom", transactions: 245000, revenue: 2450000000 },
-            { name: "EEU", transactions: 189000, revenue: 1890000000 },
-            { name: "Water Bureau", transactions: 98000, revenue: 980000000 },
-            { name: "Tax Authority", transactions: 76000, revenue: 760000000 },
-            { name: "Education Bureau", transactions: 42000, revenue: 420000000 },
-          ],
+          recentTransactions: recentTx,
+          transactionTrends: trends,
+          paymentMethods: paymentMethods,
+          topBillers: topBillers,
           systemHealth: {
-            uptime: 99.95,
+            uptime: 99.95, // could be fetched from a /health endpoint
             responseTime: 245,
-            activeAgents: 4120,
+            activeAgents: baseStats.totalAgents, // or compute from agents status
           },
-        });
+        };
+
+        setStats(extended);
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
-        // Set fallback data
-        setStats({
-          totalUsers: 3700,
-          totalAgents: 4800,
-          totalBillers: 65,
-          totalTransactions: 6500,
-          totalRevenue: 6000,
-          totalBranches: 4800,
-          financialInstitutions: 16,
-          mobileWallets: 10,
-          serviceProviders: 65,
-          monthlyGrowth: { users: 0, transactions: 0, revenue: 0 },
-          recentTransactions: [],
-          transactionTrends: { labels: [], values: [] },
-          paymentMethods: { mobile: 0, internet: 0, agent: 0, bank: 0 },
-          topBillers: [],
-          systemHealth: { uptime: 0, responseTime: 0, activeAgents: 0 },
-        });
+        // Optionally set fallback/empty state
       } finally {
         setLoading(false);
       }
     };
 
-    load();
+    loadDashboardData();
   }, []);
 
   if (loading || !stats) {
@@ -194,8 +162,7 @@ export default function Dashboard() {
       <DashboardLayout title="Dashboard Overview" links={adminLinks}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 
-            border-red-500 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
             <p className="text-gray-500 mt-3">Loading dashboard data...</p>
           </div>
         </div>
@@ -247,7 +214,7 @@ export default function Dashboard() {
     },
   ];
 
-  // Additional Metrics Cards
+  // Additional Metrics Cards (some still static)
   const additionalMetrics = [
     {
       title: "Financial Institutions",
@@ -304,22 +271,22 @@ export default function Dashboard() {
       legend: { position: "top" as const },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function (context: any) {
             return `Transactions: ${formatNumber(context.parsed.y)}`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value: any) {
+          callback: function (value: any) {
             return formatNumber(value);
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   };
 
   // Payment Methods Doughnut Chart
@@ -352,15 +319,15 @@ export default function Dashboard() {
       legend: { position: "bottom" as const },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
-            const label = context.label || '';
+          label: function (context: any) {
+            const label = context.label || "";
             const value = context.parsed || 0;
             const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const percentage = ((value / total) * 100).toFixed(1);
             return `${label}: ${value}% (${percentage}%)`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
   };
 
@@ -385,24 +352,24 @@ export default function Dashboard() {
       legend: { position: "bottom" as const },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
-            let label = context.dataset.label || '';
+          label: function (context: any) {
+            let label = context.dataset.label || "";
             let value = context.parsed.y;
             if (mainCardData[context.dataIndex]?.title === "Total Revenue") {
               return `${label}: ${formatETB(value)}`;
             }
             return `${label}: ${formatNumber(value)}`;
-          }
-        }
+          },
+        },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value: any) {
+          callback: function (value: any) {
             return formatNumber(value);
-          }
+          },
         },
       },
     },
@@ -410,31 +377,28 @@ export default function Dashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'text-green-600 bg-green-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'failed': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case "success":
+        return "text-green-600 bg-green-100";
+      case "pending":
+        return "text-yellow-600 bg-yellow-100";
+      case "failed":
+        return "text-red-600 bg-red-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   return (
     <DashboardLayout title="Admin Dashboard" links={adminLinks}>
-      
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="max-w-2xl">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500
-                  bg-clip-text text-transparent">
-            Welcome to Derash Admin 
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
+            Welcome to Derash Admin
           </h1>
-
           <p className="text-sm md:text-base text-gray-400 mt-1 md:mt-2 font-medium leading-relaxed">
             National Bill Aggregation Platform - Monitor users, agents, billers, transactions, and revenue with real-time insights.
           </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          
         </div>
       </div>
 
@@ -443,7 +407,7 @@ export default function Dashboard() {
         {mainCardData.map((c, index) => (
           <div
             key={c.title}
-            className={`group rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 border border-gray-100 bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${c.bg} ${c.bg.replace('bg-', 'hover:bg-')}/80`}
+            className={`group rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 border border-gray-100 bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${c.bg} ${c.bg.replace("bg-", "hover:bg-")}/80`}
           >
             <div className="flex items-center justify-between">
               <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-300">
@@ -451,27 +415,21 @@ export default function Dashboard() {
               </div>
               {c.growth !== undefined && (
                 <div className="flex items-center gap-1 bg-white/50 rounded-full px-2 py-1">
-                  <ArrowTrendingUpIcon className={`w-3 h-3 ${c.growth >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-                  <span className={`text-xs font-semibold ${c.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {c.growth >= 0 ? '+' : ''}{c.growth}%
+                  <ArrowTrendingUpIcon className={`w-3 h-3 ${c.growth >= 0 ? "text-green-500" : "text-red-500"}`} />
+                  <span className={`text-xs font-semibold ${c.growth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {c.growth >= 0 ? "+" : ""}
+                    {c.growth.toFixed(1)}%
                   </span>
                 </div>
               )}
             </div>
 
             <div className="mt-3 md:mt-4 lg:mt-5">
-              <p className="text-gray-500 text-xs md:text-sm font-semibold tracking-wide uppercase">
-                {c.title}
-              </p>
-
+              <p className="text-gray-500 text-xs md:text-sm font-semibold tracking-wide uppercase">{c.title}</p>
               <h2 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-gray-900 mt-1 md:mt-2 tracking-tight">
                 {c.formattedValue}
               </h2>
-
-              {c.subtext && (
-                <p className="text-xs text-gray-400 mt-1">{c.subtext}</p>
-              )}
-
+              {c.subtext && <p className="text-xs text-gray-400 mt-1">{c.subtext}</p>}
               <div className="mt-2 md:mt-3 h-1 w-8 md:w-10 bg-red-500 rounded-full opacity-70"></div>
             </div>
           </div>
@@ -483,9 +441,7 @@ export default function Dashboard() {
         {additionalMetrics.map((metric) => (
           <div key={metric.title} className={`${metric.bg} rounded-xl p-3 md:p-4 border border-gray-100`}>
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="p-1.5 md:p-2 bg-white rounded-lg shadow-sm">
-                {metric.icon}
-              </div>
+              <div className="p-1.5 md:p-2 bg-white rounded-lg shadow-sm">{metric.icon}</div>
               <div>
                 <p className="text-xs text-gray-500 font-medium">{metric.title}</p>
                 <p className="text-sm md:text-base font-bold text-gray-900">
@@ -588,12 +544,10 @@ export default function Dashboard() {
               </h2>
               <p className="text-gray-400 text-xs md:text-sm mt-1">Latest payment activities</p>
             </div>
-            <button className="text-red-500 text-sm font-medium hover:text-red-600 transition-colors">
-              View All →
-            </button>
+            <button className="text-red-500 text-sm font-medium hover:text-red-600 transition-colors">View All →</button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -636,7 +590,7 @@ export default function Dashboard() {
           <p className="text-lg md:text-xl font-bold text-green-900 mt-1">{stats.systemHealth.uptime}% Uptime</p>
           <p className="text-xs text-green-600 mt-1">Response: {stats.systemHealth.responseTime}ms</p>
         </div>
-        
+
         <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-3 md:p-4">
           <div className="flex items-center gap-2">
             <ExclamationTriangleIcon className="w-5 h-5 text-blue-600" />

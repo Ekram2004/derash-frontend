@@ -1,3 +1,4 @@
+// src/core/router/AppRouter.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import AppProvider from "../providers/AppProvider"; 
@@ -7,6 +8,7 @@ import AgentRoutes from "./AgentRoutes";
 import BillerRoutes from "./BillerRoutes";
 
 import LoginPage from "../../features/auth/pages/LoginPage";
+import ChangePasswordPage from "../../features/auth/pages/ChangePasswordPage"; // ✅ added
 
 export default function AppRouter() {
   return (
@@ -14,6 +16,7 @@ export default function AppRouter() {
       <AppProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} /> {/* ✅ new route */}
 
           <Route path="/admin/*" element={<AdminRoutes />} />
           <Route path="/agent/*" element={<AgentRoutes />} />

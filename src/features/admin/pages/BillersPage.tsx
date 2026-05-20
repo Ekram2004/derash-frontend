@@ -18,6 +18,7 @@ interface NotificationState {
 
 export default function BillersPage() {
   const [billers, setBillers] = useState<Biller[]>([]);
+  const [loading, setLoading] = useState(true); // ✅ added loading state
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -39,15 +40,18 @@ export default function BillersPage() {
     category: "",
     allowsPartial: false,
     isActive: true
-    
   });
 
   const loadData = async () => {
+    setLoading(true);
     try {
       const data = await adminApi.getBillers();
-      setBillers(data);
+      // ✅ Ensure data is always an array (handle object, null, etc.)
+      const billersArray = Array.isArray(data) ? data : [];
+      setBillers(billersArray);
     } catch (error) {
       console.error("Failed to load billers", error);
+      setBillers([]);
       setNotification({
         isOpen: true,
         message: "Failed to load billers data",
@@ -55,6 +59,8 @@ export default function BillersPage() {
         title: "Loading Error",
         details: "Please refresh the page and try again",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,6 +68,7 @@ export default function BillersPage() {
     loadData();
   }, []);
 
+  // ✅ Filter only works if billers is an array (it always is now)
   const filtered = billers.filter((b) => {
     const matchesSearch =
       b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -77,7 +84,7 @@ export default function BillersPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Validation function
+  // Validation function (unchanged)
   const validateForm = (): boolean => {
     if (!form.name || !form.name.trim()) {
       setNotification({
@@ -117,13 +124,12 @@ export default function BillersPage() {
 
   const openAddModal = () => {
     setEditingBiller(null);
-
     setForm({
       name: "",
       code: "",
       category: "",
       allowsPartial: false,
-      isActive:true
+      isActive: true
     });
     setIsModalOpen(true);
   };
@@ -141,10 +147,7 @@ export default function BillersPage() {
   };
 
   const handleSave = async () => {
-    // Validate form first
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       if (editingBiller) {
@@ -170,7 +173,6 @@ export default function BillersPage() {
     } catch (error: any) {
       console.error("Error saving biller:", error);
       
-      // Handle different error types
       if (error.response?.status === 400) {
         setNotification({
           isOpen: true,
@@ -271,8 +273,22 @@ export default function BillersPage() {
     setStatusFilter("");
   };
 
+  // ✅ Show loading indicator while fetching data
+  if (loading) {
+    return (
+      <DashboardLayout title="Manage Billers" links={adminLinks}>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+            <p className="text-gray-500 mt-3">Loading billers...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout title="manage biller" links={adminLinks}>
+    <DashboardLayout title="Manage Billers" links={adminLinks}>
       {/* Dynamic Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 gap-4 md:gap-6">
         <div className="max-w-2xl">

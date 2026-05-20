@@ -1,71 +1,79 @@
-// Agent API Layer
+import api from "../../../services/api";
 
+// Hardcoded agent code (from your admin dashboard)
+const AGENT_CODE = "CBE-1001";
+const API_KEY = "cbe_agent_key_12345";
+
+const getAgentApiKey = () => API_KEY;
+const getAgentCode = () => AGENT_CODE;
+
+// Dashboard
+export async function getAgentDashboard() {
+  const response = await api.get("/agent/dashboard", {
+    headers: {
+      "x-api-key": getAgentApiKey(),
+      "x-agent-code": getAgentCode(),
+    },
+  });
+  return response.data; // { success, stats, recentTransactions }
+}
+
+// Search bills
 export async function searchBills(params: {
-  billReference?: string;
+  billReference: string;
+  agentCode?: string;
   customerName?: string;
   billerCode?: string;
 }) {
-  const query = new URLSearchParams(params as any).toString();
-
-  const response = await fetch(`/api/agent/bills?${query}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to search bills");
-  }
-
-  return response.json();
+  const { billReference, agentCode, customerName, billerCode } = params;
+  const queryParams = new URLSearchParams();
+  if (customerName) queryParams.append("customerName", customerName);
+  if (billerCode) queryParams.append("billerCode", billerCode);
+  const queryString = queryParams.toString();
+  const url = `/agent/bill-inquiry/${encodeURIComponent(billReference)}${queryString ? `?${queryString}` : ""}`;
+  const headers: Record<string, string> = {
+    "x-api-key": getAgentApiKey(),
+    "x-agent-code": agentCode || getAgentCode(),
+  };
+  const response = await api.get(url, { headers });
+  return response.data;
 }
 
+// Process payment
 export async function processPayment(data: {
-  billId: string;
+  bill_id: string;
+  agent_id: string;
   amount: number;
-  paymentMethod: string;
+  transactionId: string;
+  idempotencyKey: string;
+  payment_method: string;
+  payer_phone: string;
 }) {
-  const response = await fetch("/api/agent/payments", {
-    method: "POST",
+  const response = await api.post("/agent/confirm-payment", data, {
     headers: {
-      "Content-Type": "application/json",
+      "x-api-key": getAgentApiKey(),
+      "x-agent-code": getAgentCode(),
     },
-    body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    throw new Error("Payment failed");
-  }
-
-  return response.json();
+  return response.data;
 }
-// GET Agent Transactions
-export async function getAgentTransactions(params: {
-  fromDate?: string;
-  toDate?: string;
-  transactionId?: string;
-  billReference?: string;
-  customerName?: string;
-  status?: string;
-}) {
-  const query = new URLSearchParams(params as any).toString();
 
-  const response = await fetch(`/api/agent/transactions?${query}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch transactions");
-  }
-
-  return response.json();
-}
-// GET Agent Report Summary
-export async function getAgentReport(params: {
+// Agent transactions (report)
+export async function getAgentTransactions(params?: {
   fromDate?: string;
   toDate?: string;
 }) {
-  const query = new URLSearchParams(params as any).toString();
+  const response = await api.get("/agent/my-report", {
+    params,
+    headers: {
+      "x-api-key": getAgentApiKey(),
+      "x-agent-code": getAgentCode(),
+    },
+  });
+  return response.data;
+}
 
-  const response = await fetch(`/api/agent/reports?${query}`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch report");
-  }
-
-  return response.json();
+// Alias
+export async function getAgentReport(params?: { fromDate?: string; toDate?: string }) {
+  return getAgentTransactions(params);
 }
