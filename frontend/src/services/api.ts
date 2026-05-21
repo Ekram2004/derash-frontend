@@ -1,14 +1,13 @@
-// src/services/api.ts
 import axios from "axios";
 
-const ADMIN_SECRET = "DERASH_SUPER_SECRET_2026"; // ← from backend
+const ADMIN_SECRET = "DERASH_SUPER_SECRET_2026"; 
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api/v1",
-  withCredentials: true,
+  withCredentials: true, // 🔑 This passes your secure session HTTP cookies automatically!
   headers: {
     "Content-Type": "application/json",
-    "x-admin-secret": ADMIN_SECRET,   // ← add this line
+    "x-admin-secret": ADMIN_SECRET,   
   },
 });
 

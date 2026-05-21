@@ -1,44 +1,54 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.node.json"
+    }
   ],
-  "compilerOptions": {
-    "target": "ES2022",                                  /* Modern JS for Node 20+ */
-    "module": "NodeNext",                                /* Required for "type": "module" */
-    "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
-    "rootDir": "./",                                     /* Includes root for prisma.config.ts */
-    "outDir": "./dist",
-    "removeComments": true,
-    "noEmit": false,                                     /* Allows tsc to compile files */
 
-    /* Strict Type-Checking Options */
-    "strict": true,                                      /* Enable all strict type-checking options */
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+
+    "jsx": "react-jsx",
+
+    "rootDir": "./",
+    "outDir": "./dist",
+
+    "composite": true,
+
+    "removeComments": true,
+    "noEmit": false,
+
+    "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "skipLibCheck": true,                                /* Speed up build, skip d.ts checks */
+    "skipLibCheck": true,
+    
 
-    /* Module Resolution Options */
-    "baseUrl": "./",
+
     "paths": {
-      "@/*": ["src/*"]                                   /* Optional: for cleaner imports */
+      "@/*": ["./src/*"]
     },
-    "types": ["node"],                                   /* Fixes the 'process' error */
-    "esModuleInterop": true,                             /* Emits __importStar for compatibility */
 
-    /* Advanced Options */
+    "ignoreDeprecations": "6.0",
+
+    "types": ["node"],
+    "esModuleInterop": true,
+
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,                           /* Allows importing .json files */
-    "isolatedModules": true                              /* Better compatibility with modern bundlers */
+    "resolveJsonModule": true,
+    "isolatedModules": true
   },
+
   "include": [
     "src/**/*",
-    "prisma.config.ts.bak",                                  /* Crucial for Prisma 7 */
+    "prisma.config.ts.bak",
     "prisma/**/*"
   ],
+
   "exclude": ["node_modules", "dist"]
 }

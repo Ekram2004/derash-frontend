@@ -3,7 +3,6 @@ import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { searchBills, processPayment } from "../api/agent.api";
 
-// ------------------ Types ------------------
 interface Bill {
   bill_id: string;
   agent_id: string;
@@ -32,8 +31,6 @@ interface Receipt {
   paymentDate: string;
 }
 
-const HARDCODED_AGENT_CODE = "CBE-1001";
-
 export default function PayBill() {
   const [view, setView] = useState<"search" | "pay" | "receipt">("search");
   const [billReference, setBillReference] = useState("");
@@ -42,29 +39,33 @@ export default function PayBill() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSearch = async () => {
-    if (!billReference.trim()) {
-      setError("Please enter a Bill Reference.");
-      return;
-    }
-    try {
-      setLoading(true);
-      setError("");
-      const response = await searchBills({
-        billReference: billReference.trim(),
-        agentCode: HARDCODED_AGENT_CODE,
-      });
-      const billData = response.data || response;
-      setSelectedBill(billData);
-      setView("search");
-    } catch (err: any) {
-      const message = err.response?.data?.message || "No unpaid bill found.";
-      setError(message);
-      setSelectedBill(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+// 2. Update your handleSearch function block:
+const handleSearch = async () => {
+  if (!billReference.trim()) {
+    setError("Please enter a Bill Reference.");
+    return;
+  }
+  try {
+    setLoading(true);
+    setError("");
+    
+    // 🔑 Pass ONLY the bill reference. 
+    // The backend knows who is asking based on the active session cookie!
+    const response = await searchBills({
+      billReference: billReference.trim()
+    });
+    
+    const billData = response.data || response;
+    setSelectedBill(billData);
+    setView("search");
+  } catch (err: any) {
+    const message = err.response?.data?.message || "No unpaid bill found.";
+    setError(message);
+    setSelectedBill(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const goToPay = () => setView("pay");
 
