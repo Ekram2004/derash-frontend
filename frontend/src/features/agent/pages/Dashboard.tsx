@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { getAgentDashboard } from "../api/agent.api";
@@ -21,9 +21,7 @@ import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   DocumentCheckIcon,
-  ClockIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
 } from "@heroicons/react/24/solid";
 
 // ------------------ Types ------------------
@@ -35,7 +33,8 @@ interface Transaction {
   createdAt: string;
   bill: {
     billReference: string;
-    customer: { fullName: string } | null;
+    customerName?: string;
+    customer?: { fullName: string } | null;
     biller: { name: string };
   };
 }
@@ -43,8 +42,6 @@ interface Transaction {
 interface DashboardStats {
   totalTransactions: number;
   successfulTransactions: number;
-  pendingTransactions: number;
-  failedTransactions: number;
   totalRevenue: number;
 }
 
@@ -53,20 +50,13 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
   },
 };
 
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
 const chartVariants: Variants = {
@@ -89,7 +79,11 @@ export default function Dashboard() {
       try {
         setLoading(true);
         const data = await getAgentDashboard();
-        setStats(data.stats);
+        setStats({
+          totalTransactions: data.stats.totalTransactions,
+          successfulTransactions: data.stats.successfulTransactions,
+          totalRevenue: data.stats.totalRevenue,
+        });
         setTransactions(data.recentTransactions || []);
       } catch (err: any) {
         console.error("Dashboard error:", err);
@@ -101,7 +95,7 @@ export default function Dashboard() {
     fetchDashboard();
   }, []);
 
-  // Prepare chart data (group by date)
+  // Chart data grouped by date
   const chartData = transactions.reduce((acc: any[], t) => {
     const date = format(new Date(t.createdAt), "MM-dd");
     const existing = acc.find((item) => item.date === date);
@@ -113,13 +107,11 @@ export default function Dashboard() {
     return acc;
   }, []);
 
-  // Collection rate (successful transactions / total)
   const collectionRate =
     stats && stats.totalTransactions > 0
       ? ((stats.successfulTransactions / stats.totalTransactions) * 100).toFixed(1)
       : "0";
 
-  // Revenue growth (this month vs total – simplified)
   const revenueGrowth = stats && stats.totalRevenue > 0 ? "8.5" : "0";
 
   if (loading) {
@@ -159,7 +151,7 @@ export default function Dashboard() {
         animate="visible"
         className="space-y-6 md:space-y-8"
       >
-        {/* HEADER with gradient */}
+        {/* Header with gradient */}
         <motion.div variants={itemVariants}>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
             <div className="max-w-2xl">
@@ -182,10 +174,10 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Stats Grid (4 cards) */}
+        {/* Stats Grid - Only 3 cards (no Pending/Failed) */}
         <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6"
         >
           {stats && (
             <>
@@ -197,27 +189,19 @@ export default function Dashboard() {
                 trend="+12%"
               />
               <StatCard
-                title="Successful"
+                title="Successful Payments"
                 value={stats.successfulTransactions}
                 icon={CheckCircleIcon}
                 color="green"
                 trend="+8%"
               />
               <StatCard
-                title="Pending"
-                value={stats.pendingTransactions}
-                icon={ClockIcon}
-                color="yellow"
-                trend="-5%"
-                trendDirection="down"
-              />
-              <StatCard
-                title="Failed"
-                value={stats.failedTransactions}
-                icon={ExclamationCircleIcon}
-                color="red"
-                trend="-2%"
-                trendDirection="down"
+                title="Total Revenue"
+                value={stats.totalRevenue}
+                icon={CurrencyDollarIcon}
+                color="emerald"
+                trend="+15%"
+                prefix="ETB "
               />
             </>
           )}
@@ -242,7 +226,7 @@ export default function Dashboard() {
           />
         </motion.div>
 
-        {/* Performance & Recent Activity (Two Columns) */}
+        {/* Performance & Chart (Two Columns) */}
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Collection Performance */}
           <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
@@ -343,21 +327,24 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-700">{tx.transactionId}</td>
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{tx.bill?.customer?.fullName || "N/A"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{tx.bill?.biller?.name || "N/A"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{tx.bill?.billReference || "N/A"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">{tx.totalAmount.toLocaleString()} ETB</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <StatusBadge status={tx.status} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
-                      {format(new Date(tx.createdAt), "dd MMM yyyy")}
-                    </td>
-                  </tr>
-                ))}
+                {transactions.map((tx) => {
+                  const customerName = tx.bill?.customerName || tx.bill?.customer?.fullName || "N/A";
+                  return (
+                    <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-700">{tx.transactionId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{customerName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{tx.bill?.biller?.name || "N/A"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{tx.bill?.billReference || "N/A"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">{tx.totalAmount.toLocaleString()} ETB</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <StatusBadge status={tx.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
+                        {format(new Date(tx.createdAt), "dd MMM yyyy")}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {transactions.length === 0 && (
                   <tr>
                     <td colSpan={7} className="text-center py-8 text-gray-500">No transactions available</td>
@@ -368,7 +355,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Quick Summary (optional) */}
+        {/* Quick Summary */}
         <motion.div variants={itemVariants} className="bg-white rounded-xl md:rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -414,9 +401,10 @@ interface StatCardProps {
   color: "blue" | "green" | "red" | "yellow" | "purple" | "emerald";
   trend?: string;
   trendDirection?: "up" | "down";
+  prefix?: string;
 }
 
-function StatCard({ title, value, icon: Icon, color, trend, trendDirection = "up" }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, color, trend, trendDirection = "up", prefix = "" }: StatCardProps) {
   const colorClasses = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
@@ -444,7 +432,7 @@ function StatCard({ title, value, icon: Icon, color, trend, trendDirection = "up
         )}
       </div>
       <h3 className="text-gray-500 text-sm mb-1">{title}</h3>
-      <p className="text-2xl font-bold text-gray-800">{value.toLocaleString()}</p>
+      <p className="text-2xl font-bold text-gray-800">{prefix}{value.toLocaleString()}</p>
     </motion.div>
   );
 }
