@@ -10,6 +10,7 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { User } from "../api/admin.api";
 
 interface Props {
@@ -27,19 +28,37 @@ export default function UserTable({
   onDelete,
   onToggleStatus,
 }: Props) {
+  const { t } = useTranslation();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // Helper function to get role badge color
   const getRoleBadgeColor = (role: string) => {
     switch (role.toLowerCase()) {
+      case 'system_admin':
       case 'admin':
         return 'bg-purple-100 text-purple-700';
+      case 'agent_user':
       case 'manager':
         return 'bg-blue-100 text-blue-700';
+      case 'biller_user':
       case 'user':
         return 'bg-gray-100 text-gray-700';
       default:
         return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  // Helper to get display role text
+  const getRoleDisplay = (role: string) => {
+    switch (role) {
+      case 'SYSTEM_ADMIN':
+        return t('system_admin');
+      case 'AGENT_USER':
+        return t('agent_user');
+      case 'BILLER_USER':
+        return t('biller_user');
+      default:
+        return role;
     }
   };
 
@@ -50,15 +69,15 @@ export default function UserTable({
       <div className="px-4 sm:px-6 md:px-8 py-4 md:py-6 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-            System <span className="text-red-500">Users</span>
+            {t("system")} <span className="text-red-500">{t("users")}</span>
           </h2>
           <p className="text-sm text-gray-400 mt-1 md:mt-2 font-medium leading-relaxed">
-            Manage platform users, roles, and account access.
+            {t("user_table_description")}
           </p>
         </div>
 
         <div className="bg-gray-50 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs font-semibold text-gray-600 uppercase tracking-wide border border-gray-200 self-start sm:self-center">
-          Total: {users.length}
+          {t("total")}: {users.length}
         </div>
       </div>
 
@@ -68,19 +87,19 @@ export default function UserTable({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 lg:px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                User Identity
+                {t("user_identity")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Email
+                {t("email")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Role
+                {t("role")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Status
+                {t("status")}
               </th>
               <th className="px-6 lg:px-8 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Management
+                {t("management")}
               </th>
             </tr>
           </thead>
@@ -103,7 +122,7 @@ export default function UserTable({
                         {user.fullName}
                       </div>
                       <div className="text-xs text-gray-400">
-                        ID: {user.id.slice(0, 8)}
+                        {t("id")}: {user.id.slice(0, 8)}
                       </div>
                     </div>
                   </div>
@@ -122,7 +141,7 @@ export default function UserTable({
                 {/* Role */}
                 <td className="px-4 lg:px-6 py-5">
                   <span className={`px-2 lg:px-3 py-1 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                    {user.role}
+                    {getRoleDisplay(user.role)}
                   </span>
                 </td>
 
@@ -142,7 +161,7 @@ export default function UserTable({
                           : "bg-rose-500"
                       }`}
                     />
-                    {user.status === "active" ? "Active" : "Inactive"}
+                    {user.status === "active" ? t("active") : t("inactive")}
                   </div>
                 </td>
 
@@ -153,10 +172,10 @@ export default function UserTable({
                     <button
                       onClick={() => onEdit(user)}
                       className="flex items-center gap-1 px-2 py-1.5 text-xs font-bold rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
-                      title="Edit User"
+                      title={t("edit_user")}
                     >
                       <PencilIcon className="w-3 h-3 lg:w-4 lg:h-4" />
-                      <span className="hidden sm:inline">Edit</span>
+                      <span className="hidden sm:inline">{t("edit")}</span>
                     </button>
 
                     {/* Enable/Disable */}
@@ -168,7 +187,7 @@ export default function UserTable({
                           : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                       }`}
                     >
-                      {user.status === "active" ? "Disable" : "Enable"}
+                      {user.status === "active" ? t("disable") : t("enable")}
                     </button>
 
                     {/* Delete */}
@@ -176,10 +195,10 @@ export default function UserTable({
                       <button
                         onClick={() => onDelete(user.id)}
                         className="px-2 lg:px-4 py-1.5 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition flex items-center gap-1 lg:gap-1.5"
-                        title="Delete User"
+                        title={t("delete_user")}
                       >
                         <TrashIcon className="w-3 h-3 lg:w-4 lg:h-4" />
-                        <span className="hidden sm:inline">Delete</span>
+                        <span className="hidden sm:inline">{t("delete")}</span>
                       </button>
                     )}
                   </div>
@@ -196,7 +215,7 @@ export default function UserTable({
                       <UserCircleIcon className="w-8 h-8 text-gray-300" />
                     </div>
                     <p className="text-gray-400 font-medium">
-                      No users found in the system.
+                      {t("no_users_found")}
                     </p>
                   </div>
                 </td>
@@ -218,7 +237,7 @@ export default function UserTable({
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900">{user.fullName}</div>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    ID: {user.id.slice(0, 8)}
+                    {t("id")}: {user.id.slice(0, 8)}
                   </div>
                 </div>
               </div>
@@ -237,7 +256,7 @@ export default function UserTable({
             {/* Basic Info always visible */}
             <div className="mt-3 flex flex-wrap gap-2">
               <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                {user.role}
+                {getRoleDisplay(user.role)}
               </span>
               <span
                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -251,7 +270,7 @@ export default function UserTable({
                     user.status === "active" ? "bg-emerald-500" : "bg-rose-500"
                   }`}
                 />
-                {user.status === "active" ? "Active" : "Inactive"}
+                {user.status === "active" ? t("active") : t("inactive")}
               </span>
             </div>
 
@@ -259,7 +278,7 @@ export default function UserTable({
             {expandedCard === user.id && (
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Email Address</span>
+                  <span className="text-xs text-gray-500">{t("email_address")}</span>
                   <div className="flex items-center gap-1">
                     <EnvelopeIcon className="w-3 h-3 text-gray-400" />
                     <span className="text-xs text-gray-700 break-all text-right">
@@ -269,18 +288,18 @@ export default function UserTable({
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">User ID</span>
+                  <span className="text-xs text-gray-500">{t("user_id")}</span>
                   <span className="text-xs font-mono text-gray-600">
                     {user.id}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Role</span>
+                  <span className="text-xs text-gray-500">{t("role")}</span>
                   <div className="flex items-center gap-1">
                     <ShieldCheckIcon className="w-3 h-3 text-gray-400" />
                     <span className="text-xs font-semibold text-gray-700">
-                      {user.role}
+                      {getRoleDisplay(user.role)}
                     </span>
                   </div>
                 </div>
@@ -291,7 +310,7 @@ export default function UserTable({
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-bold rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
                   >
                     <PencilIcon className="w-3 h-3" />
-                    Edit
+                    {t("edit")}
                   </button>
                   <button
                     onClick={() => onToggleStatus(user.id)}
@@ -301,7 +320,7 @@ export default function UserTable({
                         : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                     }`}
                   >
-                    {user.status === "active" ? "Disable" : "Enable"}
+                    {user.status === "active" ? t("disable") : t("enable")}
                   </button>
                   {String(user.id) !== currentUserId && (
                     <button
@@ -309,7 +328,7 @@ export default function UserTable({
                       className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
                     >
                       <TrashIcon className="w-3 h-3" />
-                      Delete
+                      {t("delete")}
                     </button>
                   )}
                 </div>
@@ -318,7 +337,7 @@ export default function UserTable({
                 {String(user.id) === currentUserId && (
                   <div className="mt-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
                     <p className="text-xs text-amber-700 text-center">
-                      ⚠️ You cannot delete your own account
+                      ⚠️ {t("cannot_delete_own_account")}
                     </p>
                   </div>
                 )}
@@ -334,7 +353,7 @@ export default function UserTable({
                 <UserCircleIcon className="w-8 h-8 text-gray-300" />
               </div>
               <p className="text-gray-400 font-medium">
-                No users found in the system.
+                {t("no_users_found")}
               </p>
             </div>
           </div>

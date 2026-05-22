@@ -1,3 +1,4 @@
+// src/features/agent/api/agent.api.ts
 import api from "../../../services/api";
 
 // Hardcoded agent code (from your admin dashboard)
@@ -39,15 +40,15 @@ export async function searchBills(params: {
   return response.data;
 }
 
-// Process payment
+// ✅ Process payment – now accepts camelCase fields (matches backend)
 export async function processPayment(data: {
-  bill_id: string;
-  agent_id: string;
+  billId: string;
+  agentId: string;
   amount: number;
   transactionId: string;
   idempotencyKey: string;
-  payment_method: string;
-  payer_phone: string;
+  paymentMethod: string;
+  payerPhone: string;
 }) {
   const response = await api.post("/agent/confirm-payment", data, {
     headers: {

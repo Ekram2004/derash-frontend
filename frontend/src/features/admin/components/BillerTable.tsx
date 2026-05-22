@@ -6,6 +6,7 @@ import {
   ChevronUpIcon,
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface Biller {
   id: string;
@@ -29,7 +30,7 @@ export default function BillerTable({
   onDelete,
   onToggleStatus,
 }: Props) {
-  // Mobile card view state
+  const { t } = useTranslation();
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   return (
@@ -38,14 +39,14 @@ export default function BillerTable({
       <div className="px-4 sm:px-6 md:px-8 py-4 md:py-6 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-            Registered <span className="text-red-500">Billers</span>
+            {t("registered")} <span className="text-red-500">{t("billers")}</span>
           </h2>
           <p className="text-sm text-gray-400 mt-1 md:mt-2 font-medium leading-relaxed">
-            Manage your organization's billing partners and integration codes.
+            {t("billers_table_description")}
           </p>
         </div>
         <div className="bg-gray-50 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs font-semibold text-gray-600 uppercase tracking-wide border border-gray-200 self-start sm:self-center">
-          Total: {billers.length}
+          {t("total")}: {billers.length}
         </div>
       </div>
 
@@ -55,22 +56,22 @@ export default function BillerTable({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 lg:px-8 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Biller Identity
+                {t("biller_identity")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Service Code
+                {t("service_code")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Category
+                {t("category")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Partial Pay
+                {t("partial_pay")}
               </th>
               <th className="px-4 lg:px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Status
+                {t("status")}
               </th>
               <th className="px-6 lg:px-8 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                Management
+                {t("management")}
               </th>
             </tr>
           </thead>
@@ -91,7 +92,7 @@ export default function BillerTable({
                         {biller.name}
                       </div>
                       <div className="text-xs text-gray-400">
-                        ID: {biller.id.slice(0, 8)}
+                        {t("id")}: {biller.id.slice(0, 8)}
                       </div>
                     </div>
                   </div>
@@ -105,7 +106,7 @@ export default function BillerTable({
 
                 <td className="px-4 lg:px-6 py-5">
                   <span className="text-sm font-medium text-gray-600">
-                    {biller.category}
+                    {t(biller.category.toLowerCase())}
                   </span>
                 </td>
 
@@ -118,7 +119,7 @@ export default function BillerTable({
                           : "bg-gray-100 text-gray-400"
                       }`}
                   >
-                    {biller.allowsPartial ? "allowed" : "not allowed"}
+                    {biller.allowsPartial ? t("allowed") : t("not_allowed")}
                   </span>
                 </td>
 
@@ -135,7 +136,7 @@ export default function BillerTable({
                         biller.isActive ? "bg-emerald-500" : "bg-rose-500"
                       }`}
                     />
-                    {biller.isActive ? "Active" : "Inactive"}
+                    {biller.isActive ? t("active") : t("inactive")}
                   </div>
                 </td>
 
@@ -144,10 +145,10 @@ export default function BillerTable({
                     <button
                       onClick={() => onEdit(biller)}
                       className="flex items-center gap-1 px-2 py-1.5 text-xs font-bold rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
-                      title="Edit Biller"
+                      title={t("edit_biller")}
                     >
                       <PencilIcon className="w-3 h-3 lg:w-4 lg:h-4" />
-                      <span className="hidden sm:inline">Edit</span>
+                      <span className="hidden sm:inline">{t("edit")}</span>
                     </button>
 
                     <button
@@ -158,16 +159,16 @@ export default function BillerTable({
                           : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                       }`}
                     >
-                      {biller.isActive ? "Disable" : "Enable"}
+                      {biller.isActive ? t("disable") : t("enable")}
                     </button>
 
                     <button
                       onClick={() => onDelete(biller.id)}
                       className="px-2 lg:px-4 py-1.5 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition flex items-center gap-1 lg:gap-1.5"
-                      title="Delete Biller"
+                      title={t("delete_biller")}
                     >
                       <TrashIcon className="w-3 h-3 lg:w-4 lg:h-4" />
-                      <span className="hidden sm:inline">Delete</span>
+                      <span className="hidden sm:inline">{t("delete")}</span>
                     </button>
                   </div>
                 </td>
@@ -182,7 +183,7 @@ export default function BillerTable({
                       <BuildingOfficeIcon className="w-8 h-8 text-gray-300" />
                     </div>
                     <p className="text-gray-400 font-medium">
-                      No billers found in the database.
+                      {t("no_billers_found")}
                     </p>
                   </div>
                 </td>
@@ -204,7 +205,7 @@ export default function BillerTable({
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900">{biller.name}</div>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    Code: {biller.code}
+                    {t("code")}: {biller.code}
                   </div>
                 </div>
               </div>
@@ -224,14 +225,14 @@ export default function BillerTable({
             {expandedCard === biller.id && (
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Category</span>
+                  <span className="text-xs text-gray-500">{t("category")}</span>
                   <span className="text-sm font-medium text-gray-700">
-                    {biller.category}
+                    {t(biller.category.toLowerCase())}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Partial Payment</span>
+                  <span className="text-xs text-gray-500">{t("partial_payment")}</span>
                   <span
                     className={`px-2 py-0.5 rounded-lg text-xs font-bold ${
                       biller.allowsPartial
@@ -239,12 +240,12 @@ export default function BillerTable({
                         : "bg-gray-100 text-gray-400"
                     }`}
                   >
-                    {biller.allowsPartial ? "Allowed" : "Not Allowed"}
+                    {biller.allowsPartial ? t("allowed") : t("not_allowed")}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Status</span>
+                  <span className="text-xs text-gray-500">{t("status")}</span>
                   <div
                     className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${
                       biller.isActive
@@ -257,7 +258,7 @@ export default function BillerTable({
                         biller.isActive ? "bg-emerald-500" : "bg-rose-500"
                       }`}
                     />
-                    {biller.isActive ? "Active" : "Inactive"}
+                    {biller.isActive ? t("active") : t("inactive")}
                   </div>
                 </div>
 
@@ -267,7 +268,7 @@ export default function BillerTable({
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-bold rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition"
                   >
                     <PencilIcon className="w-3 h-3" />
-                    Edit
+                    {t("edit")}
                   </button>
                   <button
                     onClick={() => onToggleStatus(biller.id)}
@@ -277,14 +278,14 @@ export default function BillerTable({
                         : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                     }`}
                   >
-                    {biller.isActive ? "Disable" : "Enable"}
+                    {biller.isActive ? t("disable") : t("enable")}
                   </button>
                   <button
                     onClick={() => onDelete(biller.id)}
                     className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs font-bold rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
                   >
                     <TrashIcon className="w-3 h-3" />
-                    Delete
+                    {t("delete")}
                   </button>
                 </div>
               </div>
@@ -299,7 +300,7 @@ export default function BillerTable({
                 <BuildingOfficeIcon className="w-8 h-8 text-gray-300" />
               </div>
               <p className="text-gray-400 font-medium">
-                No billers found in the database.
+                {t("no_billers_found")}
               </p>
             </div>
           </div>

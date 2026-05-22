@@ -10,3 +10,15 @@ export const changePasswordApi = async (data: { newPassword: string; token: stri
   const response = await api.post("/auth/change-password", data);
   return response.data;
 };
+
+// ✅ Forgot Password – request a reset link
+export const forgotPasswordApi = async (email: string) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+// ✅ Reset Password – submit new password with token
+export const resetPasswordApi = async (token: string, newPassword: string) => {
+  const response = await api.post("/auth/reset-password", { token, newPassword });
+  return response.data;
+};

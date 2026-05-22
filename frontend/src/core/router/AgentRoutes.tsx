@@ -5,9 +5,8 @@ import ProtectedRoute from "@/shared/components/common/ProtectedRoute";
 // Agent Pages
 import Dashboard from "../../features/agent/pages/Dashboard";
 import PayBill from "@/features/agent/pages/PayBill";
-
 import Reports from "@/features/agent/pages/Reports";
-console.log("Dashboard component is mounting");
+import SettingsPage from "@/features/agent/pages/SettingsPage";   // ✅ import the settings page (file name is SettingsPage.tsx)
 
 export default function AgentRoutes() {
   return (
@@ -16,12 +15,9 @@ export default function AgentRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="pay-bill" element={<PayBill />} />
-        
         <Route path="reports" element={<Reports />} />
-        {/*<Route path="settings" element={<SettingsPage />} />*/}
+        <Route path="settings" element={<SettingsPage />} />   // ✅ add settings route
       </Route>
     </Routes>
   );
 }
-
-    

@@ -48,6 +48,20 @@ interface Receipt {
 
 const HARDCODED_AGENT_CODE = "CBE-1001";
 
+// Helper to map frontend payment method to backend enum
+const mapPaymentMethod = (method: string): string => {
+  switch (method) {
+    case "CBE":
+      return "BANK_TRANSFER";
+    case "TELEBIRR":
+      return "MOBILE_APP";
+    case "CASH":
+      return "CASH";
+    default:
+      return "BANK_TRANSFER";
+  }
+};
+
 export default function PayBill() {
   const [view, setView] = useState<"search" | "pay" | "receipt">("search");
   const [billReference, setBillReference] = useState("");
@@ -120,14 +134,19 @@ export default function PayBill() {
           ? Number(manualAmount)
           : Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
       if (finalAmount <= 0) throw new Error("Invalid payment amount.");
+      
+      const backendPaymentMethod = mapPaymentMethod(paymentMethod);
+      // Provide a default phone if empty (backend may require non-empty)
+      const payerPhone = phone.trim() || "0000000000";
+      
       const payload = {
-        bill_id: selectedBill.bill_id,
-        agent_id: selectedBill.agent_id,
+        billId: selectedBill.bill_id,
+        agentId: selectedBill.agent_id,
         amount: finalAmount,
         transactionId: selectedBill.transactionId,
         idempotencyKey: selectedBill.idempotencyKey,
-        payment_method: paymentMethod,
-        payer_phone: phone.trim(),
+        paymentMethod: backendPaymentMethod,
+        payerPhone: payerPhone,
       };
       const result = await processPayment(payload);
       const receiptData = result?.receipt || result?.data?.receipt;
@@ -337,30 +356,35 @@ export default function PayBill() {
         )}
 
         {/* VIEW 3: RECEIPT */}
-        {view === "receipt" && receipt && (
-          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">Payment Successful</h2>
-              <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
-            </div>
-            <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
-              <div className="flex justify-between"><span>TRANSACTION REF:</span> <strong>{receipt.transaction_ref}</strong></div>
-              <div className="flex justify-between"><span>CUSTOMER:</span> <strong>{receipt.customer}</strong></div>
-              <div className="flex justify-between"><span>AMOUNT PAID:</span> <strong className="text-red-600">{receipt.amount_paid}</strong></div>
-              <div className="flex justify-between"><span>REM. BALANCE:</span> <strong>{receipt.remaining_balance || "0.00"}</strong></div>
-              <div className="flex justify-between"><span>STATUS:</span> <strong>{receipt.status}</strong></div>
-              <div className="flex justify-between"><span>DUE DATE:</span> <strong>{receipt.due_date}</strong></div>
-              <hr />
-              <p className="text-center">PAID ON: {receipt.paymentDate}</p>
-            </div>
-            <button onClick={resetPayment} className="w-full bg-gradient-to-r from-gray-900 to-gray-800 text-white py-4 font-bold hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-              <RefreshCw className="w-5 h-5" /> Done / New Payment
-            </button>
-          </div>
-        )}
+        {/* VIEW 3: RECEIPT */}
+{view === "receipt" && receipt && (
+  <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
+    <div className="p-6 text-center">
+      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <CheckCircle className="w-8 h-8" />
+      </div>
+      <h2 className="text-2xl font-bold text-gray-800">Payment Successful</h2>
+      <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
+    </div>
+    <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
+      <div className="flex justify-between"><span>TRANSACTION REF:</span> <strong>{receipt.transaction_ref}</strong></div>
+      <div className="flex justify-between"><span>CUSTOMER:</span> <strong>{selectedBill ? getCustomerName(selectedBill) : receipt.customer}</strong></div>
+      <div className="flex justify-between"><span>AMOUNT PAID:</span> <strong className="text-red-600">{receipt.amount_paid}</strong></div>
+      <div className="flex justify-between"><span>REM. BALANCE:</span> <strong>{receipt.remaining_balance || "0.00"}</strong></div>
+      <div className="flex justify-between"><span>STATUS:</span> <strong>{receipt.status}</strong></div>
+      <div className="flex justify-between"><span>DUE DATE:</span> <strong>{receipt.due_date}</strong></div>
+      <hr />
+      <p className="text-center">PAID ON: {receipt.paymentDate}</p>
+    </div>
+    <button 
+      onClick={resetPayment} 
+      className="w-full bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-4 font-bold rounded-b-2xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+    >
+      <RefreshCw className="w-5 h-5" /> Done / New Payment
+    </button>
+  </div>
+)}
+       
       </div>
     </DashboardLayout>
   );
@@ -454,17 +478,13 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
               Amount to Pay <span className="text-xs text-red-500">(Partial allowed)</span>
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              
-              </div>
               <input
                 type="number"
-                placeholder="ETB"
                 value={editableAmount}
                 onChange={(e) => setEditableAmount(Number(e.target.value))}
                 min={1}
                 max={maxAmount}
-                className="w-full pl-10 pr-3 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
                 required
                 disabled={isSyncing || isBlockedByExpiry}
               />

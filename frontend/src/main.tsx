@@ -2,6 +2,7 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "./i18n"; // ✅ Import i18n configuration (MUST be before App)
 import App from "./App";
 import "./index.css";
 

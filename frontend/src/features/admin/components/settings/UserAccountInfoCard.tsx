@@ -1,78 +1,190 @@
 // src/features/admin/components/settings/UserAccountInfoCard.tsx
+import { useTranslation } from "react-i18next";
+import {
+  UserCircleIcon,
+  EnvelopeIcon,
+  ShieldCheckIcon,
+  CalendarIcon,
+  CheckBadgeIcon,
+  ComputerDesktopIcon,
+} from "@heroicons/react/24/outline";
 
-import { useState } from "react";
-import { UserCircleIcon, EnvelopeIcon, ShieldCheckIcon, CalendarIcon } from "@heroicons/react/24/outline";
+interface User {
+  id?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  createdAt?: string;
+  lastLogin?: string;
+  status?: string;
+}
 
 interface UserAccountInfoCardProps {
-  user: any;
-}
-
-function CalendarIconOutline({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  );
-}
-
-function EnvelopeIconOutline({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-  );
+  user: User | null;
 }
 
 export default function UserAccountInfoCard({ user }: UserAccountInfoCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleDateString("en-ET", { year: "numeric", month: "long", day: "numeric" });
-    } catch {
-      return "N/A";
+  if (!user) {
+    return (
+      <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+        <div className="animate-pulse flex space-x-4">
+          <div className="rounded-full bg-gray-200 dark:bg-gray-700 h-12 w-12"></div>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = user.fullName || user.name || t("administrator");
+  const userRole = user.role || "SYSTEM_ADMIN";
+  
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case "SYSTEM_ADMIN":
+        return { color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", label: t("system_administrator") };
+      case "AGENT_USER":
+        return { color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", label: t("agent_user") };
+      case "BILLER_USER":
+        return { color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400", label: t("biller_user") };
+      default:
+        return { color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400", label: role };
     }
   };
 
+  const roleBadge = getRoleBadge(userRole);
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return t("not_available");
+    return new Date(dateString).toLocaleDateString();
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div 
-        className="px-5 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-xl"><UserCircleIcon className="w-5 h-5 text-blue-600" /></div>
-          <div><h3 className="font-semibold text-gray-800">Administrator Account</h3><p className="text-xs text-gray-500">Your profile and account information</p></div>
-        </div>
-        <button className="text-blue-600 text-sm font-medium">{expanded ? "Collapse ▲" : "Expand ▼"}</button>
+    <div className="bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+      {/* Header with gradient border */}
+      <div className="relative mb-6">
+        <div className="absolute -top-3 left-0 w-20 h-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
+        <h3 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+          <CheckBadgeIcon className="w-5 h-5 text-red-500 dark:text-red-400" />
+          {t("administrator_account")}
+        </h3>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t("account_info_description")}</p>
       </div>
 
-      {expanded && (
-        <div className="p-5">
-          <div className="flex items-start gap-4 pb-4 mb-4 border-b border-gray-100">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md">
-              {user?.name?.charAt(0) || "A"}
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900">{user?.name || "Administrator"}</h2>
-              <p className="text-sm text-gray-500 mt-1">{user?.email || "admin@derash.gov.et"}</p>
-              <p className="text-xs text-gray-400 mt-1">User ID: {user?.id || "N/A"}</p>
+      {/* Main Account Info Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Full Name */}
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <UserCircleIcon className="w-5 h-5 text-red-500 dark:text-red-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {t("full_name")}
+            </p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 line-clamp-1">
+              {displayName}
+            </p>
+          </div>
+        </div>
+
+        {/* Email Address */}
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <EnvelopeIcon className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {t("email_address")}
+            </p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-clamp-1">
+              {user.email || t("not_provided")}
+            </p>
+          </div>
+        </div>
+
+        {/* Role */}
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <ShieldCheckIcon className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {t("role")}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${roleBadge.color}`}>
+                {roleBadge.label}
+              </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <EnvelopeIconOutline className="w-5 h-5 text-gray-400 mt-0.5" />
-              <div><p className="text-xs text-gray-400">Email</p><p className="text-sm font-medium text-gray-800">{user?.email || "admin@derash.gov.et"}</p></div>
+        </div>
+
+        {/* Account Created (if available) */}
+        {user.createdAt && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <CalendarIcon className="w-5 h-5 text-green-500 dark:text-green-400" />
             </div>
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <ShieldCheckIcon className="w-5 h-5 text-gray-400 mt-0.5" />
-              <div><p className="text-xs text-gray-400">Role</p><p className="text-sm"><span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">ADMINISTRATOR</span></p></div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                {t("account_created")}
+              </p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {formatDate(user.createdAt)}
+              </p>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <CalendarIconOutline className="w-5 h-5 text-gray-400 mt-0.5" />
-              <div><p className="text-xs text-gray-400">Member Since</p><p className="text-sm text-gray-800">{formatDate(user?.createdAt)}</p></div>
+          </div>
+        )}
+
+        {/* Last Login (if available) */}
+        {user.lastLogin && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ComputerDesktopIcon className="w-5 h-5 text-orange-500 dark:text-orange-400" />
             </div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                {t("last_login")}
+              </p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {formatDate(user.lastLogin)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Status (if available) */}
+        {user.status && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-all duration-200 group">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className={`w-2 h-2 rounded-full ${user.status === "active" ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></div>
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                {t("status")}
+              </p>
+              <span className={`text-sm font-semibold ${user.status === "active" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                {user.status === "active" ? t("active") : t("inactive")}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* User ID Footer */}
+      {user.id && (
+        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
+            <span>{t("user_id")}:</span>
+            <code className="font-mono text-[10px] bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded">
+              {user.id.slice(0, 12)}...
+            </code>
           </div>
         </div>
       )}

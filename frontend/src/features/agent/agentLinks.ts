@@ -1,3 +1,4 @@
+// src/features/agent/agentLinks.ts
 export const agentLinks = [
   {
     label: "Dashboard",
@@ -7,12 +8,12 @@ export const agentLinks = [
     label: "Pay Bill",
     path: "/agent/pay-bill",
   },
-  
   {
     label: "Reports",
     path: "/agent/reports",
   },
-  { label: "Settings",
-     path: "agent/settingsPages" },
-  
+  {
+    label: "Settings",
+    path: "/agent/settings",   // ✅ fixed path (was "agent/settingsPages")
+  },
 ];
