@@ -17,9 +17,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Check if the error is 401
-    // 2. Ensure we haven't already retried this specific request
-    // 3. CRITICAL: Ensure the failed request wasn't the refresh call itself
+    
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
