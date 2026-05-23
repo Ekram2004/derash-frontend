@@ -35,10 +35,10 @@ api.interceptors.response.use(
         // If refresh worked, retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, the session is dead.
-        // Clear everything and force login.
         localStorage.clear(); // Clear any zombie tokens
-        window.location.href = "/login";
+        if (window.location.pathname !== "/login") {
+          window.history.replaceState({}, "", "/login");
+        }
         return Promise.reject(refreshError);
       }
     }
