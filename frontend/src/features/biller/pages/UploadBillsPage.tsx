@@ -119,11 +119,11 @@ export default function UploadBillsPage() {
 
   const downloadTemplate = () => {
     const template = `billReference,customerName,amount,period,due_date
-BL-2024-001,Abebe Kebede,1500.00,2024-12-31,2024-12-31
-BL-2024-002,Tigist Desta,2500.50,2024-12-31,2024-12-31
-BL-2024-003,Almaz Bekele,3200.00,2024-12-31,2024-12-31
-BL-2024-004,Marta Alem,1200.00,2026-06-01,2026-06-01
-BL-2024-005,Samuel Bekele,450.00,2026-06-07,2026-06-07`;
+BL-2024-001,Abebe Kebede,1500.00,2024-12,2024-12-31
+BL-2024-002,Tigist Desta,2500.50,2024-12,2024-12-31
+BL-2024-003,Almaz Bekele,3200.00,2024-12,2024-12-31
+BL-2024-004,Marta Alem,1200.00,2026-06,2026-06-01
+BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -156,7 +156,7 @@ BL-2024-005,Samuel Bekele,450.00,2026-06-07,2026-06-07`;
       if (!amtRaw || isNaN(amount) || amount <= 0) errors.push('Invalid amount');
       const period = colIdx.period !== -1 ? values[colIdx.period] : '';
       if (!period) errors.push('Missing period (YYYY-MM-DD)');
-      else if (!/^\d{4}-\d{2}-\d{2}$/.test(period)) errors.push('Period must be YYYY-MM-DD');
+      else if (!/^\d{4}-\d{2}$/.test(period)) errors.push('Period must be YYYY-MM');
       const due = colIdx.due_date !== -1 ? values[colIdx.due_date] : '';
       if (!due) errors.push('Missing due date');
       else if (!/^\d{4}-\d{2}-\d{2}$/.test(due)) errors.push('Due date must be YYYY-MM-DD');
@@ -377,12 +377,12 @@ BL-2024-005,Samuel Bekele,450.00,2026-06-07,2026-06-07`;
               <p className="text-xs font-semibold text-gray-600 mb-2">📋 Required CSV Format:</p>
               <div className="bg-white rounded-lg p-2 mb-2 font-mono text-xs">billReference,customerName,amount,period,due_date</div>
               <p className="text-xs font-semibold text-gray-600 mb-1 mt-2">Example:</p>
-              <div className="bg-white rounded-lg p-2 font-mono text-xs">BL-2024-001,Abebe Kebede,1500.00,2024-12-31,2024-12-31</div>
+              <div className="bg-white rounded-lg p-2 font-mono text-xs">BL-2024-001,Abebe Kebede,1500.00,2024-12,2024-12-31</div>
               <ul className="text-xs text-gray-500 space-y-1 mt-2">
                 <li>• <strong>billReference</strong> - Unique bill identifier</li>
                 <li>• <strong>customerName</strong> - Customer full name</li>
                 <li>• <strong>amount</strong> - Positive number (no currency)</li>
-                <li>• <strong>period</strong> - Billing month/year (YYYY-MM-DD)</li>
+                <li>• <strong>period</strong> - Billing month/year (YYYY-MM)</li>
                 <li>• <strong>due_date</strong> - Payment due date (YYYY-MM-DD)</li>
               </ul>
             </div>
