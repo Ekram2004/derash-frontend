@@ -4,7 +4,7 @@ export interface User {
   id?: string;
   name: string;
   email: string;
-  role: "ADMIN" | "AGENT" | "BILLER";
+  role: "SYSTEM_ADMIN" | "AGENT_USER" | "BILLER_USER";
   phone?: string;
   company?: string;
   address?: string;

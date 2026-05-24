@@ -3,14 +3,22 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
-export default function ProtectedRoute() {
-  const token = useAuthStore((state) => state.token);
+// Updated ProtectedRoute with Role Support
+interface Props {
+  allowedRoles?: ("SYSTEM_ADMIN" | "AGENT_USER" | "BILLER_USER")[];
+}
 
-  // 🔒 Not logged in → go to login
-  if (!token) {
+export default function ProtectedRoute({ allowedRoles }: Props) {
+  const { isAuthenticated, user } = useAuthStore();
+  
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Render nested routes
+  if (allowedRoles && !allowedRoles.includes(user?.role as any)) {
+    // Logged in but wrong role? Send them to their specific home
+    return <Navigate to="/" replace />;
+  }
+
   return <Outlet />;
 }
