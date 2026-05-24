@@ -199,7 +199,9 @@ export default function PayBill() {
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
             Agent Payment Terminal
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Search, pay, and print receipts – all in one place.</p>
+          <p className="text-gray-500 text-sm mt-1">
+            Search, pay, and print receipts – all in one place.
+          </p>
         </div>
 
         {/* VIEW 1: SEARCH + BILL SUMMARY */}
@@ -225,21 +227,31 @@ export default function PayBill() {
                   disabled={loading}
                   className="bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                  {loading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="w-5 h-5" />
+                  )}
                   {loading ? "Searching..." : "Search"}
                 </button>
               </div>
-              
+
               {/* Professional Error Card */}
               {errorDetails && (
                 <div className="mt-6 p-5 bg-red-50 border border-red-200 rounded-2xl shadow-sm animate-fade-in-up">
                   <div className="flex items-start gap-4">
                     <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-red-800">{errorDetails.title}</h3>
-                      <p className="text-red-700 mt-1">{errorDetails.message}</p>
+                      <h3 className="text-lg font-bold text-red-800">
+                        {errorDetails.title}
+                      </h3>
+                      <p className="text-red-700 mt-1">
+                        {errorDetails.message}
+                      </p>
                       {errorDetails.billRef && (
-                        <p className="text-red-600 text-sm mt-2 font-mono">Bill Reference: {errorDetails.billRef}</p>
+                        <p className="text-red-600 text-sm mt-2 font-mono">
+                          Bill Reference: {errorDetails.billRef}
+                        </p>
                       )}
                       <div className="flex gap-3 mt-4">
                         <button
@@ -266,7 +278,7 @@ export default function PayBill() {
                   </div>
                 </div>
               )}
-              
+
               {error && !errorDetails && (
                 <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
                   <AlertCircle className="w-5 h-5" />
@@ -283,61 +295,103 @@ export default function PayBill() {
                     <div className="p-2 bg-red-50 rounded-xl">
                       <DollarSign className="w-6 h-6 text-red-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Bill Summary</h3>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      Bill Summary
+                    </h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-gray-500">Customer Name:</span>
-                      <span className="font-semibold">{getCustomerName(selectedBill)}</span>
+                      <span className="font-semibold">
+                        {getCustomerName(selectedBill)}
+                      </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-gray-500">Biller:</span>
-                      <span className="font-semibold">{selectedBill.biller_name}</span>
+                      <span className="font-semibold">
+                        {selectedBill.biller_name}
+                      </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-gray-500">Status:</span>
-                      <span className="font-semibold text-blue-600">{selectedBill.status}</span>
+                      <span className="font-semibold text-blue-600">
+                        {selectedBill.status}
+                      </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-gray-500">Due Date:</span>
-                      <span className="font-semibold">{selectedBill.due_date}</span>
+                      <span className="font-semibold">
+                        {selectedBill.due_date}
+                      </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-gray-500">Amount Due:</span>
                       <span className="font-semibold">
-                        {safeNumber(selectedBill.amount_due)} {selectedBill.currency || "ETB"}
+                        {safeNumber(selectedBill.amount_due)}{" "}
+                        {selectedBill.currency || "ETB"}
                       </span>
                     </div>
                     {selectedBill.late_penalty > 0 && (
                       <div className="flex justify-between border-b pb-2">
                         <span className="text-red-500">Late Penalty:</span>
                         <span className="font-semibold text-red-500">
-                          {selectedBill.late_penalty} {selectedBill.currency || "ETB"}
+                          {selectedBill.late_penalty}{" "}
+                          {selectedBill.currency || "ETB"}
                         </span>
                       </div>
                     )}
                   </div>
                   <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                    <span className="text-lg font-bold text-gray-800">Total to Pay:</span>
+                    <span className="text-lg font-bold text-gray-800">
+                      Total to Pay:
+                    </span>
                     <span className="text-2xl font-black text-red-600">
-                      {safeNumber(selectedBill.total_to_pay) || safeNumber(selectedBill.amount_due)} {selectedBill.currency || "ETB"}
+                      {safeNumber(selectedBill.total_to_pay) ||
+                        safeNumber(selectedBill.amount_due)}{" "}
+                      {selectedBill.currency || "ETB"}
                     </span>
                   </div>
                   {selectedBill.warning && (
-                    <div className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm ${
-                      selectedBill.is_blocked ? "bg-red-50 text-red-700" : "bg-orange-50 text-orange-700"
-                    }`}>
+                    <div
+                      className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm ${
+                        selectedBill.is_blocked
+                          ? "bg-red-50 text-red-700"
+                          : "bg-orange-50 text-orange-700"
+                      }`}
+                    >
                       <Info className="w-5 h-5" />
                       {selectedBill.warning}
                     </div>
                   )}
                   <button
                     onClick={goToPay}
-                    disabled={selectedBill.is_blocked}
-                    className="w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    disabled={
+                      selectedBill.is_blocked || selectedBill.status === "PAID"
+                    }
+                    className={`w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 
+    ${
+      selectedBill.status === "PAID"
+        ? "bg-green-600 cursor-default"
+        : "bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02]"
+    } 
+    disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <CreditCard className="w-5 h-5" />
-                    {selectedBill.is_blocked ? "Payment Blocked" : "Proceed to Payment"}
+                    {selectedBill.status === "PAID" ? (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Bill Fully Settled
+                      </>
+                    ) : selectedBill.is_blocked ? (
+                      <>
+                        <XCircle className="w-5 h-5" />
+                        Payment Blocked
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5" />
+                        Proceed to Payment
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -357,34 +411,55 @@ export default function PayBill() {
 
         {/* VIEW 3: RECEIPT */}
         {/* VIEW 3: RECEIPT */}
-{view === "receipt" && receipt && (
-  <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
-    <div className="p-6 text-center">
-      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-        <CheckCircle className="w-8 h-8" />
-      </div>
-      <h2 className="text-2xl font-bold text-gray-800">Payment Successful</h2>
-      <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
-    </div>
-    <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
-      <div className="flex justify-between"><span>TRANSACTION REF:</span> <strong>{receipt.transaction_ref}</strong></div>
-      <div className="flex justify-between"><span>CUSTOMER:</span> <strong>{selectedBill ? getCustomerName(selectedBill) : receipt.customer}</strong></div>
-      <div className="flex justify-between"><span>AMOUNT PAID:</span> <strong className="text-red-600">{receipt.amount_paid}</strong></div>
-      <div className="flex justify-between"><span>REM. BALANCE:</span> <strong>{receipt.remaining_balance || "0.00"}</strong></div>
-      <div className="flex justify-between"><span>STATUS:</span> <strong>{receipt.status}</strong></div>
-      <div className="flex justify-between"><span>DUE DATE:</span> <strong>{receipt.due_date}</strong></div>
-      <hr />
-      <p className="text-center">PAID ON: {receipt.paymentDate}</p>
-    </div>
-    <button 
-      onClick={resetPayment} 
-      className="w-full bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-4 font-bold rounded-b-2xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
-    >
-      <RefreshCw className="w-5 h-5" /> Done / New Payment
-    </button>
-  </div>
-)}
-       
+        {view === "receipt" && receipt && (
+          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Payment Successful
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
+            </div>
+            <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
+              <div className="flex justify-between">
+                <span>TRANSACTION REF:</span>{" "}
+                <strong>{receipt.transaction_ref}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>CUSTOMER:</span>{" "}
+                <strong>
+                  {selectedBill
+                    ? getCustomerName(selectedBill)
+                    : receipt.customer}
+                </strong>
+              </div>
+              <div className="flex justify-between">
+                <span>AMOUNT PAID:</span>{" "}
+                <strong className="text-red-600">{receipt.amount_paid}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>REM. BALANCE:</span>{" "}
+                <strong>{receipt.remaining_balance || "0.00"}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>STATUS:</span> <strong>{receipt.status}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>DUE DATE:</span> <strong>{receipt.due_date}</strong>
+              </div>
+              <hr />
+              <p className="text-center">PAID ON: {receipt.paymentDate}</p>
+            </div>
+            <button
+              onClick={resetPayment}
+              className="w-full bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-4 font-bold rounded-b-2xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-5 h-5" /> Done / New Payment
+            </button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
@@ -434,6 +509,12 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (maxAmount <= 0) {
+      alert(
+        "This bill has already been settled and has no outstanding balance.",
+      );
+      return;
+    }
     if (isTelebirr && !phone.trim()) {
       alert("Phone number is required for Telebirr payment.");
       return;
