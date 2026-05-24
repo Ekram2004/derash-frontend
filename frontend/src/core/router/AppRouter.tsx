@@ -29,7 +29,7 @@ export default function AppRouter() {
           <Route path="/biller/*" element={<BillerRoutes />} />
 
           {/* Fallback public routes (like landing pages) */}
-          <Route path="/" element={<PublicRoutes />} />
+          <Route path="/*" element={<PublicRoutes />} />
         </Routes>
       </AppProvider>
     </BrowserRouter>
