@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import PublicLayout from "../../../shared/components/layout/PublicLayout";
 import {
   ShieldCheckIcon,
@@ -16,20 +16,20 @@ import {
   ComputerDesktopIcon,
 } from "@heroicons/react/24/solid";
 
-// Animation Variants
+// Animation Variants - SLOWER & MORE PROFESSIONAL
 const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 const fadeInLeft: Variants = {
-  hidden: { opacity: 0, x: -40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  hidden: { opacity: 0, x: -60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 const fadeInRight: Variants = {
-  hidden: { opacity: 0, x: 40 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  hidden: { opacity: 0, x: 60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 const staggerContainer: Variants = {
@@ -37,15 +37,68 @@ const staggerContainer: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
     },
   },
 };
 
 const scaleOnHover: Variants = {
   rest: { scale: 1 },
-  hover: { scale: 1.05, transition: { duration: 0.2 } },
+  hover: { scale: 1.05, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
+const slowPulse: Variants = {
+  initial: { opacity: 0.3, scale: 0.95 },
+  animate: {
+    opacity: [0.3, 0.6, 0.3],
+    scale: [0.95, 1.05, 0.95],
+    transition: {
+      duration: 8,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
+
+// Typewriter Component
+const TypewriterText = ({ texts, typingSpeed = 100, pauseDuration = 2000 }: { texts: string[]; typingSpeed?: number; pauseDuration?: number }) => {
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentFullText = texts[currentTextIndex];
+    
+    const timer = setTimeout(() => {
+      if (!isDeleting) {
+        // Typing
+        if (displayText.length < currentFullText.length) {
+          setDisplayText(currentFullText.slice(0, displayText.length + 1));
+        } else {
+          // Pause before deleting
+          setTimeout(() => setIsDeleting(true), pauseDuration);
+        }
+      } else {
+        // Deleting
+        if (displayText.length > 0) {
+          setDisplayText(currentFullText.slice(0, displayText.length - 1));
+        } else {
+          setIsDeleting(false);
+          setCurrentTextIndex((prev) => (prev + 1) % texts.length);
+        }
+      }
+    }, isDeleting ? typingSpeed / 2 : typingSpeed);
+
+    return () => clearTimeout(timer);
+  }, [displayText, isDeleting, currentTextIndex, texts, typingSpeed, pauseDuration]);
+
+  return (
+    <span className="inline-block">
+      {displayText}
+      <span className="animate-pulse ml-1 inline-block w-0.5 h-8 bg-red-500 align-middle"></span>
+    </span>
+  );
 };
 
 export default function Home() {
@@ -55,35 +108,53 @@ export default function Home() {
     offset: ["start start", "end start"],
   });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.98]);
+
+  const typewriterTexts = [
+    "National Bill Aggregation Platform",
+    "Unified Digital Payment Infrastructure",
+    "Secure & Seamless Bill Payments",
+    "Empowering Ethiopia's Digital Economy",
+  ];
 
   return (
     <PublicLayout>
-      {/* HERO SECTION – dark mode support */}
+      {/* HERO SECTION */}
       <section
         ref={heroRef}
         className="relative overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-500 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white"
         style={{ minHeight: "calc(100vh - 80px)" }}
       >
-        {/* Animated Background Pattern */}
+        {/* Animated Background Pattern - Slower */}
         <div className="absolute inset-0 opacity-15 pointer-events-none">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse delay-1000"></div>
+          <motion.div
+            variants={slowPulse}
+            initial="initial"
+            animate="animate"
+            className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2"
+          />
+          <motion.div
+            variants={slowPulse}
+            initial="initial"
+            animate="animate"
+            transition={{ delay: 4 }}
+            className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl translate-x-1/2 translate-y-1/2"
+          />
           <svg
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full opacity-20"
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
               <pattern
                 id="grid"
-                width="40"
-                height="40"
+                width="60"
+                height="60"
                 patternUnits="userSpaceOnUse"
               >
                 <path
-                  d="M 40 0 L 0 0 0 40"
+                  d="M 60 0 L 0 0 0 60"
                   fill="none"
-                  stroke="rgba(255,255,255,0.05)"
+                  stroke="rgba(255,255,255,0.08)"
                   strokeWidth="1"
                 />
               </pattern>
@@ -94,21 +165,23 @@ export default function Home() {
 
         <motion.div
           style={{ opacity: heroOpacity, scale: heroScale }}
-          className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 min-h-[calc(100vh-80px)] flex items-center"
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-80px)] flex items-center"
         >
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center py-20">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center py-16 lg:py-20">
             <motion.div
               initial="hidden"
               animate="visible"
               variants={fadeInLeft}
               className="text-center lg:text-left"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 tracking-tight">
-                National Bill{" "}
-                <span>Aggregation Platform</span>
-              </h1>
+              {/* Typewriter Effect - Professional */}
+              <div className="mb-6">
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
+                  <TypewriterText texts={typewriterTexts} typingSpeed={80} pauseDuration={2500} />
+                </div>
+              </div>
 
-              <p className="text-lg md:text-xl text-red-50/90 dark:text-gray-300 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-red-50/90 dark:text-gray-300 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
                 DERASH is Ethiopia's unified digital billing platform that
                 connects billers, banks, and payment providers to enable secure
                 and seamless bill payments.
@@ -122,10 +195,10 @@ export default function Home() {
                 >
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all text-center text-lg"
+                    className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all text-center text-base sm:text-lg"
                   >
                     Access Platform
-                    <ArrowRightIcon className="w-5 h-5" />
+                    <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Link>
                 </motion.div>
 
@@ -136,7 +209,7 @@ export default function Home() {
                 >
                   <Link
                     to="/about"
-                    className="inline-flex items-center gap-2 bg-red-800/30 dark:bg-gray-700/50 border border-red-300 dark:border-gray-600 text-white px-8 py-4 rounded-xl font-bold backdrop-blur-sm hover:bg-opacity-50 transition-all text-center text-lg"
+                    className="inline-flex items-center gap-2 bg-red-800/30 dark:bg-gray-700/50 border border-red-300 dark:border-gray-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold backdrop-blur-sm hover:bg-opacity-50 transition-all text-center text-base sm:text-lg"
                   >
                     Learn More
                   </Link>
@@ -147,7 +220,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 1, duration: 1 }}
                 className="flex items-center justify-center lg:justify-start gap-6 mt-12 pt-6 border-t border-white/20 dark:border-gray-700"
               >
                 <div className="flex -space-x-2">
@@ -155,17 +228,18 @@ export default function Home() {
                     ✓
                   </div>
                 </div>
-                <span className="text-sm text-white/80 dark:text-gray-400">
+                <span className="text-xs sm:text-sm text-white/80 dark:text-gray-400">
                   Trusted by 16+ banks & 370K+ users
                 </span>
               </motion.div>
             </motion.div>
 
-            {/* Hero Card - Enhanced (dark mode support) */}
+            {/* Hero Card - Slower animation */}
             <motion.div
               initial="hidden"
               animate="visible"
               variants={fadeInRight}
+              transition={{ delay: 0.2, duration: 1 }}
               className="relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl blur-2xl opacity-30 -z-10"></div>
@@ -176,10 +250,10 @@ export default function Home() {
                       <ShieldCheckIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                         DERASH Platform
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                         Secure • Reliable • Scalable
                       </p>
                     </div>
@@ -191,39 +265,39 @@ export default function Home() {
                     {[
                       {
                         text: "Unified billing infrastructure",
-                        icon: <BuildingLibraryIcon className="w-6 h-6" />,
+                        icon: <BuildingLibraryIcon className="w-5 h-5 sm:w-6 sm:h-6" />,
                       },
                       {
                         text: "Secure digital payments",
-                        icon: <LockClosedIcon className="w-6 h-6" />,
+                        icon: <LockClosedIcon className="w-5 h-5 sm:w-6 sm:h-6" />,
                       },
                       {
                         text: "Integration with banks and wallets",
-                        icon: <CreditCardIcon className="w-6 h-6" />,
+                        icon: <CreditCardIcon className="w-5 h-5 sm:w-6 sm:h-6" />,
                       },
                       {
                         text: "Real-time transaction reporting",
-                        icon: <ChartBarIcon className="w-6 h-6" />,
+                        icon: <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6" />,
                       },
                     ].map((item, i) => (
                       <motion.li
                         key={i}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 + i * 0.1 }}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
+                        transition={{ delay: 0.6 + i * 0.15, duration: 0.6 }}
+                        className="flex items-center gap-3 p-2 sm:p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                       >
-                        <span className="text-red-500 dark:text-red-400">{item.icon}</span>
-                        <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
+                        <span className="text-red-500 dark:text-red-400 shrink-0">{item.icon}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white text-sm sm:text-base">
                           {item.text}
                         </span>
-                        <CheckCircleIcon className="ml-auto w-5 h-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CheckCircleIcon className="ml-auto w-4 h-4 sm:w-5 sm:h-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                       </motion.li>
                     ))}
                   </ul>
 
                   <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Status</span>
                       <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
@@ -237,43 +311,43 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator - Slower animation */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 1.5, duration: 1 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="text-sm text-white/60 dark:text-gray-400">Scroll to explore</span>
+          <span className="text-xs sm:text-sm text-white/60 dark:text-gray-400">Scroll to explore</span>
           <div className="w-6 h-10 border-2 border-white/30 dark:border-gray-600 rounded-full flex justify-center">
             <motion.div
               animate={{ y: [0, 12, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
               className="w-1.5 h-3 bg-white/60 dark:bg-gray-400 rounded-full mt-2"
             />
           </div>
         </motion.div>
       </section>
 
-      {/* PLATFORM FLOW */}
-      <section className="py-28 bg-white dark:bg-gray-900 relative">
+      {/* PLATFORM FLOW - Slower animations */}
+      <section className="py-20 sm:py-28 bg-white dark:bg-gray-900 relative">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50/50 dark:from-gray-800/50 via-transparent to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeInUp}
-            className="text-center mb-20"
+            className="text-center mb-16 sm:mb-20"
           >
-            <span className="text-red-600 dark:text-red-400 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-red-600 dark:text-red-400 font-semibold text-xs sm:text-sm uppercase tracking-wider">
               Process
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2 mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2 mb-4">
               How DERASH Works
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-red-400 mx-auto rounded-full"></div>
-            <p className="text-gray-600 dark:text-gray-400 mt-6 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 mt-6 max-w-2xl mx-auto text-sm sm:text-base">
               A seamless flow connecting billers, agents, and customers in one unified ecosystem
             </p>
           </motion.div>
@@ -286,30 +360,30 @@ export default function Home() {
             className="relative"
           >
             <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-red-200 via-red-300 to-red-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 hidden lg:block -translate-y-1/2"></div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[
                 {
                   title: "Billers",
                   desc: "Service providers upload bill data to the platform.",
-                  icon: <ComputerDesktopIcon className="w-8 h-8" />,
+                  icon: <ComputerDesktopIcon className="w-6 h-6 sm:w-8 sm:h-8" />,
                   color: "from-blue-500 to-blue-600",
                 },
                 {
                   title: "DERASH",
                   desc: "The platform securely distributes bill data to agents.",
-                  icon: <BoltIcon className="w-8 h-8" />,
+                  icon: <BoltIcon className="w-6 h-6 sm:w-8 sm:h-8" />,
                   color: "from-red-500 to-red-600",
                 },
                 {
                   title: "Agents",
                   desc: "Banks and operators collect payments from customers.",
-                  icon: <BuildingLibraryIcon className="w-8 h-8" />,
+                  icon: <BuildingLibraryIcon className="w-6 h-6 sm:w-8 sm:h-8" />,
                   color: "from-green-500 to-green-600",
                 },
                 {
                   title: "Customers",
                   desc: "Receive bill payment confirmation via SMS.",
-                  icon: <UserGroupIcon className="w-8 h-8" />,
+                  icon: <UserGroupIcon className="w-6 h-6 sm:w-8 sm:h-8" />,
                   color: "from-purple-500 to-purple-600",
                 },
               ].map((step, idx) => (
@@ -317,27 +391,28 @@ export default function Home() {
                   key={idx}
                   variants={fadeInUp}
                   whileHover={{ y: -8 }}
+                  transition={{ duration: 0.4 }}
                   className="relative group"
                 >
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 relative z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 sm:p-6 text-center shadow-lg hover:shadow-xl transition-all duration-500 relative z-10">
                     <div
-                      className={`w-16 h-16 bg-gradient-to-br ${step.color} text-white rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${step.color} text-white rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg group-hover:scale-110 transition-transform duration-500`}
                     >
                       {step.icon}
                     </div>
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-red-600 dark:bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 bg-red-600 dark:bg-red-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold shadow-md">
                       {idx + 1}
                     </div>
-                    <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-3">
+                    <h3 className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white mb-2 sm:mb-3">
                       {step.title}
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm leading-relaxed">
                       {step.desc}
                     </p>
                   </div>
                   {idx < 3 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-red-400 dark:text-gray-500 z-20">
-                      <ArrowRightIcon className="w-6 h-6" />
+                    <div className="hidden lg:block absolute top-1/2 -right-4 w-6 h-6 sm:w-8 sm:h-8 text-red-400 dark:text-gray-500 z-20">
+                      <ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                   )}
                 </motion.div>
@@ -347,48 +422,49 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PLATFORM STATS – dark mode adapted */}
-      <section className="bg-gradient-to-br from-red-700 via-red-600 to-red-500 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 py-24 text-white relative overflow-hidden">
+      {/* PLATFORM STATS - Slower animations */}
+      <section className="bg-gradient-to-br from-red-700 via-red-600 to-red-500 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 py-16 sm:py-24 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <svg className="absolute -bottom-24 -left-24 w-96 h-96 fill-white" viewBox="0 0 100 100">
+          <svg className="absolute -bottom-24 -left-24 w-64 h-64 sm:w-96 sm:h-96 fill-white" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" />
           </svg>
-          <svg className="absolute -top-24 -right-24 w-96 h-96 fill-white" viewBox="0 0 100 100">
+          <svg className="absolute -top-24 -right-24 w-64 h-64 sm:w-96 sm:h-96 fill-white" viewBox="0 0 100 100">
             <rect x="25" y="25" width="50" height="50" rx="10" />
           </svg>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12 sm:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Platform Impact</h2>
-            <p className="text-red-100 dark:text-gray-300 max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Platform Impact</h2>
+            <p className="text-red-100 dark:text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
               Driving digital transformation across Ethiopia's payment ecosystem
             </p>
           </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 lg:gap-12 text-center">
             {[
               { label: "Active Users", val: "370K+", suffix: "", delay: 0 },
-              { label: "Transactions", val: "650K+", suffix: "", delay: 0.1 },
-              { label: "Birr Processed", val: "60", suffix: "B+", delay: 0.2 },
-              { label: "Integrated Banks", val: "16", suffix: "+", delay: 0.3 },
+              { label: "Transactions", val: "650K+", suffix: "", delay: 0.15 },
+              { label: "Birr Processed", val: "60", suffix: "B+", delay: 0.3 },
+              { label: "Integrated Banks", val: "16", suffix: "+", delay: 0.45 },
             ].map((stat, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: stat.delay, duration: 0.5 }}
+                transition={{ delay: stat.delay, duration: 0.8 }}
                 viewport={{ once: true }}
-                className="bg-white/10 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 dark:border-gray-700 hover:bg-white/20 dark:hover:bg-gray-800/60 transition-all"
+                className="bg-white/10 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/20 dark:border-gray-700 hover:bg-white/20 dark:hover:bg-gray-800/60 transition-all duration-500"
               >
-                <h3 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 tracking-tight">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-1 sm:mb-2 tracking-tight">
                   {stat.val}
-                  <span className="text-3xl">{stat.suffix}</span>
+                  <span className="text-xl sm:text-2xl md:text-3xl">{stat.suffix}</span>
                 </h3>
-                <p className="text-red-100 dark:text-gray-400 font-medium uppercase tracking-wider text-xs md:text-sm">
+                <p className="text-red-100 dark:text-gray-400 font-medium uppercase tracking-wider text-[10px] sm:text-xs md:text-sm">
                   {stat.label}
                 </p>
               </motion.div>
@@ -397,67 +473,68 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BENEFITS – dark mode */}
-      <section className="py-28 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* BENEFITS - Slower animations */}
+      <section className="py-20 sm:py-28 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12 sm:mb-16"
           >
-            <span className="text-red-600 dark:text-red-400 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-red-600 dark:text-red-400 font-semibold text-xs sm:text-sm uppercase tracking-wider">
               Why Choose Us
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2">
               Benefits of DERASH
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-red-400 mx-auto mt-4 rounded-full"></div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 title: "Digital Transformation",
                 desc: "Supports the national digital economy by enabling secure electronic payments.",
-                icon: <ComputerDesktopIcon className="w-7 h-7" />,
+                icon: <ComputerDesktopIcon className="w-6 h-6 sm:w-7 sm:h-7" />,
                 gradient: "from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700",
                 iconBg: "bg-blue-100 text-blue-600 dark:bg-gray-700 dark:text-blue-400",
               },
               {
                 title: "Cashless Economy",
                 desc: "Promotes cashless transactions and improves financial accessibility across the country.",
-                icon: <CurrencyDollarIcon className="w-7 h-7" />,
+                icon: <CurrencyDollarIcon className="w-6 h-6 sm:w-7 sm:h-7" />,
                 gradient: "from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-700",
                 iconBg: "bg-green-100 text-green-600 dark:bg-gray-700 dark:text-green-400",
               },
               {
                 title: "Secure Ecosystem",
                 desc: "Ensures secure payment processing and transparent financial settlement for billers and agents.",
-                icon: <ShieldCheckIcon className="w-7 h-7" />,
+                icon: <ShieldCheckIcon className="w-6 h-6 sm:w-7 sm:h-7" />,
                 gradient: "from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-700",
                 iconBg: "bg-red-100 text-red-600 dark:bg-gray-700 dark:text-red-400",
               },
             ].map((benefit, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.2, duration: 0.8 }}
                 viewport={{ once: true }}
-                whileHover={{ y: -12 }}
-                className={`group relative bg-gradient-to-br ${benefit.gradient} p-8 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden`}
+                whileHover={{ y: -8 }}
+                className={`group relative bg-gradient-to-br ${benefit.gradient} p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden`}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white dark:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white dark:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-full -translate-y-16 translate-x-16"></div>
                 <div
-                  className={`w-14 h-14 ${benefit.iconBg} rounded-xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 ${benefit.iconBg} rounded-xl flex items-center justify-center mb-4 sm:mb-6 shadow-md group-hover:scale-110 transition-transform duration-500`}
                 >
                   {benefit.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
                   {benefit.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
                   {benefit.desc}
                 </p>
               </motion.div>
@@ -466,16 +543,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA – dark mode support */}
-      <section className="bg-white dark:bg-gray-900 py-28">
-        <div className="max-w-5xl mx-auto px-6">
+      {/* CTA - Slower animations */}
+      <section className="bg-white dark:bg-gray-900 py-16 sm:py-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-3xl overflow-hidden shadow-2xl"
+            className="relative bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl"
           >
-            {/* Animated background */}
             <div className="absolute inset-0">
               <div className="absolute top-0 left-0 w-72 h-72 bg-red-600 opacity-10 rounded-full filter blur-3xl animate-pulse"></div>
               <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-500 opacity-10 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
@@ -484,29 +561,29 @@ export default function Home() {
               </svg>
             </div>
 
-            <div className="relative z-10 p-12 md:p-16 text-center">
+            <div className="relative z-10 p-8 sm:p-12 md:p-16 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.2 }}
-                className="w-16 h-16 bg-red-600 dark:bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+                transition={{ type: "spring", delay: 0.3, duration: 0.6 }}
+                className="w-14 h-14 sm:w-16 sm:h-16 bg-red-600 dark:bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg"
               >
-                <BoltIcon className="w-8 h-8 text-white" />
+                <BoltIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </motion.div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4">
                 Ready to Access DERASH?
               </h2>
-              <p className="text-gray-300 text-lg mb-10 max-w-xl mx-auto">
+              <p className="text-gray-300 text-sm sm:text-base md:text-lg mb-8 sm:mb-10 max-w-xl mx-auto">
                 Log in to manage bills, payments, and financial reports with our
                 secure unified platform.
               </p>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} transition={{ duration: 0.3 }}>
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 bg-red-600 dark:bg-red-500 text-white px-10 py-4 rounded-xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-lg text-lg"
+                  className="inline-flex items-center gap-2 bg-red-600 dark:bg-red-500 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all duration-300 shadow-lg text-base sm:text-lg"
                 >
                   Go to Login
-                  <ArrowRightIcon className="w-5 h-5" />
+                  <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Link>
               </motion.div>
             </div>
