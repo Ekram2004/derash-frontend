@@ -445,7 +445,7 @@
   "sms_notifications": "SMS Notifications",
   "settings_updated": "Settings updated",
   "update_failed": "Failed to update settings",
-  {
+  
   "notifications": "Notifications",
   "notifications_description": "Monitor system activities, bill uploads, and agent actions",
   "unread": "unread",
@@ -454,6 +454,15 @@
   "loading_notifications": "Loading notifications...",
   "no_notifications": "No notifications found",
   "mark_as_read": "Mark as read",
-  "bill_uploaded": "Bill Uploaded"
+  "bill_uploaded": "Bill Uploaded",
+   "dashboard": "Dashboard",
+  "billers": "Billers",
+  "agents": "Agents",
+  "users": "Users",
+  "reports": "Reports",
+  "notifications": "Notifications",
+  "settings": "Settings",
+  "pay_bill": "Pay Bill",
+  "bills": "Bills"
 
 }
