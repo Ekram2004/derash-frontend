@@ -38,7 +38,12 @@ export const adminLinks = [
     path: "/admin/reports",
     icon: ChartBarIcon,
   },
-  { label: "Notifications", path: "/admin/notifications", icon: BellIcon },
+  {
+    label: "Notifications",
+    path: "/admin/notifications",
+    icon: BellIcon,
+    showBadge: true,
+  },
   {
     label: "Settings",
     path: "/admin/settings",

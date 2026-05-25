@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { adminApi } from "../../../features/admin/api/admin.api";
 
 interface LinkItem {
   label: string;
@@ -17,6 +19,22 @@ interface Props {
 
 export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: Props) {
   const location = useLocation();
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const notifications = await adminApi.getNotifications();
+        const count = notifications.filter((n) => !n.isRead).length;
+        setUnreadCount(count);
+      } catch (error) {
+        console.error("Failed to sync notifications:", error);
+      }
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 3000);
+    return () => clearInterval(interval);
+  })
 
   const isLinkActive = (linkPath: string) => {
     const currentPath = location.pathname;
