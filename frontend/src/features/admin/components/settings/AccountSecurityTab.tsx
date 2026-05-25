@@ -3,7 +3,7 @@ import { useState, useEffect, type SetStateAction } from "react";
 import { KeyIcon, ComputerDesktopIcon, ArrowPathIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-
+import { useTranslation } from "react-i18next";
 interface Session {
   id: string;
   userAgent: string;
