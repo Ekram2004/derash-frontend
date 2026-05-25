@@ -433,5 +433,16 @@
   "email_notifications": "የኢሜይል ማሳወቂያ",
   "sms_notifications": "የኤስኤምኤስ ማሳወቂያ",
   "settings_updated": "ቅንብሮች ተዘምነዋል",
-  "update_failed": "ቅንብሮችን ማዘመን አልተሳካም"
+  "update_failed": "ቅንብሮችን ማዘመን አልተሳካም",
+  
+  "notifications": "ማሳወቂያዎች",
+  "notifications_description": "የስርዓት እንቅስቃሴዎችን፣ የክፍያ ሰነድ ስራዎችን እና የወኪል ድርጊቶችን ይቆጣጠሩ",
+  "unread": "ያልተነበበ",
+  "refresh": "አድስ",
+  "refreshing": "በማደስ ላይ...",
+  "loading_notifications": "ማሳወቂያዎችን በማስገባት ላይ...",
+  "no_notifications": "ምንም ማሳወቂያዎች አልተገኙም",
+  "mark_as_read": "እንደተነበበ ምልክት አድርግ",
+  "bill_uploaded": "ክፍያ ተሰቅሏል"
+
 }
