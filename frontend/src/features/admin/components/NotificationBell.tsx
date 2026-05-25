@@ -71,20 +71,41 @@ export default function NotificationBell() {
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
-          <div className="p-3 border-b font-semibold text-gray-800">Notifications</div>
+          <div className="p-3 border-b font-semibold text-gray-800">
+            Notifications
+          </div>
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-sm">No notifications</div>
+              <div className="p-4 text-center text-gray-500 text-sm">
+                No notifications
+              </div>
             ) : (
               notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`p-3 border-b hover:bg-gray-50 cursor-pointer ${!notif.isRead ? "bg-blue-50" : ""}`}
-                  onClick={() => markAsRead(notif.id)}
+                  className={`p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors ${!notif.isRead ? "bg-red-50/40 border-l-4 border-l-red-500" : ""}`}
+                  onClick={async () => {
+                    if (!notif.isRead) {
+                      await markAsRead(notif.id);
+                    }
+
+                    setIsOpen(false);
+                  }}
                 >
-                  <p className="text-sm font-medium text-gray-800">{notif.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleString()}</p>
+                  <div className="flex justify-between items-start">
+                    <p className="text-sm font-medium text-gray-800">
+                      {notif.title}
+                    </p>
+                    {!notif.isRead && (
+                      <span className="w-2 h-2 bg-red-500 rounded-full mt-1"></span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                    {notif.message}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1 italic">
+                    {new Date(notif.createdAt).toLocaleString([], {hour:'2-digit', minute:'2-digit'})}
+                  </p>
                 </div>
               ))
             )}
