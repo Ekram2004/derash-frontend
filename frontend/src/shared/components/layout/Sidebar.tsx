@@ -34,7 +34,7 @@ export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: P
     fetchCount();
     const interval = setInterval(fetchCount, 3000);
     return () => clearInterval(interval);
-  })
+  }, []);
 
   const isLinkActive = (linkPath: string) => {
     const currentPath = location.pathname;
@@ -89,7 +89,17 @@ export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: P
                 />
               )}
               <span className="flex-1 text-left">{link.label}</span>
-              
+
+              {link.label === "Notifications" && unreadCount > 0 && (
+                <span
+                  className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full animate-pulse transition-colors ${
+                    isActive ? "bg-white text-red-600" : "bg-red-600 text-white"
+                  }`}
+                >
+                  {unreadCount}
+                </span>
+              )}
+
               {/* Active Indicator */}
               {isActive && (
                 <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full" />
