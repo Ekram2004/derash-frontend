@@ -208,7 +208,7 @@ export const adminApi = {
 
   getNotifications: async (): Promise<AdminNotification[]> => {
     const response = await api.get("/admin/notifications");
-    return response.data.data;
+    return response.data;
   },
   markNotificationAsRead: async (id: string) => {
     const response = await api.patch(`/admin/notifications/${id}/read`)
