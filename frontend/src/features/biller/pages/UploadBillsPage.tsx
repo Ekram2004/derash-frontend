@@ -263,22 +263,26 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
       return;
     }
 
-    // If it's a CSV, continue with the client-side validation logic
-    if (file.name.toLowerCase().endsWith(".csv")) {
+    const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+    if (isCsv) {
       if (!csvText) {
         setError("Preview not loaded");
         return;
       }
-
       const { bills, summary } = validateCSVData(csvText);
       setValidatedBills(bills);
       setValidationSummary(summary);
       setShowConfirmModal(true);
     } else {
-      // For ZIP/Excel, we bypass the detailed row-by-row preview
-      // and show a generic confirmation or skip straight to upload
+      // For ZIP/Excel: Skip row-by-row preview but allow the upload button
       setValidatedBills([]);
-      setValidationSummary({ valid: 0, invalid: 0, total: 0, allValid: true });
+      setValidationSummary({
+        valid: 1, // Set to 1 to enable the "Upload" button
+        invalid: 0,
+        total: 1,
+        allValid: true,
+      });
       setShowConfirmModal(true);
     }
   };
