@@ -1,13 +1,16 @@
+// src/shared/components/layout/Sidebar.tsx
 import { Link, useLocation } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { adminApi } from "../../../features/admin/api/admin.api";
 
 interface LinkItem {
   label: string;
   path: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  showBadge?: boolean;
 }
 
 interface Props {
@@ -18,28 +21,50 @@ interface Props {
 }
 
 export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: Props) {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const [unreadCount, setUnreadCount] = useState(0);
+
   useEffect(() => {
     const fetchCount = async () => {
       try {
         const notifications = await adminApi.getNotifications();
-        const count = notifications.filter((n) => !n.isRead).length;
+        const count = notifications.filter((n: any) => !n.isRead).length;
         setUnreadCount(count);
       } catch (error) {
         console.error("Failed to sync notifications:", error);
       }
     };
     fetchCount();
-    const interval = setInterval(fetchCount, 3000);
+    const interval = setInterval(fetchCount, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const isLinkActive = (linkPath: string) => {
     const currentPath = location.pathname;
     if (linkPath === "/admin") return currentPath === "/admin";
+    if (linkPath === "/agent") return currentPath === "/agent" || currentPath === "/agent/dashboard";
+    if (linkPath === "/biller") return currentPath === "/biller" || currentPath === "/biller/dashboard";
     return currentPath.startsWith(linkPath);
+  };
+
+  const getTranslatedLabel = (label: string): string => {
+    // Map label keys to translation keys
+    const translationMap: Record<string, string> = {
+      "Dashboard": "dashboard",
+      "Billers": "billers",
+      "Agents": "agents",
+      "Users": "users",
+      "Reports": "reports",
+      "Notifications": "notifications",
+      "Settings": "settings",
+      "Pay Bill": "pay_bill",
+      "Bills": "bills",
+    };
+    
+    const key = translationMap[label] || label.toLowerCase();
+    return t(key);
   };
 
   const SidebarContent = () => (
@@ -67,6 +92,8 @@ export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: P
         {links.map((link) => {
           const isActive = isLinkActive(link.path);
           const Icon = link.icon;
+          const displayLabel = getTranslatedLabel(link.label);
+          const showBadge = link.showBadge || link.label === "Notifications";
 
           return (
             <Link
@@ -88,9 +115,9 @@ export default function Sidebar({ title, links, isMobileOpen, onMobileClose }: P
                   }`}
                 />
               )}
-              <span className="flex-1 text-left">{link.label}</span>
+              <span className="flex-1 text-left">{displayLabel}</span>
 
-              {link.label === "Notifications" && unreadCount > 0 && (
+              {showBadge && unreadCount > 0 && (
                 <span
                   className={`flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold rounded-full animate-pulse transition-colors ${
                     isActive ? "bg-white text-red-600" : "bg-red-600 text-white"
