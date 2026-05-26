@@ -16,7 +16,10 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
+if (error.response?.status === 403) {
+  console.warn("Access Denied: Not an admin. Stopping retry.");
+  return Promise.reject(error);
+}
     
     if (
       error.response?.status === 401 &&
