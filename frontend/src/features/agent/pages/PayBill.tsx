@@ -582,21 +582,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           <SlowReadOnlyField label="Due Date" value={bill?.due_date || "N/A"} isVisible={fieldsVisible.due_date} />
         </div>
 
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-          <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            disabled={isBlockedByExpiry}
-            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
-            required
-          >
-            <option value="CBE">CBE (Commercial Bank of Ethiopia)</option>
-            <option value="TELEBIRR">Telebirr</option>
-            <option value="CASH">Cash</option>
-          </select>
-        </div> */}
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Phone Number {isTelebirr && <span className="text-red-500">*</span>}

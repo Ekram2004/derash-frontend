@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BellIcon } from "@heroicons/react/24/outline";
 import api from "@/services/api";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface Notification {
   id: string;
