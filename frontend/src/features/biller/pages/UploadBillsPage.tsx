@@ -258,31 +258,31 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
     if (droppedFile) handleFileChange(droppedFile);
   };
   const showConfirmation = async () => {
-    if (!file) return;
+  if (!file) return;
 
-    const isCsv = file.name.toLowerCase().endsWith(".csv");
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
 
-    if (isCsv) {
-      // Keep your existing CSV client-side validation
-      if (!csvText) {
-        setError("Preview not loaded");
-        return;
-      }
-      const { bills, summary } = validateCSVData(csvText);
-      setValidatedBills(bills);
-      setValidationSummary(summary);
-      setShowConfirmModal(true);
-    } else {
-      // For Excel/ZIP: Trigger the upload immediately instead of opening a modal
-      // OR create a dedicated "Quick Upload" flow
-      await proceedWithUpload();
-    }
-  };
+  if (isCsv) {
+    // Keep your existing CSV client-side validation
+    if (!csvText) { setError("Preview not loaded"); return; }
+    const { bills, summary } = validateCSVData(csvText);
+    setValidatedBills(bills);
+    setValidationSummary(summary);
+    setShowConfirmModal(true);
+  } else {
+    // For Excel/ZIP: Trigger the upload immediately instead of opening a modal
+    // OR create a dedicated "Quick Upload" flow
+    await proceedWithUpload();
+  }
+};
   const proceedWithUpload = async () => {
-    if (!file) {
-      setError("No file selected");
-      return;
-    }
+    // if (!validationSummary.allValid) {
+    //   setError(`Cannot upload: ${validationSummary.invalid} bill(s) have errors.`);
+    //   setShowConfirmModal(false);
+    //   return;
+    // }
+    if (!file) { setError("No file selected"); return; }
+    setShowConfirmModal(false);
 
     const isCsv = file.name.toLowerCase().endsWith(".csv");
     if (isCsv && !validationSummary.allValid) {
@@ -290,49 +290,53 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
         `Cannot upload: ${validationSummary.invalid} bill(s) have errors.`,
       );
       setShowConfirmModal(false);
-      return;
+      // return;
     }
-
-    setShowConfirmModal(false);
     try {
       setLoading(true);
       const response = await uploadBillsCsv(file);
-
       if (response?.status === "SUCCESS") {
         const respData = response.data || {};
-
-        // CHECK FOR DUPLICATES
-        if (respData.duplicates > 0) {
+        if (respData.duplicates > 0 && respData.success === 0) {
           setError(
-            `Upload partial: ${respData.success} new bills added. ${respData.duplicates} bills were skipped because they already exist.`,
+            `Upload skipped: All ${respData.duplicates} bills already exist.`,
           );
-        } else if (
-          respData.success === 0 &&
-          respData.failed === 0 &&
-          respData.total === 0
-        ) {
-          setError("No new bills were found to upload.");
-        } else {
-          // Success path
-          setUploadSuccess(true);
-          // ... (rest of your existing success logic)
         }
-
-        resetForm();
+        else if (respData.success > 0) {
+          const uploadResult: UploadResult = {
+            total: respData.total || 0,
+            success: respData.success || 0,
+            failed: respData.failed || 0,
+            errors: respData.errors || [],
+            failedBills: respData.failedBills || [],
+            fileName: file.name,
+            uploadDate: new Date().toISOString(),
+            rawResponse: respData,
+          };
+          setResult(uploadResult);
+          if (uploadResult.success > 0) {
+            setUploadSuccess(true);
+            saveToHistory(uploadResult);
+            await checkDatabaseStats();
+            setTimeout(() => setUploadSuccess(false), 5000);
+          }
+        } else {
+          setError(
+            `Upload failed: ${respData.failed || 0} out of ${respData.total || 0} bills were rejected.`,
+          );
+          setDetailedErrors(respData.errors || []);
+        }
+        setFile(null); setFilePreview(null); setShowPreview(false); setCsvText("");
+        if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         setError(response?.message || "Upload failed.");
       }
     } catch (err: any) {
-      // Check if the backend returns a specific duplicate error message
-      const errorMsg = err.response?.data?.message || err.message;
-      setError(
-        errorMsg.includes("duplicate")
-          ? "Some bills already exist in the system."
-          : "Upload failed.",
-      );
+      setError(err.response?.data?.message || err.message || "Upload failed.");
     } finally {
       setLoading(false);
-    }
+      
+     }
   };
   const resetForm = () => {
     setFile(null); setError(""); setResult(null); setUploadSuccess(false); setFilePreview(null); setShowPreview(false); setDetailedErrors([]); setCsvText("");
