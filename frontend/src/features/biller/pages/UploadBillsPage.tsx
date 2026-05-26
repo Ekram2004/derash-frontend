@@ -284,10 +284,7 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
       return;
     }
 
-    // Identify file type
     const isCsv = file.name.toLowerCase().endsWith(".csv");
-
-    // Only enforce validationSummary for CSV files
     if (isCsv && !validationSummary.allValid) {
       setError(
         `Cannot upload: ${validationSummary.invalid} bill(s) have errors.`,
@@ -296,35 +293,29 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
       return;
     }
 
-    // Close the modal if it was open
     setShowConfirmModal(false);
-
     try {
       setLoading(true);
       const response = await uploadBillsCsv(file);
 
       if (response?.status === "SUCCESS") {
         const respData = response.data || {};
-        const uploadResult: UploadResult = {
-          total: respData.total || 0,
-          success: respData.success || 0,
-          failed: respData.failed || 0,
-          errors: respData.errors || [],
-          failedBills: respData.failedBills || [],
-          fileName: file.name,
-          uploadDate: new Date().toISOString(),
-        };
 
-        setResult(uploadResult);
-        if (uploadResult.success > 0) {
-          setUploadSuccess(true);
-          saveToHistory(uploadResult);
-          await checkDatabaseStats();
-          setTimeout(() => setUploadSuccess(false), 5000);
-        } else {
+        // CHECK FOR DUPLICATES
+        if (respData.duplicates > 0) {
           setError(
-            `Upload failed: ${uploadResult.failed} out of ${uploadResult.total} bills were rejected.`,
+            `Upload partial: ${respData.success} new bills added. ${respData.duplicates} bills were skipped because they already exist.`,
           );
+        } else if (
+          respData.success === 0 &&
+          respData.failed === 0 &&
+          respData.total === 0
+        ) {
+          setError("No new bills were found to upload.");
+        } else {
+          // Success path
+          setUploadSuccess(true);
+          // ... (rest of your existing success logic)
         }
 
         resetForm();
@@ -332,7 +323,13 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
         setError(response?.message || "Upload failed.");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Upload failed.");
+      // Check if the backend returns a specific duplicate error message
+      const errorMsg = err.response?.data?.message || err.message;
+      setError(
+        errorMsg.includes("duplicate")
+          ? "Some bills already exist in the system."
+          : "Upload failed.",
+      );
     } finally {
       setLoading(false);
     }
