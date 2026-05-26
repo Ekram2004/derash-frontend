@@ -16,6 +16,7 @@ import {
 
 import { getBillerStats } from "../api/biller.api";
 import { billerLinks } from "../billerLinks";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface BillerStats {
   totalBills: number;

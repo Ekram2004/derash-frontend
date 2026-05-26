@@ -582,7 +582,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           <SlowReadOnlyField label="Due Date" value={bill?.due_date || "N/A"} isVisible={fieldsVisible.due_date} />
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
           <select
             value={paymentMethod}
@@ -595,7 +595,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
             <option value="TELEBIRR">Telebirr</option>
             <option value="CASH">Cash</option>
           </select>
-        </div>
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
