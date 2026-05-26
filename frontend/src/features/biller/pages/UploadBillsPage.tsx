@@ -199,7 +199,16 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
   const handleFileChange = async (selectedFile: File | null) => {
     setError(""); setResult(null); setUploadSuccess(false); setFilePreview(null); setShowPreview(false); setDetailedErrors([]);
     if (!selectedFile) { setFile(null); return; }
-    if (!selectedFile.name.toLowerCase().endsWith('.csv')) { setError("Only CSV files are allowed."); setFile(null); return; }
+    const validExtensions = [".csv", ".xlsx", ".xls", ".zip"];
+    const isAllowed = validExtensions.some((ext) =>
+      selectedFile.name.toLowerCase().endsWith(ext),
+    );
+    if (!isAllowed) {
+      setError("Only CSV, Excel, and ZIP files are allowed.");
+      setFile(null);
+      return;
+    }
+    // if (!selectedFile.name.toLowerCase().endsWith('.csv')) { setError("Only CSV files are allowed."); setFile(null); return; }
     if (selectedFile.size > 5 * 1024 * 1024) { setError("File size must be less than 5MB."); setFile(null); return; }
     try {
       const preview = await previewCSV(selectedFile);
@@ -284,7 +293,7 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
               <h1 className="text-2xl md:text-3xl 
               font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-600
               bg-clip-text text-transparent">Upload Bills</h1>
-              <p className="text-sm text-gray-400 mt-1">Upload CSV files to add bills to the database</p>
+              <p className="text-sm text-gray-400 mt-1">Upload CSV, Excel and ZIP  files to add bills to the database</p>
             </div>
             <div className="flex gap-3">
               <button onClick={downloadTemplate} className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-all">
@@ -364,9 +373,9 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
 
         <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="p-6 md:p-8">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Select CSV File</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Select File (CSV, Excel, or ZIP)</label>
             <motion.div variants={dropZoneVariants} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop} onClick={()=>fileInputRef.current?.click()} className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragActive ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-red-400 hover:bg-gray-50"} ${file ? "bg-green-50 border-green-500" : ""}`}>
-              <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={(e)=>handleFileChange(e.target.files?.[0]||null)} />
+              <input ref={fileInputRef} type="file" accept=".csv, .xlsx, .zip" className="hidden" onChange={(e)=>handleFileChange(e.target.files?.[0]||null)} />
               <div className="flex flex-col items-center gap-3">
                 {file ? (<><DocumentTextIcon className="w-12 h-12 text-green-600" /><div><p className="text-sm font-medium text-gray-700">{file.name}</p><p className="text-xs text-gray-500">{(file.size/1024).toFixed(2)} KB</p></div><button onClick={(e)=>{e.stopPropagation(); resetForm();}} className="text-xs text-red-600 hover:text-red-700">Remove</button></>) : (<><CloudArrowUpIcon className={`w-12 h-12 ${dragActive ? "text-red-500" : "text-gray-400"}`} /><div><p className="text-sm text-gray-600">{dragActive ? "Drop here" : "Drag & drop CSV"}</p><p className="text-xs text-gray-400 mt-1">or click to browse</p></div></>)}
               </div>
@@ -374,11 +383,12 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
             {filePreview && !showPreview && (<div className="mt-4 bg-blue-50 rounded-lg p-4"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><EyeIcon className="w-4 h-4 text-blue-600" /><span className="text-sm font-medium text-blue-800">File Ready</span></div><button onClick={()=>setShowPreview(true)} className="text-xs text-blue-600 hover:text-blue-800">Preview →</button></div><p className="text-xs text-blue-600 mt-1">{filePreview.totalRows} rows × {filePreview.totalColumns} columns</p></div>)}
             <AnimatePresence>{showPreview && filePreview && (<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}} className="mt-4 bg-gray-50 rounded-lg p-4 overflow-x-auto"><div className="flex justify-between mb-3"><span className="text-sm font-medium text-gray-700">Preview (First 5 rows)</span><button onClick={()=>setShowPreview(false)} className="text-xs text-gray-500">Hide</button></div><table className="min-w-full text-xs"><thead><tr className="border-b border-gray-300">{filePreview.headers.map((h,idx)=><th key={idx} className="text-left py-2 px-3 font-semibold text-gray-700">{h}</th>)}</tr></thead><tbody>{filePreview.rows.map((row,ridx)=><tr key={ridx} className="border-b border-gray-200">{row.map((cell,cidx)=><td key={cidx} className="py-2 px-3 text-gray-600">{cell}</td>)}</tr>)}</tbody></table></motion.div>)}</AnimatePresence>
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs font-semibold text-gray-600 mb-2">📋 Required CSV Format:</p>
+              <p className="text-xs font-semibold text-gray-600 mb-2">📋 Required CSV, Excel, or ZIP Format:</p>
               <div className="bg-white rounded-lg p-2 mb-2 font-mono text-xs">billReference,customerName,amount,period,due_date</div>
               <p className="text-xs font-semibold text-gray-600 mb-1 mt-2">Example:</p>
               <div className="bg-white rounded-lg p-2 font-mono text-xs">BL-2024-001,Abebe Kebede,1500.00,2024-12,2024-12-31</div>
               <ul className="text-xs text-gray-500 space-y-1 mt-2">
+                <li>• <strong>Supported Formats:</strong> CSV, Excel (.xlsx, .xls), or ZIP</li>
                 <li>• <strong>billReference</strong> - Unique bill identifier</li>
                 <li>• <strong>customerName</strong> - Customer full name</li>
                 <li>• <strong>amount</strong> - Positive number (no currency)</li>
