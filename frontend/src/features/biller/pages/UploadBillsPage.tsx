@@ -279,16 +279,30 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
     }
   };
   const proceedWithUpload = async () => {
-    if (!validationSummary.allValid) {
-      setError(`Cannot upload: ${validationSummary.invalid} bill(s) have errors.`);
+    if (!file) {
+      setError("No file selected");
+      return;
+    }
+
+    // Identify file type
+    const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+    // Only enforce validationSummary for CSV files
+    if (isCsv && !validationSummary.allValid) {
+      setError(
+        `Cannot upload: ${validationSummary.invalid} bill(s) have errors.`,
+      );
       setShowConfirmModal(false);
       return;
     }
-    if (!file) { setError("No file selected"); return; }
+
+    // Close the modal if it was open
     setShowConfirmModal(false);
+
     try {
       setLoading(true);
       const response = await uploadBillsCsv(file);
+
       if (response?.status === "SUCCESS") {
         const respData = response.data || {};
         const uploadResult: UploadResult = {
@@ -299,8 +313,8 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
           failedBills: respData.failedBills || [],
           fileName: file.name,
           uploadDate: new Date().toISOString(),
-          rawResponse: respData,
         };
+
         setResult(uploadResult);
         if (uploadResult.success > 0) {
           setUploadSuccess(true);
@@ -308,17 +322,20 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
           await checkDatabaseStats();
           setTimeout(() => setUploadSuccess(false), 5000);
         } else {
-          setError(`Upload failed: ${uploadResult.failed} out of ${uploadResult.total} bills were rejected.`);
-          setDetailedErrors(uploadResult.errors);
+          setError(
+            `Upload failed: ${uploadResult.failed} out of ${uploadResult.total} bills were rejected.`,
+          );
         }
-        setFile(null); setFilePreview(null); setShowPreview(false); setCsvText("");
-        if (fileInputRef.current) fileInputRef.current.value = '';
+
+        resetForm();
       } else {
         setError(response?.message || "Upload failed.");
       }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Upload failed.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
   const resetForm = () => {
     setFile(null); setError(""); setResult(null); setUploadSuccess(false); setFilePreview(null); setShowPreview(false); setDetailedErrors([]); setCsvText("");
