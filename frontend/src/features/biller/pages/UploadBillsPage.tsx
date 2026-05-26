@@ -197,30 +197,60 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
   };
 
   const handleFileChange = async (selectedFile: File | null) => {
-    setError(""); setResult(null); setUploadSuccess(false); setFilePreview(null); setShowPreview(false); setDetailedErrors([]);
-    if (!selectedFile) { setFile(null); return; }
+    setError("");
+    setResult(null);
+    setUploadSuccess(false);
+    setFilePreview(null);
+    setShowPreview(false);
+    setDetailedErrors([]);
+
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    const fileName = selectedFile.name.toLowerCase();
     const validExtensions = [".csv", ".xlsx", ".xls", ".zip"];
-    const isAllowed = validExtensions.some((ext) =>
-      selectedFile.name.toLowerCase().endsWith(ext),
-    );
+    const isAllowed = validExtensions.some((ext) => fileName.endsWith(ext));
+
     if (!isAllowed) {
       setError("Only CSV, Excel, and ZIP files are allowed.");
       setFile(null);
       return;
     }
-    // if (!selectedFile.name.toLowerCase().endsWith('.csv')) { setError("Only CSV files are allowed."); setFile(null); return; }
-    if (selectedFile.size > 5 * 1024 * 1024) { setError("File size must be less than 5MB."); setFile(null); return; }
-    try {
-      const preview = await previewCSV(selectedFile);
-      setFilePreview(preview);
-      setFile(selectedFile);
-    } catch (err: any) { setError(err.message); setFile(null); }
-  };
 
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setError("File size must be less than 5MB.");
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+
+    // ONLY trigger preview logic if the file is a CSV
+    if (fileName.endsWith(".csv")) {
+      try {
+        const preview = await previewCSV(selectedFile);
+        setFilePreview(preview);
+      } catch (err: any) {
+        setError(err.message);
+        setFile(null);
+      }
+    } else {
+      // For Excel/ZIP, we skip the preview and rely on backend validation
+      setFilePreview(null);
+    }
+  };
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
-    else if (e.type === "dragleave") setDragActive(false);
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.type === "dragenter" || e.type === "dragover") {
+      // Optional: Only set active if it's a file
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
   };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault(); e.stopPropagation(); setDragActive(false);
