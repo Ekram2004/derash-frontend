@@ -257,7 +257,7 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile) handleFileChange(droppedFile);
   };
-  const showConfirmation = () => {
+  const showConfirmation = async () => {
     if (!file) {
       setError("Please select a file first");
       return;
@@ -275,15 +275,42 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
       setValidationSummary(summary);
       setShowConfirmModal(true);
     } else {
-      // For ZIP/Excel: Skip row-by-row preview but allow the upload button
-      setValidatedBills([]);
-      setValidationSummary({
-        valid: 1, // Set to 1 to enable the "Upload" button
-        invalid: 0,
-        total: 1,
-        allValid: true,
-      });
-      setShowConfirmModal(true);
+      // For ZIP/Excel, we assume we need to validate on the server
+      try {
+        setLoading(true);
+        // Assuming you have an endpoint like 'validateBills' or you can reuse your upload API
+        // If you don't have a separate validate endpoint, use the existing upload logic
+        // but ensure it returns the structure of the bills instead of just saving them.
+        const response = await uploadBillsCsv(file);
+
+        if (response?.status === "SUCCESS") {
+          const data = response.data;
+          // Map backend response to your ValidatedBill interface
+          setValidatedBills(
+            data.bills.map((b: any, idx: number) => ({
+              rowNumber: idx + 1,
+              billReference: b.billReference,
+              customerName: b.customerName,
+              amount: b.amount,
+              period: b.period,
+              dueDate: b.dueDate,
+              isValid: true,
+              errors: [],
+            })),
+          );
+          setValidationSummary({
+            valid: data.success,
+            invalid: data.failed,
+            total: data.total,
+            allValid: data.failed === 0,
+          });
+          setShowConfirmModal(true);
+        }
+      } catch (err) {
+        setError("Failed to validate file. Please check the format.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
   const proceedWithUpload = async () => {
