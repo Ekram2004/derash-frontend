@@ -13,12 +13,14 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
+    if (user?.role !== "SYSTEM_ADMIN") return;
     try {
       const res = await api.get("/admin/notifications");
       if (res.data.status === "SUCCESS") {
@@ -31,10 +33,12 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // poll every 30s
-    return () => clearInterval(interval);
-  }, []);
+    if (user?.role === "SYSTEM_ADMIN") {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000); // poll every 30s
+      return () => clearInterval(interval);
+    }
+  }, [user?.role]);
 
   const markAsRead = async (id: string) => {
     try {
