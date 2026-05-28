@@ -1,6 +1,7 @@
-
+// derash-frontend/src/features/biller/pages/BillsPage.tsx
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import {
@@ -42,6 +43,7 @@ interface Bill {
 }
 
 export default function BillsPage() {
+  const { t } = useTranslation();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -69,7 +71,7 @@ export default function BillsPage() {
         const mapped: Bill[] = (response.data || []).map((b: any) => ({
           id: b.id || `bill_${Date.now()}_${Math.random()}`,
           bill_reference: b.bill_reference || `REF-${Date.now()}`,
-          customer_name: b.customer_name || "Unknown Customer",
+          customer_name: b.customer_name || t("unknown_customer"),
           contract_number: b.contract_number || "",
           period: b.period || new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
           amount_due: Number(b.amount_due) || 0,
@@ -85,12 +87,12 @@ export default function BillsPage() {
       }
     } catch (error) {
       console.error("Error fetching bills:", error);
-      showToastMessage("Failed to load bills", "error");
+      showToastMessage(t("failed_load_bills"), "error");
       setBills([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const deleteSingleBill = async (id: string) => {
     setDeleting(true);
@@ -98,10 +100,10 @@ export default function BillsPage() {
       setBills((prev) => prev.filter((bill) => bill.id !== id));
       setShowDeleteConfirm(false);
       setBillToDelete(null);
-      showToastMessage("Bill deleted successfully!", "success");
+      showToastMessage(t("delete_success"), "success");
     } catch (error) {
       console.error("Delete failed:", error);
-      showToastMessage("Failed to delete bill", "error");
+      showToastMessage(t("delete_failed"), "error");
     } finally {
       setDeleting(false);
     }
@@ -112,10 +114,10 @@ export default function BillsPage() {
     try {
       setBills([]);
       setShowDeleteAllConfirm(false);
-      showToastMessage("All bills deleted successfully!", "success");
+      showToastMessage(t("delete_all_success"), "success");
     } catch (error) {
       console.error("Delete all failed:", error);
-      showToastMessage("Failed to delete all bills", "error");
+      showToastMessage(t("delete_all_failed"), "error");
     } finally {
       setDeleting(false);
     }
@@ -177,7 +179,7 @@ export default function BillsPage() {
   };
 
   const formatDate = (dateString?: string): string => {
-    if (!dateString) return "N/A";
+    if (!dateString) return t("na");
     try {
       return new Date(dateString).toLocaleDateString("en-ET", {
         year: "numeric",
@@ -185,7 +187,7 @@ export default function BillsPage() {
         day: "numeric",
       });
     } catch {
-      return "Invalid date";
+      return t("invalid_date");
     }
   };
 
@@ -197,55 +199,56 @@ export default function BillsPage() {
       CANCELLED: "bg-gray-200 text-gray-700",
       EXPIRED: "bg-purple-100 text-purple-700",
     };
-    const labels: Record<BillStatus, string> = {
-      PAID: "PAID",
-      UNPAID: "UNPAID",
-      PARTIALLY_PAID: "PARTIAL",
-      CANCELLED: "CANCELLED",
-      EXPIRED: "EXPIRED",
-    };
+    let label = "";
+    switch (status) {
+      case "PAID": label = t("paid"); break;
+      case "UNPAID": label = t("unpaid"); break;
+      case "PARTIALLY_PAID": label = t("partially_paid"); break;
+      case "CANCELLED": label = t("cancelled"); break;
+      case "EXPIRED": label = t("expired"); break;
+    }
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
-        {labels[status]}
+        {label}
       </span>
     );
   };
 
   const exportToExcel = () => {
     if (filteredBills.length === 0) {
-      showToastMessage("No bills to export", "error");
+      showToastMessage(t("no_data_export"), "error");
       return;
     }
 
     const exportData = filteredBills.map((bill) => ({
-      "Bill Reference": bill.bill_reference,
-      "Customer Name": bill.customer_name,
-      "Contract Number": bill.contract_number,
-      "Period": bill.period,
-      "Due Date": formatDate(bill.due_date),
-      "Amount Due (ETB)": bill.amount_due,
-      "Amount Paid (ETB)": bill.amount_paid,
-      "Remaining Balance (ETB)": bill.remaining_bal,
-      "Status": bill.status,
-      "Created At": formatDate(bill.createdAt),
+      [t("bill_reference")]: bill.bill_reference,
+      [t("customer_name")]: bill.customer_name,
+      [t("contract_number")]: bill.contract_number,
+      [t("period")]: bill.period,
+      [t("due_date")]: formatDate(bill.due_date),
+      [t("amount_due_etb")]: bill.amount_due,
+      [t("amount_paid_etb")]: bill.amount_paid,
+      [t("remaining_balance_etb")]: bill.remaining_bal,
+      [t("status")]: bill.status,
+      [t("created_at")]: formatDate(bill.createdAt),
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Derash_Bills");
+    XLSX.utils.book_append_sheet(workbook, worksheet, t("derash_bills"));
     XLSX.writeFile(workbook, `Derash_Bills_${new Date().toISOString().split("T")[0]}.xlsx`);
-    showToastMessage("Bills exported successfully!", "success");
+    showToastMessage(t("export_success"), "success");
   };
 
   const resetFilters = () => {
     setSearch("");
     setStatusFilter("ALL");
     setShowMobileFilters(false);
-    showToastMessage("Filters reset", "success");
+    showToastMessage(t("filters_reset"), "success");
   };
 
   return (
-    <DashboardLayout title="Bills Management" links={billerLinks}>
+    <DashboardLayout title={t("bills_management")} links={billerLinks}>
       {/* Toast Notification */}
       <AnimatePresence>
         {toast.show && (
@@ -273,10 +276,10 @@ export default function BillsPage() {
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold 
             bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent">
-              Bills Overview
+              {t("bills_overview")}
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
-              Manage and track all customer bills in one place
+              {t("bills_description")}
             </p>
           </div>
           <div className="flex gap-2 sm:gap-3">
@@ -286,7 +289,7 @@ export default function BillsPage() {
               className="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
             >
               <FunnelIcon className="w-4 h-4 text-gray-600" />
-              <span className="text-sm text-gray-700">Filter</span>
+              <span className="text-sm text-gray-700">{t("filter")}</span>
             </button>
             {filteredBills.length > 0 && (
               <button
@@ -294,7 +297,7 @@ export default function BillsPage() {
                 className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-all"
               >
                 <DocumentArrowDownIcon className="w-4 h-4 text-green-600" />
-                <span className="text-xs sm:text-sm text-green-700 hidden sm:inline">Export</span>
+                <span className="text-xs sm:text-sm text-green-700 hidden sm:inline">{t("export")}</span>
               </button>
             )}
             {stats.total > 0 && (
@@ -303,7 +306,7 @@ export default function BillsPage() {
                 className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-all"
               >
                 <TrashIcon className="w-4 h-4 text-red-600" />
-                <span className="text-xs sm:text-sm text-red-700 hidden sm:inline">Delete All</span>
+                <span className="text-xs sm:text-sm text-red-700 hidden sm:inline">{t("delete_all")}</span>
               </button>
             )}
           </div>
@@ -311,10 +314,10 @@ export default function BillsPage() {
 
         {/* Stats Cards - Responsive Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard title="Total Bills" value={stats.total} color="blue" />
-          <StatCard title="Unpaid" value={stats.unpaid} color="red" />
-          <StatCard title="Partially Paid" value={stats.partiallyPaid} color="yellow" />
-          <StatCard title="Paid" value={stats.paid} color="green" />
+          <StatCard title={t("total_bills")} value={stats.total} color="blue" />
+          <StatCard title={t("unpaid")} value={stats.unpaid} color="red" />
+          <StatCard title={t("partially_paid")} value={stats.partiallyPaid} color="yellow" />
+          <StatCard title={t("paid")} value={stats.paid} color="green" />
         </div>
 
         {/* Mobile Filters Drawer */}
@@ -331,23 +334,23 @@ export default function BillsPage() {
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by bill ref or customer..."
+                    placeholder={t("search_placeholder")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t("status")}</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as BillStatus | "ALL")}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
                   >
-                    <option value="ALL">All Status</option>
-                    <option value="UNPAID">Unpaid</option>
-                    <option value="PARTIALLY_PAID">Partially Paid</option>
-                    <option value="PAID">Paid</option>
+                    <option value="ALL">{t("all_status")}</option>
+                    <option value="UNPAID">{t("unpaid")}</option>
+                    <option value="PARTIALLY_PAID">{t("partially_paid")}</option>
+                    <option value="PAID">{t("paid")}</option>
                   </select>
                 </div>
                 <div className="flex gap-2 pt-2">
@@ -355,13 +358,13 @@ export default function BillsPage() {
                     onClick={() => setShowMobileFilters(false)}
                     className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm"
                   >
-                    Apply
+                    {t("apply")}
                   </button>
                   <button
                     onClick={resetFilters}
                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium text-sm"
                   >
-                    Reset
+                    {t("reset")}
                   </button>
                 </div>
               </div>
@@ -376,7 +379,7 @@ export default function BillsPage() {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by bill ref, customer name..."
+                placeholder={t("search_desktop_placeholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -389,10 +392,10 @@ export default function BillsPage() {
                 onChange={(e) => setStatusFilter(e.target.value as BillStatus | "ALL")}
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white appearance-none"
               >
-                <option value="ALL">All Status</option>
-                <option value="UNPAID">Unpaid</option>
-                <option value="PARTIALLY_PAID">Partially Paid</option>
-                <option value="PAID">Paid</option>
+                <option value="ALL">{t("all_status")}</option>
+                <option value="UNPAID">{t("unpaid")}</option>
+                <option value="PARTIALLY_PAID">{t("partially_paid")}</option>
+                <option value="PAID">{t("paid")}</option>
               </select>
             </div>
             <button
@@ -400,11 +403,11 @@ export default function BillsPage() {
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2"
             >
               <ArrowPathIcon className="w-4 h-4" />
-              Reset
+              {t("reset")}
             </button>
             <div className="bg-gray-100 rounded-lg px-4 py-2 flex items-center">
               <span className="text-sm text-gray-600">
-                <span className="font-bold text-gray-800">{filteredBills.length}</span> bills
+                <span className="font-bold text-gray-800">{filteredBills.length}</span> {t("bills_count")}
               </span>
             </div>
           </div>
@@ -415,7 +418,7 @@ export default function BillsPage() {
           <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex items-center gap-2">
               <DocumentTextIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-              <h3 className="font-semibold text-sm sm:text-base text-gray-800">Bills List</h3>
+              <h3 className="font-semibold text-sm sm:text-base text-gray-800">{t("bills_list")}</h3>
               {!loading && filteredBills.length > 0 && (
                 <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">
                   {filteredBills.length}
@@ -427,14 +430,14 @@ export default function BillsPage() {
           {loading ? (
             <div className="flex justify-center items-center py-16">
               <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-sm text-gray-500">Loading bills...</span>
+              <span className="ml-3 text-sm text-gray-500">{t("loading")}</span>
             </div>
           ) : paginatedBills.length === 0 ? (
             <div className="text-center py-12 sm:py-16">
               <BanknotesIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium">No bills found</p>
+              <p className="text-gray-400 font-medium">{t("no_bills_found")}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {bills.length === 0 ? "Upload a CSV file to add bills" : "Try adjusting your filters"}
+                {bills.length === 0 ? t("upload_csv_prompt") : t("adjust_filters")}
               </p>
             </div>
           ) : (
@@ -457,15 +460,15 @@ export default function BillsPage() {
                     <div className="text-xs text-gray-500 mb-2">{bill.period}</div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-gray-500">Due:</span>
+                        <span className="text-gray-500">{t("due")}:</span>
                         <span className="ml-1 font-semibold text-gray-800">{formatCurrency(bill.amount_due)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Paid:</span>
+                        <span className="text-gray-500">{t("paid")}:</span>
                         <span className="ml-1 font-semibold text-green-600">{formatCurrency(bill.amount_paid)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Remaining:</span>
+                        <span className="text-gray-500">{t("remaining")}:</span>
                         <span className="ml-1 font-semibold text-red-600">{formatCurrency(bill.remaining_bal)}</span>
                       </div>
                       <div className="flex justify-end">
@@ -490,14 +493,14 @@ export default function BillsPage() {
                 <table className="w-full min-w-[800px]">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Bill Ref</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Customer</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Period</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Amount</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Paid</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Remaining</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Status</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Action</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("bill_ref")}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("customer")}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("period")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("amount")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("paid")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("remaining")}</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">{t("status")}</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">{t("action")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -554,8 +557,8 @@ export default function BillsPage() {
               {totalPages > 1 && (
                 <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <p className="text-xs text-gray-500">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                    {Math.min(currentPage * itemsPerPage, filteredBills.length)} of {filteredBills.length} bills
+                    {t("showing")} {(currentPage - 1) * itemsPerPage + 1} {t("to")}{" "}
+                    {Math.min(currentPage * itemsPerPage, filteredBills.length)} {t("of")} {filteredBills.length} {t("bills")}
                   </p>
                   <div className="flex gap-1 sm:gap-2">
                     <button
@@ -587,7 +590,7 @@ export default function BillsPage() {
                       })}
                     </div>
                     <span className="flex sm:hidden text-sm text-gray-600 px-2">
-                      Page {currentPage} of {totalPages}
+                      {t("page")} {currentPage} {t("of")} {totalPages}
                     </span>
                     <button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -607,12 +610,12 @@ export default function BillsPage() {
       {/* Delete Single Bill Modal */}
       <AnimatePresence>
         {showDeleteConfirm && billToDelete && (
-          <Modal onClose={() => setShowDeleteConfirm(false)} title="Confirm Delete" icon="delete">
+          <Modal onClose={() => setShowDeleteConfirm(false)} title={t("confirm_delete")} icon="delete">
             <p className="text-gray-600 mb-2">
-              Are you sure you want to delete bill{" "}
+              {t("delete_confirm_message")}{" "}
               <strong className="text-red-600">{billToDelete.bill_reference}</strong>?
             </p>
-            <p className="text-red-500 text-sm mb-4">This action cannot be undone.</p>
+            <p className="text-red-500 text-sm mb-4">{t("cannot_undo")}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => {
@@ -621,14 +624,14 @@ export default function BillsPage() {
                 }}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 onClick={() => deleteSingleBill(billToDelete.id)}
                 disabled={deleting}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
               >
-                {deleting ? "Deleting..." : "Delete"}
+                {deleting ? t("deleting") : t("delete")}
               </button>
             </div>
           </Modal>
@@ -638,24 +641,25 @@ export default function BillsPage() {
       {/* Delete All Bills Modal */}
       <AnimatePresence>
         {showDeleteAllConfirm && (
-          <Modal onClose={() => setShowDeleteAllConfirm(false)} title="Delete All Bills" icon="warning">
+          <Modal onClose={() => setShowDeleteAllConfirm(false)} title={t("delete_all_bills")} icon="warning">
             <p className="text-gray-600 mb-2">
-              Are you sure you want to delete <strong>ALL {bills.length} bills</strong>?
+              {t("delete_all_confirm_message")}{" "}
+              <strong>{t("all")} {bills.length} {t("bills")}</strong>?
             </p>
-            <p className="text-red-500 text-sm mb-4">This action cannot be undone.</p>
+            <p className="text-red-500 text-sm mb-4">{t("cannot_undo")}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteAllConfirm(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 onClick={deleteAllBills}
                 disabled={deleting}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
               >
-                {deleting ? "Deleting..." : "Delete All"}
+                {deleting ? t("deleting") : t("delete_all")}
               </button>
             </div>
           </Modal>
@@ -665,32 +669,32 @@ export default function BillsPage() {
       {/* Bill Details Modal */}
       <AnimatePresence>
         {selectedBill && (
-          <Modal onClose={() => setSelectedBill(null)} title="Bill Details" size="lg">
+          <Modal onClose={() => setSelectedBill(null)} title={t("bill_details")} size="lg">
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <DetailItem label="Bill Reference" value={selectedBill.bill_reference} icon={DocumentTextIcon} />
-                <DetailItem label="Customer Name" value={selectedBill.customer_name} icon={UserIcon} />
-                <DetailItem label="Contract Number" value={selectedBill.contract_number || "—"} icon={DocumentTextIcon} />
-                <DetailItem label="Period" value={selectedBill.period} icon={CalendarIcon} />
-                <DetailItem label="Due Date" value={formatDate(selectedBill.due_date)} icon={ClockIcon} />
-                <DetailItem label="Created At" value={formatDate(selectedBill.createdAt)} icon={CalendarIcon} />
+                <DetailItem label={t("bill_reference")} value={selectedBill.bill_reference} icon={DocumentTextIcon} />
+                <DetailItem label={t("customer_name")} value={selectedBill.customer_name} icon={UserIcon} />
+                <DetailItem label={t("contract_number")} value={selectedBill.contract_number || "—"} icon={DocumentTextIcon} />
+                <DetailItem label={t("period")} value={selectedBill.period} icon={CalendarIcon} />
+                <DetailItem label={t("due_date")} value={formatDate(selectedBill.due_date)} icon={ClockIcon} />
+                <DetailItem label={t("created_at")} value={formatDate(selectedBill.createdAt)} icon={CalendarIcon} />
               </div>
 
               <div className="border-t border-gray-100 pt-3 space-y-2">
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Amount Due:</span>
+                  <span className="text-gray-600">{t("amount_due")}:</span>
                   <span className="font-bold text-gray-800 text-lg">{formatCurrency(selectedBill.amount_due)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Amount Paid:</span>
+                  <span className="text-gray-600">{t("amount_paid")}:</span>
                   <span className="text-green-600 font-semibold">{formatCurrency(selectedBill.amount_paid)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Remaining Balance:</span>
+                  <span className="text-gray-600">{t("remaining_balance")}:</span>
                   <span className="font-bold text-red-600 text-lg">{formatCurrency(selectedBill.remaining_bal)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-gray-600">Status:</span>
+                  <span className="text-gray-600">{t("status")}:</span>
                   {getStatusBadge(selectedBill.status)}
                 </div>
               </div>
@@ -701,7 +705,7 @@ export default function BillsPage() {
                 onClick={() => setSelectedBill(null)}
                 className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition font-medium"
               >
-                Close
+                {t("close")}
               </button>
             </div>
           </Modal>

@@ -1,4 +1,6 @@
+// src/features/agent/pages/PayBill.tsx
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { searchBills, processPayment } from "../api/agent.api";
@@ -63,6 +65,7 @@ const mapPaymentMethod = (method: string): string => {
 };
 
 export default function PayBill() {
+  const { t } = useTranslation();
   const [view, setView] = useState<"search" | "pay" | "receipt">("search");
   const [billReference, setBillReference] = useState("");
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -73,7 +76,7 @@ export default function PayBill() {
 
   const handleSearch = async () => {
     if (!billReference.trim()) {
-      setError("Please enter a Bill Reference.");
+      setError(t("please_enter_bill_ref"));
       setErrorDetails(null);
       return;
     }
@@ -89,24 +92,24 @@ export default function PayBill() {
       setSelectedBill(billData);
       setView("search");
     } catch (err: any) {
-      const message = err.response?.data?.message || "No unpaid bill found.";
+      const message = err.response?.data?.message || t("no_unpaid_bill_found");
       setSelectedBill(null);
       
       if (message.toLowerCase().includes("already fully paid")) {
         setErrorDetails({
-          title: "Bill Already Paid",
-          message: "This bill has already been fully paid. You cannot make another payment for it.",
+          title: t("bill_already_paid_title"),
+          message: t("bill_already_paid_message"),
           billRef: billReference.trim(),
         });
       } else if (message.toLowerCase().includes("no unpaid bill found")) {
         setErrorDetails({
-          title: "Bill Not Found",
-          message: `No unpaid bill found with reference "${billReference.trim()}". Please check the reference and try again.`,
+          title: t("bill_not_found_title"),
+          message: t("bill_not_found_message", { ref: billReference.trim() }),
           billRef: billReference.trim(),
         });
       } else {
         setErrorDetails({
-          title: "Search Failed",
+          title: t("search_failed_title"),
           message: message,
           billRef: billReference.trim(),
         });
@@ -133,10 +136,9 @@ export default function PayBill() {
         manualAmount > 0
           ? Number(manualAmount)
           : Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
-      if (finalAmount <= 0) throw new Error("Invalid payment amount.");
+      if (finalAmount <= 0) throw new Error(t("invalid_payment_amount"));
       
       const backendPaymentMethod = mapPaymentMethod(paymentMethod);
-      // Provide a default phone if empty (backend may require non-empty)
       const payerPhone = phone.trim() || "0000000000";
       
       const payload = {
@@ -154,17 +156,17 @@ export default function PayBill() {
         setReceipt(receiptData);
         setView("receipt");
       } else {
-        throw new Error("Payment succeeded but receipt missing.");
+        throw new Error(t("receipt_missing"));
       }
     } catch (err: any) {
       const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message;
       if (serverMessage.includes("Unique constraint")) {
-        alert("Transaction ID expired. Please search for the bill again to refresh.");
+        alert(t("transaction_id_expired"));
         setView("search");
         setSelectedBill(null);
       } else {
         setErrorDetails({
-          title: "Payment Failed",
+          title: t("payment_failed_title"),
           message: serverMessage,
         });
         setError(serverMessage);
@@ -187,20 +189,20 @@ export default function PayBill() {
     typeof value === "number" && !isNaN(value) ? value : fallback;
 
   const getCustomerName = (bill: Bill | null): string => {
-    if (!bill) return "N/A";
-    return bill.customerName || bill.customer_name || bill.customer?.fullName || "N/A";
+    if (!bill) return t("na");
+    return bill.customerName || bill.customer_name || bill.customer?.fullName || t("na");
   };
 
   return (
-    <DashboardLayout title="Agent Terminal" links={agentLinks}>
+    <DashboardLayout title={t("agent_terminal")} links={agentLinks}>
       <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
-            Agent Payment Terminal
+            {t("agent_payment_terminal")}
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-            Search, pay, and print receipts – all in one place.
+            {t("terminal_description")}
           </p>
         </div>
 
@@ -213,12 +215,12 @@ export default function PayBill() {
                 <div className="p-2 bg-red-50 rounded-xl">
                   <Search className="w-6 h-6 text-red-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">Search Bill</h2>
+                <h2 className="text-xl font-bold text-gray-800">{t("search_bill")}</h2>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   className="flex-1 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
-                  placeholder="Enter Bill Reference..."
+                  placeholder={t("enter_bill_reference")}
                   value={billReference}
                   onChange={(e) => setBillReference(e.target.value)}
                 />
@@ -232,7 +234,7 @@ export default function PayBill() {
                   ) : (
                     <Search className="w-5 h-5" />
                   )}
-                  {loading ? "Searching..." : "Search"}
+                  {loading ? t("searching") : t("search")}
                 </button>
               </div>
 
@@ -250,7 +252,7 @@ export default function PayBill() {
                       </p>
                       {errorDetails.billRef && (
                         <p className="text-red-600 text-sm mt-2 font-mono">
-                          Bill Reference: {errorDetails.billRef}
+                          {t("bill_reference_label")}: {errorDetails.billRef}
                         </p>
                       )}
                       <div className="flex gap-3 mt-4">
@@ -262,7 +264,7 @@ export default function PayBill() {
                           }}
                           className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition flex items-center gap-2"
                         >
-                          <RefreshCw className="w-4 h-4" /> Clear & Try Again
+                          <RefreshCw className="w-4 h-4" /> {t("clear_and_try_again")}
                         </button>
                         <button
                           onClick={() => {
@@ -271,7 +273,7 @@ export default function PayBill() {
                           }}
                           className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition flex items-center gap-2"
                         >
-                          <XCircle className="w-4 h-4" /> Dismiss
+                          <XCircle className="w-4 h-4" /> {t("dismiss")}
                         </button>
                       </div>
                     </div>
@@ -296,36 +298,36 @@ export default function PayBill() {
                       <DollarSign className="w-6 h-6 text-red-600" />
                     </div>
                     <h3 className="text-xl font-bold text-gray-800">
-                      Bill Summary
+                      {t("bill_summary")}
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Customer Name:</span>
+                      <span className="text-gray-500">{t("customer_name")}:</span>
                       <span className="font-semibold">
                         {getCustomerName(selectedBill)}
                       </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Biller:</span>
+                      <span className="text-gray-500">{t("biller")}:</span>
                       <span className="font-semibold">
                         {selectedBill.biller_name}
                       </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Status:</span>
+                      <span className="text-gray-500">{t("status")}:</span>
                       <span className="font-semibold text-blue-600">
                         {selectedBill.status}
                       </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Due Date:</span>
+                      <span className="text-gray-500">{t("due_date")}:</span>
                       <span className="font-semibold">
                         {selectedBill.due_date}
                       </span>
                     </div>
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Amount Due:</span>
+                      <span className="text-gray-500">{t("amount_due")}:</span>
                       <span className="font-semibold">
                         {safeNumber(selectedBill.amount_due)}{" "}
                         {selectedBill.currency || "ETB"}
@@ -333,7 +335,7 @@ export default function PayBill() {
                     </div>
                     {selectedBill.late_penalty > 0 && (
                       <div className="flex justify-between border-b pb-2">
-                        <span className="text-red-500">Late Penalty:</span>
+                        <span className="text-red-500">{t("late_penalty")}:</span>
                         <span className="font-semibold text-red-500">
                           {selectedBill.late_penalty}{" "}
                           {selectedBill.currency || "ETB"}
@@ -343,7 +345,7 @@ export default function PayBill() {
                   </div>
                   <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
                     <span className="text-lg font-bold text-gray-800">
-                      Total to Pay:
+                      {t("total_to_pay")}:
                     </span>
                     <span className="text-2xl font-black text-red-600">
                       {safeNumber(selectedBill.total_to_pay) ||
@@ -379,17 +381,17 @@ export default function PayBill() {
                     {selectedBill.status === "PAID" ? (
                       <>
                         <CheckCircle className="w-5 h-5" />
-                        Bill Fully Settled
+                        {t("bill_fully_settled")}
                       </>
                     ) : selectedBill.is_blocked ? (
                       <>
                         <XCircle className="w-5 h-5" />
-                        Payment Blocked
+                        {t("payment_blocked")}
                       </>
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5" />
-                        Proceed to Payment
+                        {t("proceed_to_payment")}
                       </>
                     )}
                   </button>
@@ -399,7 +401,7 @@ export default function PayBill() {
           </div>
         )}
 
-        {/* VIEW 2: PAYMENT FORM with staggered auto‑fill */}
+        {/* VIEW 2: PAYMENT FORM */}
         {view === "pay" && selectedBill && (
           <PaymentForm
             bill={selectedBill}
@@ -410,7 +412,6 @@ export default function PayBill() {
         )}
 
         {/* VIEW 3: RECEIPT */}
-        {/* VIEW 3: RECEIPT */}
         {view === "receipt" && receipt && (
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
             <div className="p-6 text-center">
@@ -418,17 +419,17 @@ export default function PayBill() {
                 <CheckCircle className="w-8 h-8" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800">
-                Payment Successful
+                {t("payment_successful")}
               </h2>
-              <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
+              <p className="text-gray-500 text-sm mt-1">{t("receipt_generated")}</p>
             </div>
             <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
               <div className="flex justify-between">
-                <span>TRANSACTION REF:</span>{" "}
+                <span>{t("transaction_ref")}:</span>{" "}
                 <strong>{receipt.transaction_ref}</strong>
               </div>
               <div className="flex justify-between">
-                <span>CUSTOMER:</span>{" "}
+                <span>{t("customer")}:</span>{" "}
                 <strong>
                   {selectedBill
                     ? getCustomerName(selectedBill)
@@ -436,27 +437,27 @@ export default function PayBill() {
                 </strong>
               </div>
               <div className="flex justify-between">
-                <span>AMOUNT PAID:</span>{" "}
+                <span>{t("amount_paid")}:</span>{" "}
                 <strong className="text-red-600">{receipt.amount_paid}</strong>
               </div>
               <div className="flex justify-between">
-                <span>REM. BALANCE:</span>{" "}
+                <span>{t("remaining_balance")}:</span>{" "}
                 <strong>{receipt.remaining_balance || "0.00"}</strong>
               </div>
               <div className="flex justify-between">
-                <span>STATUS:</span> <strong>{receipt.status}</strong>
+                <span>{t("status")}:</span> <strong>{receipt.status}</strong>
               </div>
               <div className="flex justify-between">
-                <span>DUE DATE:</span> <strong>{receipt.due_date}</strong>
+                <span>{t("due_date")}:</span> <strong>{receipt.due_date}</strong>
               </div>
               <hr />
-              <p className="text-center">PAID ON: {receipt.paymentDate}</p>
+              <p className="text-center">{t("paid_on")} {receipt.paymentDate}</p>
             </div>
             <button
               onClick={resetPayment}
               className="w-full bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-4 font-bold rounded-b-2xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
             >
-              <RefreshCw className="w-5 h-5" /> Done / New Payment
+              <RefreshCw className="w-5 h-5" /> {t("done_new_payment")}
             </button>
           </div>
         )}
@@ -467,6 +468,7 @@ export default function PayBill() {
 
 // ------------------ Enhanced Payment Form (slow staggered auto‑fill) ------------------
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
+  const { t } = useTranslation();
   const [paymentMethod, setPaymentMethod] = useState("CBE");
   const [phone, setPhone] = useState("");
   const [editableAmount, setEditableAmount] = useState(() => {
@@ -510,17 +512,15 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (maxAmount <= 0) {
-      alert(
-        "This bill has already been settled and has no outstanding balance.",
-      );
+      alert(t("bill_already_settled"));
       return;
     }
     if (isTelebirr && !phone.trim()) {
-      alert("Phone number is required for Telebirr payment.");
+      alert(t("phone_required_telebirr"));
       return;
     }
     if (editableAmount <= 0 || editableAmount > maxAmount) {
-      alert(`Please enter a valid amount between 1 and ${maxAmount}.`);
+      alert(t("valid_amount_required", { max: maxAmount }));
       return;
     }
     onConfirm(paymentMethod, phone, editableAmount);
@@ -533,22 +533,22 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           <div className="p-2 bg-red-50 rounded-xl">
             <CreditCard className="w-6 h-6 text-red-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Payment Details</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t("payment_details")}</h2>
           {isSyncing && (
             <span className="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded-full animate-pulse font-bold flex items-center gap-1">
-              <RefreshCw className="w-3 h-3" /> SYNCING...
+              <RefreshCw className="w-3 h-3" /> {t("syncing")}
             </span>
           )}
         </div>
         <button onClick={onBack} className="text-sm text-gray-500 hover:text-red-600 font-medium transition flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {t("back")}
         </button>
       </div>
 
       {isBlockedByExpiry && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-bold text-sm flex items-start gap-2">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>ERROR: This bill has expired and the biller does not allow late payments. The customer must visit the biller's office face-to-face to settle this.</span>
+          <span>{t("expired_blocked_message")}</span>
         </div>
       )}
 
@@ -556,7 +556,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
         {allowsPartial && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount to Pay <span className="text-xs text-red-500">(Partial allowed)</span>
+              {t("amount_to_pay")} <span className="text-xs text-red-500">{t("partial_allowed")}</span>
             </label>
             <div className="relative">
               <input
@@ -570,21 +570,21 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
                 disabled={isSyncing || isBlockedByExpiry}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">Max: {maxAmount} {currency}</p>
+            <p className="text-xs text-gray-500 mt-1">{t("max_amount", { max: maxAmount, currency })}</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm bg-gray-50 p-4 rounded-xl">
-          <SlowReadOnlyField label="Bill ID" value={bill?.bill_id || "N/A"} isVisible={fieldsVisible.bill_id} />
-          <SlowReadOnlyField label="Agent ID" value={bill?.agent_id || "N/A"} isVisible={fieldsVisible.agent_id} />
-          <SlowReadOnlyField label="Transaction ID" value={bill?.transactionId || "N/A"} isVisible={fieldsVisible.transactionId} />
-          <SlowReadOnlyField label="Idempotency Key" value={bill?.idempotencyKey || "N/A"} isVisible={fieldsVisible.idempotencyKey} />
-          <SlowReadOnlyField label="Due Date" value={bill?.due_date || "N/A"} isVisible={fieldsVisible.due_date} />
+          <SlowReadOnlyField label={t("bill_id")} value={bill?.bill_id || t("na")} isVisible={fieldsVisible.bill_id} />
+          <SlowReadOnlyField label={t("agent_id")} value={bill?.agent_id || t("na")} isVisible={fieldsVisible.agent_id} />
+          <SlowReadOnlyField label={t("transaction_id")} value={bill?.transactionId || t("na")} isVisible={fieldsVisible.transactionId} />
+          <SlowReadOnlyField label={t("idempotency_key")} value={bill?.idempotencyKey || t("na")} isVisible={fieldsVisible.idempotencyKey} />
+          <SlowReadOnlyField label={t("due_date")} value={bill?.due_date || t("na")} isVisible={fieldsVisible.due_date} />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number {isTelebirr && <span className="text-red-500">*</span>}
+            {t("phone_number")} {isTelebirr && <span className="text-red-500">*</span>}
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -602,14 +602,14 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           </div>
           {isPhoneMissing && (
             <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> Phone number is required for Telebirr payment.
+              <AlertCircle className="w-3 h-3" /> {t("phone_required_telebirr")}
             </p>
           )}
         </div>
 
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onBack} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t("back")}
           </button>
           <button
             type="submit"
@@ -618,12 +618,12 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           >
             {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
             {loading
-              ? "Processing..."
+              ? t("processing")
               : isBlockedByExpiry
-              ? "Payment Blocked"
+              ? t("payment_blocked")
               : isPhoneMissing
-              ? "Phone Required"
-              : "Confirm Payment"}
+              ? t("phone_required")
+              : t("confirm_payment")}
           </button>
         </div>
       </form>
@@ -645,3 +645,4 @@ function SlowReadOnlyField({ label, value, isVisible }: { label: string; value: 
     </div>
   );
 }
+

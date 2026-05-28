@@ -1,6 +1,7 @@
 // derash-frontend/src/features/biller/pages/ReportsPage.tsx
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import {
@@ -58,17 +59,18 @@ interface Summary {
   totalAmount: number;
 }
 
-// ==================== STATUS CONFIGURATION ====================
-const STATUS_CONFIG: Record<BillStatus, { bg: string; text: string; label: string }> = {
-  PAID: { bg: "bg-green-50", text: "text-green-700", label: "PAID" },
-  UNPAID: { bg: "bg-red-50", text: "text-red-700", label: "UNPAID" },
-  PARTIALLY_PAID: { bg: "bg-yellow-50", text: "text-yellow-700", label: "PARTIAL" },
-  CANCELLED: { bg: "bg-gray-50", text: "text-gray-700", label: "CANCELLED" },
-  EXPIRED: { bg: "bg-purple-50", text: "text-purple-700", label: "EXPIRED" },
+// ==================== STATUS CONFIGURATION (translated labels) ====================
+const STATUS_CONFIG: Record<BillStatus, { bg: string; text: string }> = {
+  PAID: { bg: "bg-green-50", text: "text-green-700" },
+  UNPAID: { bg: "bg-red-50", text: "text-red-700" },
+  PARTIALLY_PAID: { bg: "bg-yellow-50", text: "text-yellow-700" },
+  CANCELLED: { bg: "bg-gray-50", text: "text-gray-700" },
+  EXPIRED: { bg: "bg-purple-50", text: "text-purple-700" },
 };
 
 // ==================== MAIN COMPONENT ====================
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -174,7 +176,7 @@ export default function ReportsPage() {
   };
 
   const formatDate = (dateString?: string): string => {
-    if (!dateString) return "N/A";
+    if (!dateString) return t("na");
     try {
       return new Date(dateString).toLocaleDateString("en-ET", {
         year: "numeric",
@@ -182,42 +184,51 @@ export default function ReportsPage() {
         day: "numeric",
       });
     } catch {
-      return "Invalid date";
+      return t("invalid_date");
     }
   };
 
   const getStatusBadge = (status: BillStatus) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.UNPAID;
+    let label = "";
+    switch (status) {
+      case "PAID": label = t("paid"); break;
+      case "UNPAID": label = t("unpaid"); break;
+      case "PARTIALLY_PAID": label = t("partially_paid"); break;
+      case "CANCELLED": label = t("cancelled"); break;
+      case "EXPIRED": label = t("expired"); break;
+      default: label = status;
+    }
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text}`}>
-        {config.label}
+        {label}
       </span>
     );
   };
 
   const exportToExcel = () => {
     if (filteredData.length === 0) {
-      showToast("No data to export", "error");
+      showToast(t("no_data_export"), "error");
       return;
     }
 
     const exportData = filteredData.map((row) => ({
-      "Bill Reference": row.bill_reference,
-      "Customer Name": row.customer_name,
-      "Period": row.period,
-      "Amount Due (ETB)": row.amount_due,
-      "Amount Paid (ETB)": row.amount_paid,
-      "Remaining Balance (ETB)": row.remaining_bal,
-      "Status": row.status,
-      "Payment Method": row.payment_method || "N/A",
-      "Date": formatDate(row.createdAt),
+      [t("bill_reference")]: row.bill_reference,
+      [t("customer_name")]: row.customer_name,
+      [t("period")]: row.period,
+      [t("amount_due_etb")]: row.amount_due,
+      [t("amount_paid_etb")]: row.amount_paid,
+      [t("remaining_balance_etb")]: row.remaining_bal,
+      [t("status")]: row.status,
+      [t("payment_method")]: row.payment_method || t("na"),
+      [t("date")]: formatDate(row.createdAt),
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Derash_Report");
+    XLSX.utils.book_append_sheet(workbook, worksheet, t("derash_report"));
     XLSX.writeFile(workbook, `Derash_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
-    showToast("Report exported successfully!", "success");
+    showToast(t("export_success"), "success");
   };
 
   const handlePrint = () => {
@@ -232,11 +243,11 @@ export default function ReportsPage() {
       search: "",
     });
     setShowMobileFilters(false);
-    showToast("Filters reset", "success");
+    showToast(t("filters_reset"), "success");
   };
 
   return (
-    <DashboardLayout title="Reports & Analytics" links={billerLinks}>
+    <DashboardLayout title={t("reports_analytics")} links={billerLinks}>
       {/* Toast Notification */}
       <AnimatePresence>
         {toast.show && (
@@ -262,12 +273,11 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold 
-            bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent">
-              Reports & Analytics
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent">
+              {t("reports_analytics")}
             </h1>
             <p className="text-xs sm:text-sm text-gray-400 mt-0.5 sm:mt-1">
-              Generate and download detailed reports
+              {t("reports_description")}
             </p>
           </div>
           <div className="flex gap-2 sm:gap-3 print:hidden">
@@ -276,7 +286,7 @@ export default function ReportsPage() {
               className="lg:hidden flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
             >
               <FunnelIcon className="w-4 h-4 text-gray-600" />
-              <span className="text-sm text-gray-700">Filter</span>
+              <span className="text-sm text-gray-700">{t("filter")}</span>
             </button>
             <button
               onClick={exportToExcel}
@@ -284,14 +294,14 @@ export default function ReportsPage() {
               className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-all disabled:opacity-50"
             >
               <DocumentArrowDownIcon className="w-4 h-4 text-green-600" />
-              <span className="text-xs sm:text-sm text-green-700 hidden sm:inline">Export</span>
+              <span className="text-xs sm:text-sm text-green-700 hidden sm:inline">{t("export")}</span>
             </button>
             <button
               onClick={handlePrint}
               className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-100 transition-all"
             >
               <PrinterIcon className="w-4 h-4 text-gray-600" />
-              <span className="text-xs sm:text-sm text-gray-700 hidden sm:inline">Print</span>
+              <span className="text-xs sm:text-sm text-gray-700 hidden sm:inline">{t("print")}</span>
             </button>
           </div>
         </div>
@@ -310,14 +320,14 @@ export default function ReportsPage() {
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search by bill ref or customer..."
+                    placeholder={t("search_placeholder")}
                     value={filters.search}
                     onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t("from_date")}</label>
                   <input
                     type="date"
                     value={filters.fromDate}
@@ -326,7 +336,7 @@ export default function ReportsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t("to_date")}</label>
                   <input
                     type="date"
                     value={filters.toDate}
@@ -335,16 +345,16 @@ export default function ReportsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{t("status")}</label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as BillStatus | "ALL" }))}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
                   >
-                    <option value="ALL">All Status</option>
-                    <option value="PAID">Paid</option>
-                    <option value="UNPAID">Unpaid</option>
-                    <option value="PARTIALLY_PAID">Partially Paid</option>
+                    <option value="ALL">{t("all_status")}</option>
+                    <option value="PAID">{t("paid")}</option>
+                    <option value="UNPAID">{t("unpaid")}</option>
+                    <option value="PARTIALLY_PAID">{t("partially_paid")}</option>
                   </select>
                 </div>
                 <div className="flex gap-2 pt-2">
@@ -355,13 +365,13 @@ export default function ReportsPage() {
                     }}
                     className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm"
                   >
-                    Apply
+                    {t("apply")}
                   </button>
                   <button
                     onClick={resetFilters}
                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium text-sm"
                   >
-                    Reset
+                    {t("reset")}
                   </button>
                 </div>
               </div>
@@ -376,7 +386,7 @@ export default function ReportsPage() {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by bill ref or customer..."
+                placeholder={t("search_placeholder")}
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -388,7 +398,7 @@ export default function ReportsPage() {
                 value={filters.fromDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, fromDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="From Date"
+                placeholder={t("from_date")}
               />
             </div>
             <div className="w-48">
@@ -397,7 +407,7 @@ export default function ReportsPage() {
                 value={filters.toDate}
                 onChange={(e) => setFilters(prev => ({ ...prev, toDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="To Date"
+                placeholder={t("to_date")}
               />
             </div>
             <div className="w-40">
@@ -406,23 +416,23 @@ export default function ReportsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as BillStatus | "ALL" }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
               >
-                <option value="ALL">All Status</option>
-                <option value="PAID">Paid</option>
-                <option value="UNPAID">Unpaid</option>
-                <option value="PARTIALLY_PAID">Partially Paid</option>
+                <option value="ALL">{t("all_status")}</option>
+                <option value="PAID">{t("paid")}</option>
+                <option value="UNPAID">{t("unpaid")}</option>
+                <option value="PARTIALLY_PAID">{t("partially_paid")}</option>
               </select>
             </div>
             <button
               onClick={() => loadReport()}
               className="px-5 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition"
             >
-              Apply
+              {t("apply")}
             </button>
             <button
               onClick={resetFilters}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition"
             >
-              Reset
+              {t("reset")}
             </button>
           </div>
         </div>
@@ -430,25 +440,25 @@ export default function ReportsPage() {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <ResponsiveCard
-            title="Total Bills"
+            title={t("total_bills")}
             value={summary.totalBills.toLocaleString()}
             icon={DocumentTextIcon}
             color="blue"
           />
           <ResponsiveCard
-            title="Total Collected"
+            title={t("total_collected")}
             value={formatCurrency(summary.totalCollected)}
             icon={CurrencyDollarIcon}
             color="green"
           />
           <ResponsiveCard
-            title="Outstanding"
+            title={t("outstanding")}
             value={formatCurrency(summary.totalOutstanding)}
             icon={BanknotesIcon}
             color="red"
           />
           <ResponsiveCard
-            title="Collection Rate"
+            title={t("collection_rate")}
             value={`${summary.collectionRate.toFixed(1)}%`}
             icon={ChartBarIcon}
             color="purple"
@@ -459,11 +469,11 @@ export default function ReportsPage() {
         {/* Additional Stats */}
         <div className="overflow-x-auto pb-2 -mx-1 px-1">
           <div className="flex gap-3 min-w-max sm:grid sm:grid-cols-5 sm:min-w-0">
-            <SmallCard title="Average Bill" value={formatCurrency(summary.averageBillAmount)} color="blue" />
-            <SmallCard title="Paid Bills" value={summary.paidBillsCount} color="green" />
-            <SmallCard title="Unpaid Bills" value={summary.unpaidBillsCount} color="red" />
-            <SmallCard title="Partially Paid" value={summary.partiallyPaidCount} color="yellow" />
-            <SmallCard title="Total Amount" value={formatCurrency(summary.totalAmount)} color="purple" />
+            <SmallCard title={t("average_bill")} value={formatCurrency(summary.averageBillAmount)} color="blue" />
+            <SmallCard title={t("paid_bills")} value={summary.paidBillsCount} color="green" />
+            <SmallCard title={t("unpaid_bills")} value={summary.unpaidBillsCount} color="red" />
+            <SmallCard title={t("partially_paid")} value={summary.partiallyPaidCount} color="yellow" />
+            <SmallCard title={t("total_amount")} value={formatCurrency(summary.totalAmount)} color="purple" />
           </div>
         </div>
 
@@ -473,7 +483,7 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <ChartBarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-                <h3 className="font-semibold text-sm sm:text-base text-gray-800">Transaction Report</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-800">{t("transaction_report")}</h3>
                 {!loading && filteredData.length > 0 && (
                   <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded-full">
                     {filteredData.length}
@@ -487,7 +497,7 @@ export default function ReportsPage() {
                     {filters.toDate && formatDate(filters.toDate)}
                   </span>
                 ) : (
-                  "All Time"
+                  t("all_time")
                 )}
               </div>
             </div>
@@ -496,13 +506,13 @@ export default function ReportsPage() {
           {loading ? (
             <div className="flex justify-center items-center py-16">
               <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-sm text-gray-500">Loading...</span>
+              <span className="ml-3 text-sm text-gray-500">{t("loading")}</span>
             </div>
           ) : paginatedData.length === 0 ? (
             <div className="text-center py-12 sm:py-16">
               <DocumentTextIcon className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium">No report data found</p>
-              <p className="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
+              <p className="text-gray-400 font-medium">{t("no_report_data")}</p>
+              <p className="text-xs text-gray-400 mt-1">{t("adjust_filters")}</p>
             </div>
           ) : (
             <>
@@ -520,19 +530,19 @@ export default function ReportsPage() {
                     <div className="text-xs text-gray-500 mb-2">{row.period}</div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-gray-500">Due:</span>
+                        <span className="text-gray-500">{t("due")}:</span>
                         <span className="ml-1 font-semibold text-gray-800">{formatCurrency(row.amount_due)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Paid:</span>
+                        <span className="text-gray-500">{t("paid")}:</span>
                         <span className="ml-1 font-semibold text-green-600">{formatCurrency(row.amount_paid)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Remaining:</span>
+                        <span className="text-gray-500">{t("remaining")}:</span>
                         <span className="ml-1 font-semibold text-red-600">{formatCurrency(row.remaining_bal)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Method:</span>
+                        <span className="text-gray-500">{t("method")}:</span>
                         <span className="ml-1 text-gray-600">{row.payment_method || "-"}</span>
                       </div>
                     </div>
@@ -545,14 +555,14 @@ export default function ReportsPage() {
                 <table className="w-full min-w-[800px]">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Bill Ref</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Customer</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Period</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Amount Due</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Amount Paid</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Remaining</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Method</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("bill_ref")}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("customer")}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("period")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("amount_due")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("amount_paid")}</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">{t("remaining")}</th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">{t("status")}</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">{t("method")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -586,8 +596,8 @@ export default function ReportsPage() {
               {totalPages > 1 && (
                 <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <p className="text-xs text-gray-500">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                    {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}
+                    {t("showing")} {(currentPage - 1) * itemsPerPage + 1} {t("to")}{" "}
+                    {Math.min(currentPage * itemsPerPage, filteredData.length)} {t("of")} {filteredData.length}
                   </p>
                   <div className="flex gap-1 sm:gap-2">
                     <button
@@ -619,7 +629,7 @@ export default function ReportsPage() {
                       })}
                     </div>
                     <span className="flex sm:hidden text-sm text-gray-600 px-2">
-                      Page {currentPage} of {totalPages}
+                      {t("page")} {currentPage} {t("of")} {totalPages}
                     </span>
                     <button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -640,19 +650,19 @@ export default function ReportsPage() {
           <div className="bg-gradient-to-r from-gray-50 to-white rounded-xl p-3 sm:p-4 border border-gray-200">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
               <div>
-                <p className="text-xs text-gray-500">Total Bills</p>
+                <p className="text-xs text-gray-500">{t("total_bills")}</p>
                 <p className="text-base sm:text-lg font-bold text-gray-800">{summary.totalBills}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Collection Rate</p>
+                <p className="text-xs text-gray-500">{t("collection_rate")}</p>
                 <p className="text-base sm:text-lg font-bold text-green-600">{summary.collectionRate.toFixed(1)}%</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Average Bill</p>
+                <p className="text-xs text-gray-500">{t("average_bill")}</p>
                 <p className="text-base sm:text-lg font-bold text-blue-600">{formatCurrency(summary.averageBillAmount)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Generated</p>
+                <p className="text-xs text-gray-500">{t("generated")}</p>
                 <p className="text-xs sm:text-sm font-medium text-gray-600">{formatDate(new Date().toISOString())}</p>
               </div>
             </div>

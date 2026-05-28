@@ -1,5 +1,6 @@
 // src/features/agent/pages/Reports.tsx
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, type Variants } from "framer-motion";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
@@ -98,6 +99,7 @@ const getStatusColor = (status: string) => {
 
 // Mobile Transaction Card Component
 function MobileTransactionCard({ transaction }: { transaction: DisplayTransaction }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -128,7 +130,7 @@ function MobileTransactionCard({ transaction }: { transaction: DisplayTransactio
       <div className="mt-3 flex justify-between items-center">
         <div>
           <p className="text-lg font-black text-gray-900 dark:text-white">{transaction.amount.toLocaleString()} ETB</p>
-          <p className="text-xs text-green-600 dark:text-green-400">+{transaction.commission.toLocaleString()} ETB commission</p>
+          <p className="text-xs text-green-600 dark:text-green-400">+{transaction.commission.toLocaleString()} ETB {t("commission")}</p>
         </div>
         <p className="text-xs text-gray-400">{format(new Date(transaction.createdAt), "dd MMM yyyy")}</p>
       </div>
@@ -136,19 +138,19 @@ function MobileTransactionCard({ transaction }: { transaction: DisplayTransactio
       {expanded && (
         <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 space-y-2">
           <div className="flex justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Transaction ID:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("transaction_id")}:</span>
             <span className="text-xs font-mono text-gray-700 dark:text-gray-300">{transaction.transactionId}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Bill Reference:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("bill_reference")}:</span>
             <span className="text-xs text-gray-700 dark:text-gray-300">{transaction.billReference}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Remaining Balance:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("remaining_balance")}:</span>
             <span className="text-xs font-semibold text-red-500 dark:text-red-400">{transaction.remainingBalance.toLocaleString()} ETB</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Amount Paid:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("amount_paid")}:</span>
             <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{transaction.amount.toLocaleString()} ETB</span>
           </div>
         </div>
@@ -158,6 +160,7 @@ function MobileTransactionCard({ transaction }: { transaction: DisplayTransactio
 }
 
 export default function Reports() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [transactions, setTransactions] = useState<DisplayTransaction[]>([]);
   const [summary, setSummary] = useState<SummaryStats | null>(null);
@@ -172,11 +175,11 @@ export default function Reports() {
       setLoading(true);
       setError(null);
       const response: BackendResponse = await getAgentReport({ fromDate, toDate });
-      setAgentName(response.agent_name || (user as any)?.agent?.name || "Agent");
+      setAgentName(response.agent_name || (user as any)?.agent?.name || t("agent"));
 
       const rawTx = response.data?.transactions || [];
       const displayTx: DisplayTransaction[] = rawTx.map((tx) => {
-        const customerName = tx.bill?.customerName || tx.bill?.customer?.fullName || "N/A";
+        const customerName = tx.bill?.customerName || tx.bill?.customer?.fullName || t("na");
         return {
           id: tx.id,
           transactionId: tx.transactionId,
@@ -185,8 +188,8 @@ export default function Reports() {
           amount: parseFloat(tx.totalAmount || tx.amount || "0"),
           commission: parseFloat(tx.agentShare || "0"),
           customerName: customerName,
-          billerName: tx.bill?.biller?.name || "N/A",
-          billReference: tx.bill?.billReference || "N/A",
+          billerName: tx.bill?.biller?.name || t("na"),
+          billReference: tx.bill?.billReference || t("na"),
           remainingBalance: tx.bill?.remainingBalance ?? 0,
         };
       });
@@ -202,7 +205,7 @@ export default function Reports() {
       setSummary({ totalVolume, totalCommission, count, statusBreakdown });
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to load report");
+      setError(err.message || t("failed_load_report"));
     } finally {
       setLoading(false);
     }
@@ -216,19 +219,19 @@ export default function Reports() {
 
   const exportToExcel = () => {
     const dataToExport = transactions.map((tx) => ({
-      "Transaction ID": tx.transactionId,
-      Date: format(new Date(tx.createdAt), "MM/dd/yy"),
-      Customer: tx.customerName,
-      Biller: tx.billerName,
-      "Amount Paid (ETB)": tx.amount,
-      "Remaining Balance (ETB)": tx.remainingBalance,
-      "Commission (ETB)": tx.commission,
-      Status: tx.status,
+      [t("transaction_id")]: tx.transactionId,
+      [t("date")]: format(new Date(tx.createdAt), "MM/dd/yy"),
+      [t("customer")]: tx.customerName,
+      [t("biller")]: tx.billerName,
+      [t("amount_paid_etb")]: tx.amount,
+      [t("remaining_balance_etb")]: tx.remainingBalance,
+      [t("commission_etb")]: tx.commission,
+      [t("status")]: tx.status,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Revenue Report");
-    XLSX.writeFile(workbook, `${agentName}_Report_${format(new Date(), "MM-dd-yy")}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, t("revenue_report_sheet"));
+    XLSX.writeFile(workbook, `${agentName}_${t("report")}_${format(new Date(), "MM-dd-yy")}.xlsx`);
   };
 
   useEffect(() => {
@@ -236,7 +239,7 @@ export default function Reports() {
   }, []);
 
   return (
-    <DashboardLayout title="Agent Revenue Report" links={agentLinks}>
+    <DashboardLayout title={t("agent_revenue_report")} links={agentLinks}>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -251,24 +254,24 @@ export default function Reports() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 dark:from-red-400 dark:via-gray-300 dark:to-red-400 bg-clip-text text-transparent">
-                {agentName} Performance
+                {agentName} {t("performance")}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">Real‑time financial breakdown and audit logs.</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">{t("report_description")}</p>
             </div>
             <button
               onClick={exportToExcel}
               className="relative overflow-hidden group flex items-center gap-2 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 dark:from-red-500 dark:via-gray-600 dark:to-red-500 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:shadow-lg"
             >
               <Download size={16} />
-              <span className="hidden sm:inline">Export Excel</span>
-              <span className="sm:hidden">Export</span>
+              <span className="hidden sm:inline">{t("export_excel")}</span>
+              <span className="sm:hidden">{t("export")}</span>
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar size={14} /> From Date
+                <Calendar size={14} /> {t("from_date")}
               </label>
               <input
                 type="date"
@@ -279,7 +282,7 @@ export default function Reports() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <Calendar size={14} /> To Date
+                <Calendar size={14} /> {t("to_date")}
               </label>
               <input
                 type="date"
@@ -295,12 +298,12 @@ export default function Reports() {
                 className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white font-medium py-2 px-3 rounded-lg transition-all hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Search size={16} />}
-                {loading ? "Loading..." : "Filter"}
+                {loading ? t("loading") : t("filter")}
               </button>
               <button
                 onClick={resetFilters}
                 className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                title="Reset Filters"
+                title={t("reset_filters")}
               >
                 <RotateCcw size={16} />
               </button>
@@ -330,7 +333,7 @@ export default function Reports() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border-t-4 border-red-500 p-4 sm:p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Total Volume</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">{t("total_volume")}</p>
                     <p className="text-lg sm:text-xl md:text-2xl font-black text-gray-800 dark:text-white">{summary.totalVolume.toLocaleString()} ETB</p>
                   </div>
                   <div className="p-2 sm:p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-full">
@@ -342,7 +345,7 @@ export default function Reports() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border-t-4 border-red-500 p-4 sm:p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Your Commission</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">{t("your_commission")}</p>
                     <p className="text-lg sm:text-xl md:text-2xl font-black text-red-600">{summary.totalCommission.toLocaleString()} ETB</p>
                   </div>
                   <div className="p-2 sm:p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-full">
@@ -354,7 +357,7 @@ export default function Reports() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border-t-4 border-red-500 p-4 sm:p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">Transaction Count</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase">{t("transaction_count")}</p>
                     <p className="text-lg sm:text-xl md:text-2xl font-black text-gray-800 dark:text-white">{summary.count}</p>
                   </div>
                   <div className="p-2 sm:p-3 bg-red-50 dark:bg-red-900/30 text-red-600 rounded-full">
@@ -367,8 +370,8 @@ export default function Reports() {
             {/* Transactions Table - Fully Responsive */}
             <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
               <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
-                <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">Transaction History</h2>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">All payments processed by you</p>
+                <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">{t("transaction_history")}</h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{t("transaction_history_description")}</p>
               </div>
 
               {/* Desktop Table - Horizontal Scroll on small screens */}
@@ -376,14 +379,14 @@ export default function Reports() {
                 <table className="min-w-[800px] lg:min-w-full w-full text-sm">
                   <thead className="bg-gray-50/80 dark:bg-gray-700/50 text-[10px] sm:text-[11px] font-bold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
                     <tr>
-                      <th className="px-4 py-3 whitespace-nowrap">Transaction ID</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Customer</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Biller</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Amount Paid</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Remaining</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Commission</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center">Status</th>
-                      <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("transaction_id")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("customer")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("biller")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("amount_paid")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("remaining")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("commission")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center">{t("status")}</th>
+                      <th className="px-4 py-3 whitespace-nowrap">{t("date")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -431,9 +434,9 @@ export default function Reports() {
               {transactions.length === 0 && !loading && (
                 <div className="text-center py-12 text-gray-500 flex flex-col items-center gap-2">
                   <FileText size={40} className="text-gray-300 dark:text-gray-600" />
-                  <p>No transactions found for the selected period.</p>
+                  <p>{t("no_transactions_found")}</p>
                   <button onClick={resetFilters} className="text-red-600 text-sm font-medium hover:underline">
-                    Clear filters
+                    {t("clear_filters")}
                   </button>
                 </div>
               )}
@@ -446,7 +449,7 @@ export default function Reports() {
                   <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg">
                     <PieChart size={18} className="text-red-600 dark:text-red-400" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">Payment Status Breakdown</h3>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">{t("payment_status_breakdown")}</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                   {Object.entries(summary.statusBreakdown).map(([status, count]) => (
