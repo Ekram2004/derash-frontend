@@ -16,7 +16,7 @@ import {
   ExclamationCircleIcon,
 } from "@heroicons/react/24/solid";
 
-import { getBillerStats, getBillerBills } from "../api/biller.api";
+import { getBillerStats } from "../api/biller.api";
 import { billerLinks } from "../billerLinks";
 
 interface BillerStats {
@@ -26,19 +26,6 @@ interface BillerStats {
   partiallyPaidBills: number;
   revenue: number;
   thisMonthRevenue: number;
-}
-
-interface RecentBill {
-  id: string;
-  billReference: string;
-  customerName: string;
-  amount: number;
-  amountPaid: number;
-  remainingBalance: number;
-  status: string;
-  paidAt: string | null;
-  dueDate: string;
-  createdAt: string;
 }
 
 // Animation Variants
@@ -71,24 +58,8 @@ const chartVariants: Variants = {
 };
 
 // Helper functions
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString();
-};
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB', minimumFractionDigits: 2 }).format(amount);
-};
-
-const getStatusBadge = (status: string, t: (key: string) => string) => {
-  const statusMap: Record<string, { color: string; label: string }> = {
-    PAID: { color: "bg-green-100 text-green-700", label: t("paid") },
-    UNPAID: { color: "bg-red-100 text-red-700", label: t("unpaid") },
-    PARTIALLY_PAID: { color: "bg-yellow-100 text-yellow-700", label: t("partially_paid") },
-    EXPIRED: { color: "bg-gray-100 text-gray-700", label: t("expired") },
-    CANCELLED: { color: "bg-gray-100 text-gray-700", label: t("cancelled") },
-  };
-  return statusMap[status] || { color: "bg-gray-100 text-gray-700", label: status };
 };
 
 export default function BillerDashboard() {
@@ -101,9 +72,7 @@ export default function BillerDashboard() {
     revenue: 0,
     thisMonthRevenue: 0,
   });
-  const [recentBills, setRecentBills] = useState<RecentBill[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [recentLoading, setRecentLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -122,7 +91,6 @@ export default function BillerDashboard() {
             thisMonthRevenue: response.data.thisMonthRevenue || 0,
           });
         } else if (response?.data) {
-          // Fallback if status is not present
           setStats({
             totalBills: response.data.totalBills || 0,
             paidBills: response.data.paidBills || 0,
@@ -139,36 +107,7 @@ export default function BillerDashboard() {
       }
     };
 
-    const fetchRecentBills = async () => {
-      try {
-        setRecentLoading(true);
-        const response = await getBillerBills();
-        console.log("Recent bills API response:", response);
-        
-        let billsData: RecentBill[] = [];
-        
-        if (response?.status === "SUCCESS" && response.data) {
-          billsData = response.data;
-        } else if (Array.isArray(response?.data)) {
-          billsData = response.data;
-        } else if (Array.isArray(response)) {
-          billsData = response;
-        }
-        
-        // Sort by createdAt descending and take first 5
-        const sortedBills = billsData.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setRecentBills(sortedBills.slice(0, 5));
-      } catch (error) {
-        console.error("Failed to fetch recent bills:", error);
-      } finally {
-        setRecentLoading(false);
-      }
-    };
-
     fetchStats();
-    fetchRecentBills();
   }, []);
 
   const collectionRate =
@@ -384,87 +323,6 @@ export default function BillerDashboard() {
               />
             </div>
           </div>
-        </motion.div>
-
-        {/* Recent Activity - REAL DATA from database */}
-        <motion.div variants={itemVariants} className="bg-white rounded-xl md:rounded-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800">
-                {t("recent_activity")}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {t("latest_billing_transactions")}
-              </p>
-            </div>
-            <button 
-              onClick={() => window.location.href = "/biller/bills"}
-              className="text-sm text-red-600 hover:text-red-700 font-medium"
-            >
-              {t("view_all")} →
-            </button>
-          </div>
-          
-          {recentLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
-            </div>
-          ) : recentBills.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <BanknotesIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>{t("no_recent_bills")}</p>
-              <p className="text-xs mt-1">{t("upload_first_bill")}</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentBills.map((bill) => {
-                const statusBadge = getStatusBadge(bill.status, t);
-                return (
-                  <div key={bill.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className={`w-2 h-2 rounded-full ${
-                        bill.status === "PAID" ? "bg-green-500" :
-                        bill.status === "PARTIALLY_PAID" ? "bg-yellow-500" : "bg-red-500"
-                      }`}></div>
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <div>
-                            <p className="text-sm font-medium text-gray-800">
-                              {bill.customerName || t("anonymous_customer")}
-                            </p>
-                            <p className="text-xs text-gray-400 font-mono">
-                              {bill.billReference}
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-gray-800">
-                              {formatCurrency(bill.amount)}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${statusBadge.color}`}>
-                              {statusBadge.label}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
-                          <span>{t("due")}: {formatDate(bill.dueDate)}</span>
-                          {bill.paidAt && (
-                            <span className="text-green-600">
-                              {t("paid_on")}: {formatDate(bill.paidAt)}
-                            </span>
-                          )}
-                          {bill.remainingBalance > 0 && bill.status !== "PAID" && (
-                            <span className="text-orange-500">
-                              {t("remaining")}: {formatCurrency(bill.remainingBalance)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </motion.div>
       </motion.div>
     </DashboardLayout>
