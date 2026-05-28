@@ -454,7 +454,7 @@ export default function Home() {
                 key={i}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: stat.delay, duration: 1.5 }}
+                transition={{ delay: stat.delay, duration: 2 }}
                 viewport={{ once: true }}
                 className="bg-white/10 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 dark:border-gray-700 hover:bg-white/20 dark:hover:bg-gray-800/60 transition-all duration-1000"
               >
@@ -477,7 +477,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.8 }}
+            transition={{ duration: 2 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
@@ -518,7 +518,7 @@ export default function Home() {
                 key={i}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.3, duration: 1.5 }}
+                transition={{ delay: i * 2, duration: 2 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -12 }}
                 className={`group relative bg-gradient-to-br ${benefit.gradient} p-8 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-1000 overflow-hidden`}
