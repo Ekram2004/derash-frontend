@@ -1,7 +1,7 @@
 // src/features/biller/pages/Dashboard.tsx
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import {
   BanknotesIcon,
@@ -18,7 +18,6 @@ import {
 
 import { getBillerStats, getBillerBills } from "../api/biller.api";
 import { billerLinks } from "../billerLinks";
-import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface BillerStats {
   totalBills: number;
@@ -71,15 +70,25 @@ const chartVariants: Variants = {
   }),
 };
 
-// Helper to format date
+// Helper functions
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString();
 };
 
-// Helper to format currency
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB', minimumFractionDigits: 2 }).format(amount);
+};
+
+const getStatusBadge = (status: string, t: (key: string) => string) => {
+  const statusMap: Record<string, { color: string; label: string }> = {
+    PAID: { color: "bg-green-100 text-green-700", label: t("paid") },
+    UNPAID: { color: "bg-red-100 text-red-700", label: t("unpaid") },
+    PARTIALLY_PAID: { color: "bg-yellow-100 text-yellow-700", label: t("partially_paid") },
+    EXPIRED: { color: "bg-gray-100 text-gray-700", label: t("expired") },
+    CANCELLED: { color: "bg-gray-100 text-gray-700", label: t("cancelled") },
+  };
+  return statusMap[status] || { color: "bg-gray-100 text-gray-700", label: status };
 };
 
 export default function BillerDashboard() {
@@ -101,11 +110,30 @@ export default function BillerDashboard() {
       try {
         setLoading(true);
         const response = await getBillerStats();
-        if (response?.status === "SUCCESS") {
-          setStats(response.data);
+        console.log("Stats API response:", response);
+        
+        if (response?.status === "SUCCESS" && response.data) {
+          setStats({
+            totalBills: response.data.totalBills || 0,
+            paidBills: response.data.paidBills || 0,
+            unpaidBills: response.data.unpaidBills || 0,
+            partiallyPaidBills: response.data.partiallyPaidBills || 0,
+            revenue: response.data.revenue || 0,
+            thisMonthRevenue: response.data.thisMonthRevenue || 0,
+          });
+        } else if (response?.data) {
+          // Fallback if status is not present
+          setStats({
+            totalBills: response.data.totalBills || 0,
+            paidBills: response.data.paidBills || 0,
+            unpaidBills: response.data.unpaidBills || 0,
+            partiallyPaidBills: response.data.partiallyPaidBills || 0,
+            revenue: response.data.revenue || 0,
+            thisMonthRevenue: response.data.thisMonthRevenue || 0,
+          });
         }
       } catch (error) {
-        console.error("Dashboard error:", error);
+        console.error("Dashboard stats error:", error);
       } finally {
         setLoading(false);
       }
@@ -115,14 +143,23 @@ export default function BillerDashboard() {
       try {
         setRecentLoading(true);
         const response = await getBillerBills();
-        if (response?.status === "SUCCESS") {
-          // Get the 5 most recent bills (sorted by createdAt desc)
-          const bills = response.data || [];
-          const sortedBills = bills.sort((a: RecentBill, b: RecentBill) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          setRecentBills(sortedBills.slice(0, 5));
+        console.log("Recent bills API response:", response);
+        
+        let billsData: RecentBill[] = [];
+        
+        if (response?.status === "SUCCESS" && response.data) {
+          billsData = response.data;
+        } else if (Array.isArray(response?.data)) {
+          billsData = response.data;
+        } else if (Array.isArray(response)) {
+          billsData = response;
         }
+        
+        // Sort by createdAt descending and take first 5
+        const sortedBills = billsData.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setRecentBills(sortedBills.slice(0, 5));
       } catch (error) {
         console.error("Failed to fetch recent bills:", error);
       } finally {
@@ -142,17 +179,6 @@ export default function BillerDashboard() {
   const revenueGrowth = stats.revenue > 0 
     ? ((stats.thisMonthRevenue / stats.revenue) * 100).toFixed(1)
     : "0";
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { color: string; label: string }> = {
-      PAID: { color: "bg-green-100 text-green-700", label: t("paid") },
-      UNPAID: { color: "bg-red-100 text-red-700", label: t("unpaid") },
-      PARTIALLY_PAID: { color: "bg-yellow-100 text-yellow-700", label: t("partially_paid") },
-      EXPIRED: { color: "bg-gray-100 text-gray-700", label: t("expired") },
-      CANCELLED: { color: "bg-gray-100 text-gray-700", label: t("cancelled") },
-    };
-    return statusMap[status] || { color: "bg-gray-100 text-gray-700", label: status };
-  };
 
   if (loading) {
     return (
@@ -392,7 +418,7 @@ export default function BillerDashboard() {
           ) : (
             <div className="space-y-3">
               {recentBills.map((bill) => {
-                const statusBadge = getStatusBadge(bill.status);
+                const statusBadge = getStatusBadge(bill.status, t);
                 return (
                   <div key={bill.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-3 flex-1">
