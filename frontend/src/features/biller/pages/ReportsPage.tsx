@@ -262,7 +262,8 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold 
+            bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent">
               Reports & Analytics
             </h1>
             <p className="text-xs sm:text-sm text-gray-400 mt-0.5 sm:mt-1">

@@ -16,7 +16,7 @@ import {
   ComputerDesktopIcon,
 } from "@heroicons/react/24/solid";
 
-// Animation Variants with proper typing
+// Animation Variants
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -59,10 +59,10 @@ export default function Home() {
 
   return (
     <PublicLayout>
-      {/* HERO SECTION */}
+      {/* HERO SECTION – dark mode support */}
       <section
         ref={heroRef}
-        className="relative overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-500 text-white"
+        className="relative overflow-hidden bg-gradient-to-br from-red-700 via-red-600 to-red-500 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white"
         style={{ minHeight: "calc(100vh - 80px)" }}
       >
         {/* Animated Background Pattern */}
@@ -103,14 +103,12 @@ export default function Home() {
               variants={fadeInLeft}
               className="text-center lg:text-left"
             >
-             
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold
-               leading-tight mb-6 tracking-tight " >
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 tracking-tight">
                 National Bill{" "}
-                <span >Aggregation Platform</span>
+                <span>Aggregation Platform</span>
               </h1>
 
-              <p className="text-lg md:text-xl text-red-50/90 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-lg md:text-xl text-red-50/90 dark:text-gray-300 mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
                 DERASH is Ethiopia's unified digital billing platform that
                 connects billers, banks, and payment providers to enable secure
                 and seamless bill payments.
@@ -124,7 +122,7 @@ export default function Home() {
                 >
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-2 bg-white text-red-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all text-center text-lg"
+                    className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all text-center text-lg"
                   >
                     Access Platform
                     <ArrowRightIcon className="w-5 h-5" />
@@ -138,7 +136,7 @@ export default function Home() {
                 >
                   <Link
                     to="/about"
-                    className="inline-flex items-center gap-2 bg-red-800 bg-opacity-30 border border-red-300 text-white px-8 py-4 rounded-xl font-bold backdrop-blur-sm hover:bg-opacity-50 transition-all text-center text-lg"
+                    className="inline-flex items-center gap-2 bg-red-800/30 dark:bg-gray-700/50 border border-red-300 dark:border-gray-600 text-white px-8 py-4 rounded-xl font-bold backdrop-blur-sm hover:bg-opacity-50 transition-all text-center text-lg"
                   >
                     Learn More
                   </Link>
@@ -150,43 +148,38 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="flex items-center justify-center lg:justify-start gap-6 mt-12 pt-6 border-t border-white/20"
+                className="flex items-center justify-center lg:justify-start gap-6 mt-12 pt-6 border-t border-white/20 dark:border-gray-700"
               >
                 <div className="flex -space-x-2">
-                  {[1].map((i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full bg-white/20 border-2 border-red-500 flex items-center justify-center text-xs font-bold"
-                    >
-                      ✓
-                    </div>
-                  ))}
+                  <div className="w-8 h-8 rounded-full bg-white/20 dark:bg-gray-700 border-2 border-red-500 dark:border-red-400 flex items-center justify-center text-xs font-bold text-white">
+                    ✓
+                  </div>
                 </div>
-                <span className="text-sm text-white/80">
+                <span className="text-sm text-white/80 dark:text-gray-400">
                   Trusted by 16+ banks & 370K+ users
                 </span>
               </motion.div>
             </motion.div>
 
-            {/* Hero Card - Enhanced */}
+            {/* Hero Card - Enhanced (dark mode support) */}
             <motion.div
               initial="hidden"
               animate="visible"
               variants={fadeInRight}
               className="relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-300 rounded-3xl blur-2xl opacity-30 -z-10"></div>
-              <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-                <div className="bg-gradient-to-r from-red-50 to-white p-6 border-b border-red-100">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl blur-2xl opacity-30 -z-10"></div>
+              <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-700 dark:to-gray-800 p-6 border-b border-red-100 dark:border-gray-700">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
                       <ShieldCheckIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                         DERASH Platform
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         Secure • Reliable • Scalable
                       </p>
                     </div>
@@ -218,10 +211,10 @@ export default function Home() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4 + i * 0.1 }}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group"
                       >
-                        <span className="text-red-500">{item.icon}</span>
-                        <span className="font-medium text-gray-700 group-hover:text-gray-900">
+                        <span className="text-red-500 dark:text-red-400">{item.icon}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
                           {item.text}
                         </span>
                         <CheckCircleIcon className="ml-auto w-5 h-5 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -229,12 +222,11 @@ export default function Home() {
                     ))}
                   </ul>
 
-                  <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Status</span>
-                      <span className="flex items-center gap-1 text-gray-500">
-                        <span className="w-1.5 h-1.5 bg-gray-500 rounded-full
-                         animate-pulse"></span>
+                      <span className="text-gray-500 dark:text-gray-400">Status</span>
+                      <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         All systems operational
                       </span>
                     </div>
@@ -252,20 +244,20 @@ export default function Home() {
           transition={{ delay: 0.8 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="text-sm text-white/60">Scroll to explore</span>
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
+          <span className="text-sm text-white/60 dark:text-gray-400">Scroll to explore</span>
+          <div className="w-6 h-10 border-2 border-white/30 dark:border-gray-600 rounded-full flex justify-center">
             <motion.div
               animate={{ y: [0, 12, 0] }}
               transition={{ repeat: Infinity, duration: 1.5 }}
-              className="w-1.5 h-3 bg-white/60 rounded-full mt-2"
+              className="w-1.5 h-3 bg-white/60 dark:bg-gray-400 rounded-full mt-2"
             />
           </div>
         </motion.div>
       </section>
 
       {/* PLATFORM FLOW */}
-      <section className="py-28 bg-white relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50/50 via-transparent to-transparent"></div>
+      <section className="py-28 bg-white dark:bg-gray-900 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-50/50 dark:from-gray-800/50 via-transparent to-transparent"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <motion.div
             initial="hidden"
@@ -274,14 +266,14 @@ export default function Home() {
             variants={fadeInUp}
             className="text-center mb-20"
           >
-            <span className="text-red-600 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-red-600 dark:text-red-400 font-semibold text-sm uppercase tracking-wider">
               Process
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-2 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2 mb-4">
               How DERASH Works
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-red-400 mx-auto rounded-full"></div>
-            <p className="text-gray-600 mt-6 max-w-2xl mx-auto">
+            <p className="text-gray-600 dark:text-gray-400 mt-6 max-w-2xl mx-auto">
               A seamless flow connecting billers, agents, and customers in one unified ecosystem
             </p>
           </motion.div>
@@ -293,8 +285,7 @@ export default function Home() {
             viewport={{ once: true, margin: "-100px" }}
             className="relative"
           >
-            {/* Connection lines */}
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-red-200 via-red-300 to-red-200 hidden lg:block -translate-y-1/2"></div>
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-red-200 via-red-300 to-red-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 hidden lg:block -translate-y-1/2"></div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
@@ -328,24 +319,24 @@ export default function Home() {
                   whileHover={{ y: -8 }}
                   className="relative group"
                 >
-                  <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 relative z-10">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 relative z-10">
                     <div
                       className={`w-16 h-16 bg-gradient-to-br ${step.color} text-white rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}
                     >
                       {step.icon}
                     </div>
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-red-600 dark:bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                       {idx + 1}
                     </div>
-                    <h3 className="font-bold text-xl text-gray-900 mb-3">
+                    <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-3">
                       {step.title}
                     </h3>
-                    <p className="text-gray-500 text-sm leading-relaxed">
+                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                       {step.desc}
                     </p>
                   </div>
                   {idx < 3 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-red-400 z-20">
+                    <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-8 text-red-400 dark:text-gray-500 z-20">
                       <ArrowRightIcon className="w-6 h-6" />
                     </div>
                   )}
@@ -356,21 +347,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PLATFORM STATS - Enhanced */}
-      <section className="bg-gradient-to-br from-red-700 via-red-600 to-red-500 py-24 text-white relative overflow-hidden">
+      {/* PLATFORM STATS – dark mode adapted */}
+      <section className="bg-gradient-to-br from-red-700 via-red-600 to-red-500 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 py-24 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <svg
-            className="absolute -bottom-24 -left-24 w-96 h-96"
-            fill="white"
-            viewBox="0 0 100 100"
-          >
+          <svg className="absolute -bottom-24 -left-24 w-96 h-96 fill-white" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" />
           </svg>
-          <svg
-            className="absolute -top-24 -right-24 w-96 h-96"
-            fill="white"
-            viewBox="0 0 100 100"
-          >
+          <svg className="absolute -top-24 -right-24 w-96 h-96 fill-white" viewBox="0 0 100 100">
             <rect x="25" y="25" width="50" height="50" rx="10" />
           </svg>
         </div>
@@ -381,34 +364,17 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Platform Impact
-            </h2>
-            <p className="text-red-100 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Platform Impact</h2>
+            <p className="text-red-100 dark:text-gray-300 max-w-2xl mx-auto">
               Driving digital transformation across Ethiopia's payment ecosystem
             </p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center">
             {[
               { label: "Active Users", val: "370K+", suffix: "", delay: 0 },
-              {
-                label: "Transactions",
-                val: "650K+",
-                suffix: "",
-                delay: 0.1,
-              },
-              {
-                label: "Birr Processed",
-                val: "60",
-                suffix: "B+",
-                delay: 0.2,
-              },
-              {
-                label: "Integrated Banks",
-                val: "16",
-                suffix: "+",
-                delay: 0.3,
-              },
+              { label: "Transactions", val: "650K+", suffix: "", delay: 0.1 },
+              { label: "Birr Processed", val: "60", suffix: "B+", delay: 0.2 },
+              { label: "Integrated Banks", val: "16", suffix: "+", delay: 0.3 },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -416,13 +382,13 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: stat.delay, duration: 0.5 }}
                 viewport={{ once: true }}
-                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all"
+                className="bg-white/10 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 dark:border-gray-700 hover:bg-white/20 dark:hover:bg-gray-800/60 transition-all"
               >
                 <h3 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-2 tracking-tight">
                   {stat.val}
                   <span className="text-3xl">{stat.suffix}</span>
                 </h3>
-                <p className="text-red-100 font-medium uppercase tracking-wider text-xs md:text-sm">
+                <p className="text-red-100 dark:text-gray-400 font-medium uppercase tracking-wider text-xs md:text-sm">
                   {stat.label}
                 </p>
               </motion.div>
@@ -431,8 +397,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BENEFITS - Enhanced */}
-      <section className="py-28 bg-gray-50">
+      {/* BENEFITS – dark mode */}
+      <section className="py-28 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -440,10 +406,10 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <span className="text-red-600 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-red-600 dark:text-red-400 font-semibold text-sm uppercase tracking-wider">
               Why Choose Us
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-2">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mt-2">
               Benefits of DERASH
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-red-400 mx-auto mt-4 rounded-full"></div>
@@ -455,22 +421,22 @@ export default function Home() {
                 title: "Digital Transformation",
                 desc: "Supports the national digital economy by enabling secure electronic payments.",
                 icon: <ComputerDesktopIcon className="w-7 h-7" />,
-                gradient: "from-blue-50 to-blue-100",
-                iconBg: "bg-blue-100 text-blue-600",
+                gradient: "from-blue-50 to-blue-100 dark:from-gray-800 dark:to-gray-700",
+                iconBg: "bg-blue-100 text-blue-600 dark:bg-gray-700 dark:text-blue-400",
               },
               {
                 title: "Cashless Economy",
                 desc: "Promotes cashless transactions and improves financial accessibility across the country.",
                 icon: <CurrencyDollarIcon className="w-7 h-7" />,
-                gradient: "from-green-50 to-green-100",
-                iconBg: "bg-green-100 text-green-600",
+                gradient: "from-green-50 to-green-100 dark:from-gray-800 dark:to-gray-700",
+                iconBg: "bg-green-100 text-green-600 dark:bg-gray-700 dark:text-green-400",
               },
               {
                 title: "Secure Ecosystem",
                 desc: "Ensures secure payment processing and transparent financial settlement for billers and agents.",
                 icon: <ShieldCheckIcon className="w-7 h-7" />,
-                gradient: "from-red-50 to-red-100",
-                iconBg: "bg-red-100 text-red-600",
+                gradient: "from-red-50 to-red-100 dark:from-gray-800 dark:to-gray-700",
+                iconBg: "bg-red-100 text-red-600 dark:bg-gray-700 dark:text-red-400",
               },
             ].map((benefit, i) => (
               <motion.div
@@ -482,44 +448,39 @@ export default function Home() {
                 whileHover={{ y: -12 }}
                 className={`group relative bg-gradient-to-br ${benefit.gradient} p-8 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden`}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white dark:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full -translate-y-16 translate-x-16"></div>
                 <div
                   className={`w-14 h-14 ${benefit.iconBg} rounded-xl flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform duration-300`}
                 >
                   {benefit.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
                   {benefit.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">{benefit.desc}</p>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {benefit.desc}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA - Enhanced */}
-      <section className="bg-white py-28">
+      {/* CTA – dark mode support */}
+      <section className="bg-white dark:bg-gray-900 py-28">
         <div className="max-w-5xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl overflow-hidden shadow-2xl"
+            className="relative bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-3xl overflow-hidden shadow-2xl"
           >
             {/* Animated background */}
             <div className="absolute inset-0">
               <div className="absolute top-0 left-0 w-72 h-72 bg-red-600 opacity-10 rounded-full filter blur-3xl animate-pulse"></div>
               <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-500 opacity-10 rounded-full filter blur-3xl animate-pulse delay-1000"></div>
-              <svg
-                className="absolute bottom-0 left-0 w-full h-32 opacity-5"
-                viewBox="0 0 1200 120"
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-                  fill="white"
-                ></path>
+              <svg className="absolute bottom-0 left-0 w-full h-32 opacity-5" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="white"></path>
               </svg>
             </div>
 
@@ -528,7 +489,7 @@ export default function Home() {
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 transition={{ type: "spring", delay: 0.2 }}
-                className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
+                className="w-16 h-16 bg-red-600 dark:bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg"
               >
                 <BoltIcon className="w-8 h-8 text-white" />
               </motion.div>
@@ -539,13 +500,10 @@ export default function Home() {
                 Log in to manage bills, payments, and financial reports with our
                 secure unified platform.
               </p>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 bg-red-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg text-lg"
+                  className="inline-flex items-center gap-2 bg-red-600 dark:bg-red-500 text-white px-10 py-4 rounded-xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-lg text-lg"
                 >
                   Go to Login
                   <ArrowRightIcon className="w-5 h-5" />

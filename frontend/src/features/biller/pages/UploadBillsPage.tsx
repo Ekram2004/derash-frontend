@@ -281,7 +281,9 @@ BL-2024-005,Samuel Bekele,450.00,2026-06-07,2026-06-07`;
         <motion.div variants={itemVariants}>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">Upload Bills</h1>
+              <h1 className="text-2xl md:text-3xl 
+              font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-600
+              bg-clip-text text-transparent">Upload Bills</h1>
               <p className="text-sm text-gray-400 mt-1">Upload CSV files to add bills to the database</p>
             </div>
             <div className="flex gap-3">

@@ -120,7 +120,8 @@ export default function BillerDashboard() {
         <motion.div variants={itemVariants}>
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 mb-6 md:mb-8">
             <div className="max-w-2xl">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold 
+             bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent">
                 Welcome to Biller Dashboard
               </h1>
               <p className="text-sm md:text-base text-gray-400 mt-1 md:mt-2 font-medium leading-relaxed">

@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
 import { adminLinks } from "../adminLinks";
 import Modal from "../../../shared/components/Modal";
@@ -29,6 +30,7 @@ interface NotificationState {
 }
 
 export default function AgentsPage() {
+  const { t } = useTranslation();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -61,10 +63,10 @@ export default function AgentsPage() {
       console.error("Failed to load agents", error);
       setNotification({
         isOpen: true,
-        message: "Failed to load agents data",
+        message: t("failed_load_agents"),
         type: "error",
-        title: "Loading Error",
-        details: "Please refresh the page and try again",
+        title: t("loading_error"),
+        details: t("please_refresh"),
       });
     }
   };
@@ -92,10 +94,10 @@ export default function AgentsPage() {
     if (!form.name || !form.name.trim()) {
       setNotification({
         isOpen: true,
-        message: "Agent name is required",
+        message: t("agent_name_required"),
         type: "error",
-        title: "Validation Error",
-        details: "Please enter a valid agent name",
+        title: t("validation_error"),
+        details: t("enter_valid_agent_name"),
       });
       return false;
     }
@@ -103,10 +105,10 @@ export default function AgentsPage() {
     if (!form.code || !form.code.trim()) {
       setNotification({
         isOpen: true,
-        message: "Agent code is required",
+        message: t("agent_code_required"),
         type: "error",
-        title: "Validation Error",
-        details: "Please enter a unique agent code",
+        title: t("validation_error"),
+        details: t("enter_unique_agent_code"),
       });
       return false;
     }
@@ -114,10 +116,10 @@ export default function AgentsPage() {
     if (!editingAgent && (!form.api_key || !form.api_key.trim())) {
       setNotification({
         isOpen: true,
-        message: "API key is required",
+        message: t("api_key_required"),
         type: "error",
-        title: "Validation Error",
-        details: "Please generate or enter an API key for this agent",
+        title: t("validation_error"),
+        details: t("generate_api_key"),
       });
       return false;
     }
@@ -151,7 +153,6 @@ export default function AgentsPage() {
 
   // Save
   const handleSave = async () => {
-    // Validate form first
     if (!validateForm()) {
       return;
     }
@@ -161,17 +162,17 @@ export default function AgentsPage() {
         await adminApi.updateAgent(editingAgent.id, form);
         setNotification({
           isOpen: true,
-          message: "Agent updated successfully!",
+          message: t("agent_updated"),
           type: "success",
-          title: "Update Successful",
+          title: t("update_successful"),
         });
       } else {
         await adminApi.createAgent(form);
         setNotification({
           isOpen: true,
-          message: "Agent created successfully!",
+          message: t("agent_created"),
           type: "success",
-          title: "Creation Successful",
+          title: t("creation_successful"),
         });
       }
 
@@ -180,46 +181,45 @@ export default function AgentsPage() {
     } catch (error: any) {
       console.error("Error saving agent:", error);
       
-      // Handle different error types
       if (error.response?.status === 400) {
         setNotification({
           isOpen: true,
-          message: error.response?.data?.message || "Invalid data provided",
+          message: error.response?.data?.message || t("invalid_data"),
           type: "error",
-          title: "Validation Failed",
-          details: "Please check all fields and try again",
+          title: t("validation_failed"),
+          details: t("check_fields"),
         });
       } else if (error.response?.status === 409) {
         setNotification({
           isOpen: true,
-          message: "Agent code or API key already exists",
+          message: t("duplicate_agent"),
           type: "error",
-          title: "Duplicate Entry",
-          details: "Please use a unique agent code and API key",
+          title: t("duplicate_entry"),
+          details: t("use_unique_credentials"),
         });
       } else if (error.response?.status === 403) {
         setNotification({
           isOpen: true,
-          message: "You don't have permission to perform this action",
+          message: t("permission_denied"),
           type: "error",
-          title: "Access Denied",
-          details: "Only administrators can manage agents",
+          title: t("access_denied"),
+          details: t("admin_only_agents"),
         });
       } else if (!navigator.onLine) {
         setNotification({
           isOpen: true,
-          message: "No internet connection",
+          message: t("no_internet"),
           type: "error",
-          title: "Network Error",
-          details: "Please check your internet connection and try again",
+          title: t("network_error"),
+          details: t("check_connection"),
         });
       } else {
         setNotification({
           isOpen: true,
-          message: error.response?.data?.message || "Operation failed. Please try again.",
+          message: error.response?.data?.message || t("operation_failed"),
           type: "error",
-          title: "Operation Failed",
-          details: "An unexpected error occurred. Please contact support if the issue persists.",
+          title: t("operation_failed"),
+          details: t("contact_support"),
         });
       }
     }
@@ -239,42 +239,42 @@ export default function AgentsPage() {
       await loadData();
       setNotification({
         isOpen: true,
-        message: `Agent ${!agent.isEnabled ? "activated" : "deactivated"} successfully.`,
+        message: agent.isEnabled ? t("agent_deactivated") : t("agent_activated"),
         type: "success",
-        title: "Status Updated",
+        title: t("status_updated"),
       });
     } catch (error: any) {
       console.error(error);
       setNotification({
         isOpen: true,
-        message: "Failed to update agent status",
+        message: t("status_update_failed"),
         type: "error",
-        title: "Update Failed",
-        details: error.response?.data?.message || "Please try again later",
+        title: t("update_failed"),
+        details: error.response?.data?.message || t("try_again_later"),
       });
     }
   };
 
   // Delete
   const deleteAgent = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this agent? This action cannot be undone.")) {
+    if (window.confirm(t("confirm_delete_agent"))) {
       try {
         await adminApi.deleteAgent(id);
         await loadData();
         setNotification({
           isOpen: true,
-          message: "Agent removed from system successfully.",
+          message: t("agent_deleted"),
           type: "success",
-          title: "Deletion Successful",
+          title: t("deletion_successful"),
         });
       } catch (error: any) {
         console.error(error);
         setNotification({
           isOpen: true,
-          message: "Failed to delete agent",
+          message: t("delete_failed"),
           type: "error",
-          title: "Deletion Failed",
-          details: error.response?.data?.message || "Please try again later",
+          title: t("deletion_failed"),
+          details: error.response?.data?.message || t("try_again_later"),
         });
       }
     }
@@ -286,15 +286,15 @@ export default function AgentsPage() {
   };
 
   return (
-    <DashboardLayout title="Manage Agents" links={adminLinks}>
+    <DashboardLayout title={t("manage_agents")} links={adminLinks}>
       {/* HEADER SECTION */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 gap-4 md:gap-6">
         <div className="max-w-2xl">
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-900 bg-clip-text text-transparent">
-            Agents Management
+            {t("agents_management")}
           </h1>
           <p className="text-sm text-gray-400 mt-1 md:mt-2 font-medium leading-relaxed">
-            Manage system agents, API integrations, and access control.
+            {t("agents_description")}
           </p>
         </div>
 
@@ -307,8 +307,8 @@ export default function AgentsPage() {
             <span className="absolute -inset-1 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 blur-xl opacity-40 group-hover:opacity-70 transition"></span>
             <span className="relative flex items-center gap-2">
               <PlusIcon className="w-4 h-4 md:w-5 md:h-5 stroke-2" />
-              <span className="hidden sm:inline">Add New Agent</span>
-              <span className="sm:hidden">Add</span>
+              <span className="hidden sm:inline">{t("add_new_agent")}</span>
+              <span className="sm:hidden">{t("add")}</span>
             </span>
           </button>
         </div>
@@ -320,7 +320,7 @@ export default function AgentsPage() {
           <MagnifyingGlassIcon className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
           <input
             type="text"
-            placeholder="Search by name or code..."
+            placeholder={t("search_placeholder_agents")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white border border-gray-100 py-2.5 md:py-3.5 pl-9 md:pl-12 pr-3 md:pr-4 rounded-xl md:rounded-2xl outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500/20 shadow-sm transition-all font-medium text-sm text-gray-600 placeholder:text-gray-300"
@@ -332,7 +332,7 @@ export default function AgentsPage() {
           className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-3.5 bg-white border border-gray-200 rounded-xl md:rounded-2xl text-gray-600 hover:bg-gray-50 transition text-sm font-medium"
         >
           <FunnelIcon className="w-4 h-4 md:w-5 md:h-5" />
-          Filters
+          {t("filters")}
           {statusFilter && (
             <span className="w-2 h-2 bg-red-500 rounded-full"></span>
           )}
@@ -343,7 +343,7 @@ export default function AgentsPage() {
             onClick={clearFilters}
             className="text-sm text-red-500 hover:text-red-600 font-medium px-3 py-2"
           >
-            Clear all
+            {t("clear_all")}
           </button>
         )}
       </div>
@@ -354,16 +354,16 @@ export default function AgentsPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="text-xs font-semibold text-gray-600 mb-1 block">
-                Status
+                {t("status")}
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20"
               >
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{t("all_status")}</option>
+                <option value="active">{t("active")}</option>
+                <option value="inactive">{t("inactive")}</option>
               </select>
             </div>
 
@@ -372,7 +372,7 @@ export default function AgentsPage() {
                 onClick={() => setStatusFilter("")}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
-                Reset
+                {t("reset")}
               </button>
             </div>
           </div>
@@ -392,16 +392,16 @@ export default function AgentsPage() {
       {/* MODAL - Fully Responsive */}
       <Modal
         isOpen={isModalOpen}
-        title={editingAgent ? "Agent Configuration" : "New Agent Registration"}
+        title={editingAgent ? t("agent_configuration") : t("new_agent_registration")}
         onClose={() => setIsModalOpen(false)}
       >
         <div className="p-1 sm:p-2">
           <div className="mb-6 md:mb-8">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              {editingAgent ? "Edit Agent Details" : "Register Agent"}
+              {editingAgent ? t("edit_agent_details") : t("register_agent")}
             </h2>
             <p className="text-sm text-gray-400 mt-1">
-              Fill in the technical and identification details below.
+              {t("fill_agent_details")}
             </p>
           </div>
 
@@ -409,11 +409,11 @@ export default function AgentsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
-                  Agent Name <span className="text-red-500">*</span>
+                  {t("agent_name")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Payment Gateway"
+                  placeholder={t("agent_name_placeholder")}
                   className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 px-3 md:px-4 font-semibold text-sm text-gray-700 transition"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -423,11 +423,11 @@ export default function AgentsPage() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
-                  Agent Code <span className="text-red-500">*</span>
+                  {t("agent_code")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. AG-001"
+                  placeholder={t("agent_code_placeholder")}
                   className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 px-3 md:px-4 font-semibold text-sm text-gray-700 transition"
                   value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -438,18 +438,18 @@ export default function AgentsPage() {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
-                API Key {!editingAgent && <span className="text-red-500">*</span>}
+                {t("api_key")} {!editingAgent && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="text"
-                placeholder="pk_live_xxxxxxxxxxxxxxxx"
+                placeholder={t("api_key_placeholder")}
                 className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 px-3 md:px-4 font-mono text-sm text-gray-700 transition"
                 value={form.api_key}
                 onChange={(e) => setForm({ ...form, api_key: e.target.value })}
                 required={!editingAgent}
               />
               <p className="text-xs text-gray-400 ml-1">
-                Generate a secure API key for authentication
+                {t("api_key_hint")}
               </p>
             </div>
 
@@ -460,16 +460,16 @@ export default function AgentsPage() {
             >
               <div>
                 <p className="text-sm font-bold text-gray-800">
-                  Agent Activation
+                  {t("agent_activation")}
                 </p>
                 <p className="text-xs text-gray-400">
-                  Enable or disable agent access to the system
+                  {t("agent_activation_description")}
                 </p>
               </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-3">
                 <span className="text-xs text-gray-500">
-                  {form.isEnabled ? "Active" : "Inactive"}
+                  {form.isEnabled ? t("active") : t("inactive")}
                 </span>
                 <input
                   type="checkbox"
@@ -488,14 +488,14 @@ export default function AgentsPage() {
               className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl md:rounded-2xl transition font-bold text-sm order-2 sm:order-1"
               onClick={() => setIsModalOpen(false)}
             >
-              Discard
+              {t("discard")}
             </button>
 
             <button
               className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-xl md:rounded-2xl shadow-lg shadow-red-200 transition font-bold text-sm order-1 sm:order-2"
               onClick={handleSave}
             >
-              {editingAgent ? "Apply Changes" : "Confirm Registration"}
+              {editingAgent ? t("apply_changes") : t("confirm_registration")}
             </button>
           </div>
         </div>
@@ -512,8 +512,8 @@ export default function AgentsPage() {
         duration={notification.type === "error" ? 5000 : 3000}
         onRetry={
           notification.type === "error" && 
-          notification.title !== "Validation Error" && 
-          notification.title !== "Validation Failed"
+          notification.title !== t("validation_error") && 
+          notification.title !== t("validation_failed")
             ? handleSave 
             : undefined
         }

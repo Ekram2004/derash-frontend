@@ -83,8 +83,8 @@ export default function PublicNavbar() {
       variants={navVariants}
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled 
-          ? "bg-white/95 backdrop-blur-md shadow-lg" 
-          : "bg-white shadow-md"
+          ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-lg" 
+          : "bg-white dark:bg-gray-900 shadow-md"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -97,7 +97,7 @@ export default function PublicNavbar() {
             className="flex items-center gap-2"
           >
             <Link to="/" className="flex items-center gap-2 group">
-              {/* Logo Image - Added */}
+              {/* Logo Image */}
               <div className="w-8 h-8 rounded-lg overflow-hidden shadow-md group-hover:shadow-lg transition-all">
                 <img 
                   src={derashLogo} 
@@ -105,7 +105,7 @@ export default function PublicNavbar() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h1 className="text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-red-700 via-red-600 to-red-500 bg-clip-text text-transparent tracking-tight">
+              <h1 className="text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-red-700 via-red-600 to-red-500 dark:from-red-400 dark:via-red-500 dark:to-red-600 bg-clip-text text-transparent tracking-tight">
                 DERASH
               </h1>
             </Link>
@@ -125,8 +125,8 @@ export default function PublicNavbar() {
                   to={link.path}
                   className={`relative font-semibold transition-all duration-300 ${
                     isActive(link.path)
-                      ? "text-red-600"
-                      : "text-gray-700 hover:text-red-600"
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                   }`}
                 >
                   <span className="relative py-1">
@@ -152,7 +152,7 @@ export default function PublicNavbar() {
             >
               <Link
                 to="/login"
-                className="bg-gradient-to-r from-red-600 to-red-500 text-white px-6 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-600"
+                className="bg-gradient-to-r from-red-600 to-red-500 dark:from-red-500 dark:to-red-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-600 dark:hover:from-red-600 dark:hover:to-red-700"
               >
                 Login
               </Link>
@@ -162,7 +162,7 @@ export default function PublicNavbar() {
           {/* Mobile Menu Toggle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            className="md:hidden text-gray-700 hover:text-red-600 transition-colors"
+            className="md:hidden text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X size={26} /> : <Menu size={26} />}
@@ -178,7 +178,7 @@ export default function PublicNavbar() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="md:hidden overflow-hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-lg"
+            className="md:hidden overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 shadow-lg"
           >
             <div className="px-6 py-4 space-y-3">
               {navLinks.map((link, index) => (
@@ -192,8 +192,8 @@ export default function PublicNavbar() {
                     to={link.path}
                     className={`block py-3 font-semibold transition-all duration-300 ${
                       isActive(link.path)
-                        ? "text-red-600 border-l-4 border-red-600 pl-3"
-                        : "text-gray-700 hover:text-red-600 hover:pl-3"
+                        ? "text-red-600 dark:text-red-400 border-l-4 border-red-600 dark:border-red-400 pl-3"
+                        : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:pl-3"
                     }`}
                   >
                     {link.name}
@@ -209,7 +209,7 @@ export default function PublicNavbar() {
               >
                 <Link
                   to="/login"
-                  className="block bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-3 rounded-xl font-semibold text-center shadow-md hover:shadow-lg transition-all duration-300"
+                  className="block bg-gradient-to-r from-red-600 to-red-500 dark:from-red-500 dark:to-red-600 text-white px-4 py-3 rounded-xl font-semibold text-center shadow-md hover:shadow-lg transition-all duration-300 hover:from-red-700 hover:to-red-600 dark:hover:from-red-600 dark:hover:to-red-700"
                 >
                   Login
                 </Link>
