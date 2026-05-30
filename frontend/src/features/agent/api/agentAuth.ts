@@ -1,10 +1,8 @@
-// src/features/agent/api/agentAuth.ts
 import api from "../../../services/api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
 export async function syncAgentApiKey(): Promise<string | null> {
   try {
-    // This endpoint uses JWT cookie, not API key
     const response = await api.get("/agent/me");
     const agent = response.data.data;
 
@@ -12,12 +10,12 @@ export async function syncAgentApiKey(): Promise<string | null> {
       const { user } = useAuthStore.getState();
       if (user) {
         useAuthStore.setState({
-          user: {
+          user: { 
             ...user,
             agent: {
               ...user.agent,
               id: agent.id,
-              api_key: agent.apiKey,   // store the key
+              api_key: agent.apiKey,   
               name: agent.name,
               code: agent.code
             }

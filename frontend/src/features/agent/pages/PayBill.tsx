@@ -56,32 +56,40 @@ export default function PayBill() {
 
 
 // 2. Update your handleSearch function block:
-const handleSearch = async () => {
-  if (!billReference.trim()) {
-    setError("Please enter a Bill Reference.");
-    return;
-  }
-  try {
-    setLoading(true);
-    setError("");
-    
-    // 🔑 Pass ONLY the bill reference. 
-    // The backend knows who is asking based on the active session cookie!
-    const response = await searchBills({
-      billReference: billReference.trim()
-    });
-    
-    const billData = response.data || response;
-    setSelectedBill(billData);
-    setView("search");
-  } catch (err: any) {
-    const message = err.response?.data?.message || "No unpaid bill found.";
-    setError(message);
-    setSelectedBill(null);
-  } finally {
-    setLoading(false);
-  }
-};
+  // 🛠️ FIX: Map keys seamlessly to ensure amounts display correctly in the summary card
+  const handleSearch = async () => {
+    if (!billReference.trim()) {
+      setError("Please enter a Bill Reference.");
+      return;
+    }
+    try {
+      setLoading(true);
+      setError("");
+      setErrorDetails(null);
+      
+      const response = await searchBills({
+        billReference: billReference.trim()
+      });
+      
+      const billData = response.data || response;
+
+      // Normalize snake_case and camelCase parameters so the UI always has the values
+      const stabilizedBillData = {
+        ...billData,
+        amount_due: billData.amount_due ?? billData.amountDue ?? null,
+        total_to_pay: billData.total_to_pay ?? billData.totalToPay ?? null,
+      };
+
+      setSelectedBill(stabilizedBillData);
+      setView("search");
+    } catch (err: any) {
+      const message = err.response?.data?.message || "No unpaid bill found.";
+      setError(message);
+      setSelectedBill(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const goToPay = () => setView("pay");
 

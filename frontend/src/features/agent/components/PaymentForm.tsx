@@ -36,17 +36,14 @@ export default function PaymentForm({ bill, onConfirm, onBack, loading }: Paymen
 
   const maxAmount = bill.total_to_pay !== null ? bill.total_to_pay : bill.amount_due || 0;
 
-  // Simulate data sync (remove in production if not needed)
+  // Simulate data sync
   useEffect(() => {
     const timer = setTimeout(() => setIsProcessing(false), 500);
     return () => clearTimeout(timer);
   }, [bill]);
 
-  // Telebirr check (you can adjust logic based on agent code, not bill)
   const isTelebirr = paymentMethod === "TELEBIRR";
   const isPhoneMissing = isTelebirr && !phone.trim();
-
-  // Expiry blocking (if bill status is EXPIRED and no late penalty)
   const isBlockedByExpiry = bill.status === "EXPIRED" && Number(bill.late_penalty) <= 0;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,30 +90,35 @@ export default function PaymentForm({ bill, onConfirm, onBack, loading }: Paymen
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Editable amount (only if partial allowed) */}
-        {bill.allows_partial && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Amount to Pay <span className="text-xs text-red-500">(Partial allowed)</span>
-            </label>
-            <div className="relative">
-              <CurrencyDollarIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="number"
-                value={editableAmount}
-                onChange={(e) => setEditableAmount(Number(e.target.value))}
-                min={1}
-                max={maxAmount}
-                className="w-full pl-10 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none"
-                required
-                disabled={isProcessing || isBlockedByExpiry}
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Max: {maxAmount} {bill.currency || "ETB"}</p>
+        
+        {/* 🛠️ FIX: Displays the input field for both partial and full payments safely */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Amount to Pay {bill.allows_partial ? (
+              <span className="text-xs text-red-500">(Partial allowed)</span>
+            ) : (
+              <span className="text-xs text-gray-400">(Full payment required)</span>
+            )}
+          </label>
+          <div className="relative">
+            <CurrencyDollarIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+            <input
+              type="number"
+              value={editableAmount}
+              onChange={(e) => bill.allows_partial && setEditableAmount(Number(e.target.value))}
+              min={1}
+              max={maxAmount}
+              className={`w-full pl-10 p-3 border rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-colors ${
+                !bill.allows_partial ? "bg-gray-50 text-gray-500 cursor-not-allowed font-semibold" : "border-gray-200"
+              }`}
+              required
+              disabled={isProcessing || isBlockedByExpiry || !bill.allows_partial}
+            />
           </div>
-        )}
+          <p className="text-xs text-gray-500 mt-1">Total Due: {maxAmount} {bill.currency || "ETB"}</p>
+        </div>
 
-        {/* Read‑only fields (auto‑generated from search) */}
+        {/* Read‑only fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm bg-gray-50 p-4 rounded-xl">
           <ReadOnlyField label="Bill ID" value={bill.bill_id} />
           <ReadOnlyField label="Agent ID" value={bill.agent_id} />
