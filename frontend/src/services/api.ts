@@ -1,17 +1,17 @@
 import axios from "axios";
 
 const ADMIN_SECRET = "DERASH_SUPER_SECRET_2026"; 
-const BASE_URL = "http://localhost:5000/api/v1"; // 💡 Extracted to a constant so it can be used safely inside the interceptor below
+// 💡 Linked to your live Render backend deployment link
+const BASE_URL = "https://derash-bill-aggregator.onrender.com/api/v1"; 
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // 🔑 This passes your secure session HTTP cookies automatically!
+  withCredentials: true, 
   headers: {
     "Content-Type": "application/json",
     "x-admin-secret": ADMIN_SECRET,   
   },
-}); // 💡 Fixed: Added missing closing curly brace '}' here
-
+});
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
