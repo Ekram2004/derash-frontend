@@ -1,4 +1,4 @@
-// src/features/agent/pages/PayBill.tsx
+
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
@@ -61,12 +61,7 @@ export default function PayBill() {
 
   const handleSearch = async () => {
     if (!billReference.trim()) {
-<<<<<<< HEAD
       setError("Please enter a Bill Reference.");
-=======
-      setError(t("please_enter_bill_ref"));
-      setErrorDetails(null);
->>>>>>> d19595938e21c2a777e306474c5daecc50ef15fe
       return;
     }
     try {
@@ -89,32 +84,7 @@ export default function PayBill() {
       setSelectedBill(stabilizedBillData);
       setView("search");
     } catch (err: any) {
-<<<<<<< HEAD
       const message = err.response?.data?.message || "No unpaid bill found.";
-=======
-      const message = err.response?.data?.message || t("no_unpaid_bill_found");
-      setSelectedBill(null);
-      
-      if (message.toLowerCase().includes("already fully paid")) {
-        setErrorDetails({
-          title: t("bill_already_paid_title"),
-          message: t("bill_already_paid_message"),
-          billRef: billReference.trim(),
-        });
-      } else if (message.toLowerCase().includes("no unpaid bill found")) {
-        setErrorDetails({
-          title: t("bill_not_found_title"),
-          message: t("bill_not_found_message", { ref: billReference.trim() }),
-          billRef: billReference.trim(),
-        });
-      } else {
-        setErrorDetails({
-          title: t("search_failed_title"),
-          message: message,
-          billRef: billReference.trim(),
-        });
-      }
->>>>>>> d19595938e21c2a777e306474c5daecc50ef15fe
       setError(message);
       setSelectedBill(null);
     } finally {
@@ -133,22 +103,12 @@ export default function PayBill() {
       setLoading(true);
       setError(null);
       setErrorDetails(null);
-<<<<<<< HEAD
 
       const fallbackAmount = Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
       const finalAmount = manualAmount > 0 ? Number(manualAmount) : fallbackAmount;
       
       if (finalAmount <= 0) throw new Error("Invalid payment amount.");
       
-=======
-      const finalAmount =
-        manualAmount > 0
-          ? Number(manualAmount)
-          : Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
-      if (finalAmount <= 0) throw new Error(t("invalid_payment_amount"));
-      
-      const backendPaymentMethod = mapPaymentMethod(paymentMethod);
->>>>>>> d19595938e21c2a777e306474c5daecc50ef15fe
       const payerPhone = phone.trim() || "0000000000";
       
       const freshTxId = selectedBill.transactionId || `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
