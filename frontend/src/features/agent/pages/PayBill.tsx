@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { searchBills, processPayment } from "../api/agent.api";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 import {
   Search,
@@ -357,9 +358,23 @@ export default function PayBill() {
 
 // ------------------ Fixed Payment Form (No Manual Payment Method Selection) ------------------
 
+
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   const [phone, setPhone] = useState("");
   const [editableAmount, setEditableAmount] = useState(0);
+  
+  // Look up user details from store
+  const loggedInUser = useAuthStore((state) => state.user);
+  
+  // Robust lookups to parse if the active user session context belongs to Telebirr
+  // 💡 Updated to remove non-alphanumeric characters to securely match formats like TEL-01 or TELE_BIRR
+  const agentCodeStr = (loggedInUser?.agent?.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const agentNameStr = (loggedInUser?.agent?.name || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const isTelebirrAgent = 
+    agentCodeStr.includes("TELEBIRR") || 
+    agentCodeStr.includes("TELE") || 
+    agentCodeStr.startsWith("TEL") ||
+    agentNameStr.includes("TELEBIRR");
 
   const maxAmount = (() => {
     const total = bill?.total_to_pay ?? bill?.amount_due ?? 0;
@@ -372,21 +387,37 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   const currency = bill?.currency || "ETB";
 
   useEffect(() => {
-    // Amount field gets its value right away (or with a tiny layout delay)
     const valTimer = setTimeout(() => {
       setEditableAmount(maxAmount);
     }, 100);
-
     return () => clearTimeout(valTimer);
   }, [bill, maxAmount]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (allowsPartial && (editableAmount <= 0 || editableAmount > maxAmount)) {
-      alert(`Please enter a valid amount between 1 and ${maxAmount}.`);
+    
+    const parsedAmount = Number(editableAmount);
+
+    // 💡 FRONTEND OVERPAYMENT INTERACTION BLOCK
+    if (parsedAmount > maxAmount) {
+      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You entered ${parsedAmount} ${currency}.`);
       return;
     }
-    onConfirm(phone, allowsPartial ? editableAmount : maxAmount);
+
+    if (allowsPartial && parsedAmount <= 0) {
+      alert("Please enter a valid payment amount greater than 0.");
+      return;
+    }
+
+    // 💡 FRONTEND TELEBIRR PHONE INTERACTION BLOCK
+    // 💡 Updated to trim whitespace before checking if the required value is missing
+    const finalizedPhone = phone.trim();
+    if (isTelebirrAgent && finalizedPhone === "") {
+      alert("Action Required: Payer phone number must be populated for all Telebirr payment transactions.");
+      return;
+    }
+
+    onConfirm(finalizedPhone, allowsPartial ? parsedAmount : maxAmount);
   };
 
   return (
@@ -427,7 +458,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
               value={editableAmount || ""}
               onChange={(e) => setEditableAmount(Number(e.target.value))}
               min={1}
-              max={maxAmount}
+              max={maxAmount} 
               readOnly={!allowsPartial}
               className={`w-full p-3 border rounded-xl outline-none transition font-semibold text-lg ${
                 !allowsPartial 
@@ -441,7 +472,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           <p className="text-xs text-gray-400 mt-1">Total Bill Invoice Balance: {maxAmount} {currency}</p>
         </div>
 
-        {/* These components render instantly, but hold off on displaying data values for 3 seconds */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm bg-gray-50 p-4 rounded-xl">
           <ReadOnlyField label="Bill ID" value={bill?.bill_id || "N/A"} />
           <ReadOnlyField label="Agent ID" value={bill?.agent_id || "N/A"} />
@@ -452,7 +482,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Payer Phone Number (Optional)
+            Payer Phone Number {isTelebirrAgent ? <span className="text-red-500 font-bold">(Required for Telebirr)</span> : "(Optional)"}
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -461,7 +491,10 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="09xxxxxxxx"
-              className="w-full pl-10 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
+              className={`w-full pl-10 p-3 border rounded-xl outline-none transition ${
+                isTelebirrAgent ? "border-amber-400 focus:ring-2 focus:ring-amber-500" : "border-gray-200 focus:ring-2 focus:ring-red-500"
+              }`}
+              required={isTelebirrAgent} 
               disabled={isBlockedByExpiry}
             />
           </div>
@@ -485,19 +518,14 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   );
 }
 
-// Fixed Dynamic ReadOnlyField component
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   const [delayedValue, setDelayedValue] = useState("");
 
   useEffect(() => {
-    // Reset delayed value if the bill data changes
     setDelayedValue("");
-
-    // Start a 3-second countdown before populating the input value field
     const timer = setTimeout(() => {
       setDelayedValue(value);
     }, 3000);
-
     return () => clearTimeout(timer);
   }, [value]);
 

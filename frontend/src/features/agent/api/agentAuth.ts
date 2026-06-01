@@ -15,7 +15,7 @@ export async function syncAgentApiKey(): Promise<string | null> {
             agent: {
               ...user.agent,
               id: agent.id,
-              api_key: agent.apiKey,   
+              apiKey: agent.apiKey, // 💡 FIX: Unified camelCase styling (apiKey instead of api_key)
               name: agent.name,
               code: agent.code
             }
