@@ -6,6 +6,7 @@ import BillersPage from "../../features/admin/pages/BillersPage";
 import AgentsPage from "../../features/admin/pages/AgentsPage";
 import ReportsPage from "../../features/admin/pages/ReportsPage";
 import SettingsPage from "../../features/admin/pages/SettingsPage"; // ✅ import SettingsPage
+import NotificationsPage from "@/features/admin/pages/NotificationsPage";
 
 export default function AdminRoutes() {
   return (
@@ -16,7 +17,9 @@ export default function AdminRoutes() {
       <Route path="billers" element={<BillersPage />} />
       <Route path="agents" element={<AgentsPage />} />
       <Route path="reports" element={<ReportsPage />} />
-      <Route path="settings" element={<SettingsPage />} /> // ✅ add settings route
+      <Route path="notifications" element={<NotificationsPage />}></Route>
+      <Route path="settings" element={<SettingsPage />} /> // ✅ add settings
+      route
     </Routes>
   );
 }

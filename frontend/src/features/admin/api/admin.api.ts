@@ -64,6 +64,16 @@ export interface TopBiller {
   revenue: number;
 }
 
+export interface AdminNotification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: "BILL_UPLOADED" | string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 // ✅ Fixed: match backend response – customerName is a direct property of bill
 export interface DetailedTransaction {
   transactionId: string;
@@ -154,7 +164,11 @@ export const adminApi = {
     return response.data;
   },
   updateAgent: async (id: string, data: any) => {
-    const payload = { name: data.name, code: data.code, isEnabled: data.isEnabled };
+    const payload = {
+      name: data.name,
+      code: data.code,
+      isEnabled: data.isEnabled,
+    };
     const response = await api.put(`/agents/${id}`, payload);
     return response.data;
   },
@@ -170,7 +184,10 @@ export const adminApi = {
   },
 
   // ---------- Global Report (full transaction list) ----------
-  getReportData: async (params?: { fromDate?: string; toDate?: string }): Promise<FullReportData> => {
+  getReportData: async (params?: {
+    fromDate?: string;
+    toDate?: string;
+  }): Promise<FullReportData> => {
     const response = await api.get("/admin/global-report", { params });
     const payload = response.data.data || response.data;
     const reportData = payload.report || payload;
@@ -188,4 +205,13 @@ export const adminApi = {
     const response = await api.get("/admin/dashboard-data");
     return response.data.data;
   },
+
+  getNotifications: async (): Promise<AdminNotification[]> => {
+    const response = await api.get("/admin/notifications");
+    return response.data.data;
+  },
+  markNotificationAsRead: async (id: string) => {
+    const response = await api.patch(`/admin/notifications/${id}/read`)
+    return response.data;
+  }
 };

@@ -85,6 +85,7 @@ export default function LoginPage() {
           return;
         }
         login(user);
+        console.log("Store User Role:", useAuthStore.getState().user?.role);
         switch (user.role) {
           case "SYSTEM_ADMIN": navigate("/admin/dashboard"); break;
           case "AGENT_USER": navigate("/agent/dashboard"); break;

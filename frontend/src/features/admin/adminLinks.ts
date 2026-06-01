@@ -1,11 +1,16 @@
 import {
   HomeIcon,
+  Squares2X2Icon,
+  BuildingOfficeIcon,
   UserGroupIcon,
   UsersIcon,
   BanknotesIcon,
   ChartBarIcon,
   Cog6ToothIcon,
+  BellIcon,
 } from "@heroicons/react/24/solid";
+
+
 
 export const adminLinks = [
   {
@@ -32,6 +37,12 @@ export const adminLinks = [
     label: "Reports",
     path: "/admin/reports",
     icon: ChartBarIcon,
+  },
+  {
+    label: "Notifications",
+    path: "/admin/notifications",
+    icon: BellIcon,
+    showBadge: true,
   },
   {
     label: "Settings",

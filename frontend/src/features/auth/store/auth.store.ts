@@ -1,7 +1,4 @@
-// src/features/auth/store/auth.store.ts
-
 import { create } from "zustand";
-import Cookies from "js-cookie";
 
 // 💡 1. Define types for the nested objects matching your dynamic banks/agents
 export interface UserAgentRelation {
@@ -34,64 +31,49 @@ export interface User {
   biller?: UserBillerRelation | null;
 }
 
-// Define the store state
 interface AuthState {
   user: User | null;
-  token: string | null;
-  
-  // Actions
-  login: (user: User, token?: string) => void;
+  isAuthenticated: boolean;
+
+  login: (user: User) => void;
   logout: () => void;
   setUser: (user: User | null) => void;
   updateUser: (updates: Partial<User>) => void;
   setMustChangePassword: (value: boolean) => void;
 }
 
-// Cookie key
-const TOKEN_KEY = "derash_token";
-
-// Create Zustand store
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: Cookies.get(TOKEN_KEY) || null,
+  isAuthenticated: false,
 
-  login: (user: User, token?: string) => {
-    const authToken = token || "derash_secure_token";
-    
-    Cookies.set(TOKEN_KEY, authToken, { expires: 1 / 24 }); // 1 hour
-    
+  login: (user) =>
     set({
       user: {
         ...user,
         mustChangePassword: user.mustChangePassword ?? false,
       },
-      token: authToken,
-    });
-  },
+      isAuthenticated: true,
+    }),
 
-  logout: () => {
-    Cookies.remove(TOKEN_KEY);
+  logout: () =>
     set({
       user: null,
-      token: null,
-    });
-  },
+      isAuthenticated: false,
+    }),
 
-  setUser: (user: User | null) => {
-    set({ user });
-  },
+  setUser: (user) =>
+    set({
+      user,
+      isAuthenticated: !!user,
+    }),
 
-  updateUser: (updates: Partial<User>) => {
+  updateUser: (updates) =>
     set((state) => ({
       user: state.user ? { ...state.user, ...updates } : null,
-    }));
-  },
+    })),
 
-  setMustChangePassword: (value: boolean) => {
+  setMustChangePassword: (value) =>
     set((state) => ({
-      user: state.user
-        ? { ...state.user, mustChangePassword: value }
-        : null,
-    }));
-  },
+      user: state.user ? { ...state.user, mustChangePassword: value } : null,
+    })),
 }));
