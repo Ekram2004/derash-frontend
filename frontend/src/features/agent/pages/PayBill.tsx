@@ -414,10 +414,9 @@ export default function PayBill() {
 // ------------------ Fixed Payment Form Component ------------------
 
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
-  // 💡 FIX APPLIED HERE: Added useTranslation hook inside child local scope to fix ReferenceError
   const { t } = useTranslation();
   const [phone, setPhone] = useState("");
-  const [editableAmount, setEditableAmount] = useState(0);
+  const [editableAmount, setEditableAmount] = useState<number>(0);
   
   const loggedInUser = useAuthStore((state) => state.user);
   
@@ -434,16 +433,21 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
     return typeof total === "number" && !isNaN(total) ? total : 0;
   })();
   const allowsPartial = bill?.allows_partial === true;
-  const isExpired = bill?.status === "EXPIRED";
+
+  // 💡 FIX: Ensure condition is checking explicit string 'EXPIRED' precisely.
+  // Added standard fallback validation check so genuine active 'UNPAID' bills do not match.
+  const isExpired = String(bill?.status).toUpperCase() === "EXPIRED";
   const latePenalty = typeof bill?.late_penalty === "number" ? bill.late_penalty : 0;
-  const isBlockedByExpiry = isExpired && latePenalty <= 0;
+  
+  // A bill should only block payment if explicitly marked blocked by the backend, 
+  // or if it has expired and has absolutely no penalty path configured.
+  const isBlockedByExpiry = bill?.is_blocked === true || (isExpired && latePenalty <= 0);
   const currency = bill?.currency || "ETB";
 
   useEffect(() => {
-    const valTimer = setTimeout(() => {
+    if (maxAmount > 0) {
       setEditableAmount(maxAmount);
-    }, 100);
-    return () => clearTimeout(valTimer);
+    }
   }, [bill, maxAmount]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -456,7 +460,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
       return;
     }
 
-    if (allowsPartial && parsedAmount <= 0) {
+    if (parsedAmount <= 0) {
       alert("Please enter a valid payment amount greater than 0.");
       return;
     }
@@ -487,7 +491,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
       {isBlockedByExpiry && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-bold text-sm flex items-start gap-2">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>ERROR: This bill has expired and late payments are disabled.</span>
+          <span>ERROR: This bill is blocked or has expired with late payments disabled.</span>
         </div>
       )}
 
@@ -507,7 +511,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
               step="any"
               value={editableAmount || ""}
               onChange={(e) => setEditableAmount(Number(e.target.value))}
-              min={1}
+              min={0.01}
               max={maxAmount} 
               readOnly={!allowsPartial}
               className={`w-full p-3 border rounded-xl outline-none transition font-semibold text-lg ${
@@ -568,28 +572,17 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   );
 }
 
+// 💡 FIX: Removed the artificial 3-second delay timeout mapping function completely 
+// so the incoming critical payment details display instantly without missing fields.
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
-  const [delayedValue, setDelayedValue] = useState("");
-
-  useEffect(() => {
-    setDelayedValue("");
-    const timer = setTimeout(() => {
-      setDelayedValue(value);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [value]);
-
   return (
     <div>
       <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
       <input
         type="text"
-        value={delayedValue}
+        value={value}
         readOnly
-        placeholder="Syncing..."
-        className={`w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono transition-all duration-1000 ${
-          delayedValue ? "opacity-100" : "opacity-40"
-        }`}
+        className="w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono opacity-100 transition-all duration-300"
       />
     </div>
   );
