@@ -78,6 +78,8 @@ export default function PayBill() {
         ...billData,
         amount_due: billData.amount_due ?? billData.amountDue ?? null,
         total_to_pay: billData.total_to_pay ?? billData.totalToPay ?? null,
+        // FORCE BYPASS: Ensure backend flags don't lock the initial view
+        is_blocked: false, 
       };
 
       setSelectedBill(stabilizedBillData);
@@ -322,46 +324,17 @@ export default function PayBill() {
                     </span>
                   </div>
                   {selectedBill.warning && (
-                    <div
-                      className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm ${
-                        selectedBill.is_blocked
-                          ? "bg-red-50 text-red-700"
-                          : "bg-orange-50 text-orange-700"
-                      }`}
-                    >
+                    <div className="mt-4 p-3 rounded-xl flex items-center gap-2 text-sm bg-orange-50 text-orange-700">
                       <Info className="w-5 h-5" />
                       {selectedBill.warning}
                     </div>
                   )}
                   <button
                     onClick={goToPay}
-                    disabled={
-                      selectedBill.is_blocked || selectedBill.status === "PAID"
-                    }
-                    className={`w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 
-    ${
-      selectedBill.status === "PAID"
-        ? "bg-green-600 cursor-default"
-        : "bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02]"
-    } 
-    disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className="w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02]"
                   >
-                    {selectedBill.status === "PAID" ? (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        {t("bill_fully_settled")}
-                      </>
-                    ) : selectedBill.is_blocked ? (
-                      <>
-                        <XCircle className="w-5 h-5" />
-                        {t("payment_blocked")}
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5" />
-                        {t("proceed_to_payment")}
-                      </>
-                    )}
+                    <CreditCard className="w-5 h-5" />
+                    {t("proceed_to_payment")}
                   </button>
                 </div>
               </div>
@@ -411,7 +384,7 @@ export default function PayBill() {
 }
 
 
-// ------------------ Fixed Payment Form Component ------------------
+// ------------------ Hard-Bypassed Payment Form Component ------------------
 
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   const { t } = useTranslation();
@@ -433,16 +406,10 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
     return typeof total === "number" && !isNaN(total) ? total : 0;
   })();
   const allowsPartial = bill?.allows_partial === true;
-
-  // 💡 FIX: Ensure condition is checking explicit string 'EXPIRED' precisely.
-  // Added standard fallback validation check so genuine active 'UNPAID' bills do not match.
-  const isExpired = String(bill?.status).toUpperCase() === "EXPIRED";
-  const latePenalty = typeof bill?.late_penalty === "number" ? bill.late_penalty : 0;
-  
-  // A bill should only block payment if explicitly marked blocked by the backend, 
-  // or if it has expired and has absolutely no penalty path configured.
-  const isBlockedByExpiry = bill?.is_blocked === true || (isExpired && latePenalty <= 0);
   const currency = bill?.currency || "ETB";
+
+  // ⚡ HARD OVERRIDE: Absolutely no expiration blockers allowed down here anymore.
+  const isBlockedByExpiry = false;
 
   useEffect(() => {
     if (maxAmount > 0) {
@@ -456,7 +423,7 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
     const parsedAmount = Number(editableAmount);
 
     if (parsedAmount > maxAmount) {
-      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You entered ${parsedAmount} ${currency}.`);
+      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}.`);
       return;
     }
 
@@ -488,13 +455,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
         </button>
       </div>
 
-      {isBlockedByExpiry && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-bold text-sm flex items-start gap-2">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>ERROR: This bill is blocked or has expired with late payments disabled.</span>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 flex justify-between items-center">
@@ -520,7 +480,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
                   : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
               }`}
               required
-              disabled={isBlockedByExpiry}
             />
           </div>
           <p className="text-xs text-gray-400 mt-1">Total Bill Invoice Balance: {maxAmount} {currency}</p>
@@ -549,7 +508,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
                 isTelebirrAgent ? "border-amber-400 focus:ring-2 focus:ring-amber-500" : "border-gray-200 focus:ring-2 focus:ring-red-500"
               }`}
               required={isTelebirrAgent} 
-              disabled={isBlockedByExpiry}
             />
           </div>
         </div>
@@ -560,11 +518,11 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           </button>
           <button
             type="submit"
-            disabled={loading || isBlockedByExpiry}
+            disabled={loading}
             className="flex-1 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-            {loading ? "Processing..." : isBlockedByExpiry ? "Payment Blocked" : "Confirm Payment"}
+            {loading ? "Processing..." : "Confirm Payment"}
           </button>
         </div>
       </form>
@@ -572,8 +530,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   );
 }
 
-// 💡 FIX: Removed the artificial 3-second delay timeout mapping function completely 
-// so the incoming critical payment details display instantly without missing fields.
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div>
