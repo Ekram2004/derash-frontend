@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
@@ -370,7 +369,6 @@ export default function PayBill() {
           </div>
         )}
 
-        {/* VIEW 2: PAYMENT FORM */}
         {view === "pay" && selectedBill && (
           <PaymentForm
             bill={selectedBill}
@@ -380,7 +378,6 @@ export default function PayBill() {
           />
         )}
 
-        {/* VIEW 3: RECEIPT */}
         {view === "receipt" && receipt && (
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
             <div className="p-6 text-center">
@@ -413,18 +410,17 @@ export default function PayBill() {
   );
 }
 
-// ------------------ Fixed Payment Form (No Manual Payment Method Selection) ------------------
 
+// ------------------ Fixed Payment Form Component ------------------
 
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
+  // 💡 FIX APPLIED HERE: Added useTranslation hook inside child local scope to fix ReferenceError
+  const { t } = useTranslation();
   const [phone, setPhone] = useState("");
   const [editableAmount, setEditableAmount] = useState(0);
   
-  // Look up user details from store
   const loggedInUser = useAuthStore((state) => state.user);
   
-  // Robust lookups to parse if the active user session context belongs to Telebirr
-  // 💡 Updated to remove non-alphanumeric characters to securely match formats like TEL-01 or TELE_BIRR
   const agentCodeStr = (loggedInUser?.agent?.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const agentNameStr = (loggedInUser?.agent?.name || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const isTelebirrAgent = 
@@ -455,7 +451,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
     
     const parsedAmount = Number(editableAmount);
 
-    // 💡 FRONTEND OVERPAYMENT INTERACTION BLOCK
     if (parsedAmount > maxAmount) {
       alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You entered ${parsedAmount} ${currency}.`);
       return;
@@ -466,8 +461,6 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
       return;
     }
 
-    // 💡 FRONTEND TELEBIRR PHONE INTERACTION BLOCK
-    // 💡 Updated to trim whitespace before checking if the required value is missing
     const finalizedPhone = phone.trim();
     if (isTelebirrAgent && finalizedPhone === "") {
       alert("Action Required: Payer phone number must be populated for all Telebirr payment transactions.");
@@ -601,4 +594,3 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
