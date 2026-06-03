@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { searchBills, processPayment } from "../api/agent.api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+
 import {
   Search,
   AlertCircle,
@@ -47,6 +49,7 @@ interface Receipt {
 }
 
 export default function PayBill() {
+  const { t } = useTranslation();
   const [view, setView] = useState<"search" | "pay" | "receipt">("search");
   const [billReference, setBillReference] = useState("");
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -64,11 +67,11 @@ export default function PayBill() {
       setLoading(true);
       setError("");
       setErrorDetails(null);
-      
+     
       const response = await searchBills({
         billReference: billReference.trim()
       });
-      
+     
       const billData = response.data || response;
 
       const stabilizedBillData = {
@@ -102,11 +105,11 @@ export default function PayBill() {
 
       const fallbackAmount = Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
       const finalAmount = manualAmount > 0 ? Number(manualAmount) : fallbackAmount;
-      
+     
       if (finalAmount <= 0) throw new Error("Invalid payment amount.");
-      
+     
       const payerPhone = phone.trim() || "0000000000";
-      
+     
       const freshTxId = selectedBill.transactionId || `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const freshIdempotencyKey = selectedBill.idempotencyKey || `IDEM-${selectedBill.bill_id}-${Date.now()}`;
 
@@ -121,7 +124,7 @@ export default function PayBill() {
 
       const result = await processPayment(payload as any);
       const receiptData = result?.receipt || result?.data?.receipt || result;
-      
+     
       if (receiptData) {
         setReceipt(receiptData);
         setView("receipt");
@@ -130,7 +133,7 @@ export default function PayBill() {
       }
     } catch (err: any) {
       const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Bad Request";
-      
+     
       setErrorDetails({
         title: "Payment Processing Failed",
         message: serverMessage,
@@ -154,19 +157,21 @@ export default function PayBill() {
     typeof value === "number" && !isNaN(value) ? value : fallback;
 
   const getCustomerName = (bill: Bill | null): string => {
-    if (!bill) return "N/A";
-    return bill.customerName || bill.customer_name || bill.customer?.fullName || "N/A";
+    if (!bill) return t("na");
+    return bill.customerName || bill.customer_name || bill.customer?.fullName || t("na");
   };
 
   return (
-    <DashboardLayout title="Agent Terminal" links={agentLinks}>
+    <DashboardLayout title={t("agent_terminal")} links={agentLinks}>
       <div className="max-w-5xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
-            Agent Payment Terminal
+            {t("agent_payment_terminal")}
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Search, pay, and print receipts – all in one place.</p>
+          <p className="text-gray-500 text-sm mt-1">
+            {t("terminal_description")}
+          </p>
         </div>
 
         {/* VIEW 1: SEARCH + BILL SUMMARY */}
@@ -178,12 +183,12 @@ export default function PayBill() {
                 <div className="p-2 bg-red-50 rounded-xl">
                   <Search className="w-6 h-6 text-red-600" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">Search Bill</h2>
+                <h2 className="text-xl font-bold text-gray-800">{t("search_bill")}</h2>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   className="flex-1 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
-                  placeholder="Enter Bill Reference..."
+                  placeholder={t("enter_bill_reference")}
                   value={billReference}
                   onChange={(e) => setBillReference(e.target.value)}
                 />
@@ -192,21 +197,31 @@ export default function PayBill() {
                   disabled={loading}
                   className="bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white px-8 py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                  {loading ? "Searching..." : "Search"}
+                  {loading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="w-5 h-5" />
+                  )}
+                  {loading ? t("searching") : t("search")}
                 </button>
               </div>
-              
+
               {/* Professional Error Card */}
               {errorDetails && (
                 <div className="mt-6 p-5 bg-red-50 border border-red-200 rounded-2xl shadow-sm animate-fade-in-up">
                   <div className="flex items-start gap-4">
                     <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-red-800">{errorDetails.title}</h3>
-                      <p className="text-red-700 mt-1">{errorDetails.message}</p>
+                      <h3 className="text-lg font-bold text-red-800">
+                        {errorDetails.title}
+                      </h3>
+                      <p className="text-red-700 mt-1">
+                        {errorDetails.message}
+                      </p>
                       {errorDetails.billRef && (
-                        <p className="text-red-600 text-sm mt-2 font-mono">Bill Reference: {errorDetails.billRef}</p>
+                        <p className="text-red-600 text-sm mt-2 font-mono">
+                          {t("bill_reference_label")}: {errorDetails.billRef}
+                        </p>
                       )}
                       <div className="flex gap-3 mt-4">
                         <button
@@ -217,7 +232,7 @@ export default function PayBill() {
                           }}
                           className="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition flex items-center gap-2"
                         >
-                          <RefreshCw className="w-4 h-4" /> Clear & Try Again
+                          <RefreshCw className="w-4 h-4" /> {t("clear_and_try_again")}
                         </button>
                         <button
                           onClick={() => {
@@ -226,14 +241,14 @@ export default function PayBill() {
                           }}
                           className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition flex items-center gap-2"
                         >
-                          <XCircle className="w-4 h-4" /> Dismiss
+                          <XCircle className="w-4 h-4" /> {t("dismiss")}
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
               )}
-              
+
               {error && !errorDetails && (
                 <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 text-sm">
                   <AlertCircle className="w-5 h-5" />
@@ -250,61 +265,103 @@ export default function PayBill() {
                     <div className="p-2 bg-red-50 rounded-xl">
                       <DollarSign className="w-6 h-6 text-red-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800">Bill Summary</h3>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {t("bill_summary")}
+                    </h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Customer Name:</span>
-                      <span className="font-semibold">{getCustomerName(selectedBill)}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Biller:</span>
-                      <span className="font-semibold">{selectedBill.biller_name}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Status:</span>
-                      <span className="font-semibold text-blue-600">{selectedBill.status}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Due Date:</span>
-                      <span className="font-semibold">{selectedBill.due_date}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                      <span className="text-gray-500">Amount Due:</span>
+                      <span className="text-gray-500">{t("customer_name")}:</span>
                       <span className="font-semibold">
-                        {safeNumber(selectedBill.amount_due)} {selectedBill.currency || "ETB"}
+                        {getCustomerName(selectedBill)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-500">{t("biller")}:</span>
+                      <span className="font-semibold">
+                        {selectedBill.biller_name}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-500">{t("status")}:</span>
+                      <span className="font-semibold text-blue-600">
+                        {selectedBill.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-500">{t("due_date")}:</span>
+                      <span className="font-semibold">
+                        {selectedBill.due_date}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-gray-500">{t("amount_due")}:</span>
+                      <span className="font-semibold">
+                        {safeNumber(selectedBill.amount_due)}{" "}
+                        {selectedBill.currency || "ETB"}
                       </span>
                     </div>
                     {selectedBill.late_penalty > 0 && (
                       <div className="flex justify-between border-b pb-2">
-                        <span className="text-red-500">Late Penalty:</span>
+                        <span className="text-red-500">{t("late_penalty")}:</span>
                         <span className="font-semibold text-red-500">
-                          {selectedBill.late_penalty} {selectedBill.currency || "ETB"}
+                          {selectedBill.late_penalty}{" "}
+                          {selectedBill.currency || "ETB"}
                         </span>
                       </div>
                     )}
                   </div>
                   <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                    <span className="text-lg font-bold text-gray-800">Total to Pay:</span>
+                    <span className="text-lg font-bold text-gray-800">
+                      {t("total_to_pay")}:
+                    </span>
                     <span className="text-2xl font-black text-red-600">
-                      {safeNumber(selectedBill.total_to_pay) || safeNumber(selectedBill.amount_due)} {selectedBill.currency || "ETB"}
+                      {safeNumber(selectedBill.total_to_pay) ||
+                        safeNumber(selectedBill.amount_due)}{" "}
+                      {selectedBill.currency || "ETB"}
                     </span>
                   </div>
                   {selectedBill.warning && (
-                    <div className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm ${
-                      selectedBill.is_blocked ? "bg-red-50 text-red-700" : "bg-orange-50 text-orange-700"
-                    }`}>
+                    <div
+                      className={`mt-4 p-3 rounded-xl flex items-center gap-2 text-sm ${
+                        selectedBill.is_blocked
+                          ? "bg-red-50 text-red-700"
+                          : "bg-orange-50 text-orange-700"
+                      }`}
+                    >
                       <Info className="w-5 h-5" />
                       {selectedBill.warning}
                     </div>
                   )}
                   <button
                     onClick={goToPay}
-                    disabled={selectedBill.is_blocked}
-                    className="w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    disabled={
+                      selectedBill.is_blocked || selectedBill.status === "PAID"
+                    }
+                    className={`w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
+    ${
+      selectedBill.status === "PAID"
+        ? "bg-green-600 cursor-default"
+        : "bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02]"
+    }
+    disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <CreditCard className="w-5 h-5" />
-                    {selectedBill.is_blocked ? "Payment Blocked" : "Proceed to Payment"}
+                    {selectedBill.status === "PAID" ? (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        {t("bill_fully_settled")}
+                      </>
+                    ) : selectedBill.is_blocked ? (
+                      <>
+                        <XCircle className="w-5 h-5" />
+                        {t("payment_blocked")}
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5" />
+                        {t("proceed_to_payment")}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -312,17 +369,15 @@ export default function PayBill() {
           </div>
         )}
 
-        {/* VIEW 2: PAYMENT FORM */}
         {view === "pay" && selectedBill && (
           <PaymentForm
-            bill={selectedBill as any}
+            bill={selectedBill}
             onConfirm={handleConfirmPayment}
             onBack={() => setView("search")}
             loading={loading}
           />
         )}
 
-        {/* VIEW 3: RECEIPT */}
         {view === "receipt" && receipt && (
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
             <div className="p-6 text-center">
@@ -354,43 +409,18 @@ export default function PayBill() {
     </DashboardLayout>
   );
 }
+// Payment Form Component
 
-// ------------------ Payment Form Component ------------------
-
-interface BillDetails {
-  bill_id: string;
-  agent_id: string;
-  transactionId: string;
-  idempotencyKey: string;
-  customer_name: string;
-  customerName?: string;
-  customer?: { fullName?: string };
-  biller_name: string;
-  status: string;
-  amount_due: number;
-  late_penalty: number;
-  total_to_pay: number;
-  due_date: string;
-  currency: string;
-  allows_partial: boolean;
-}
-
-interface PaymentFormProps {
-  bill: BillDetails;
-  onConfirm: (payerPhone: string, amountToPay: number) => void;
-  onBack: () => void;
-  loading: boolean;
-}
-
-export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormProps) {
-  const [phone, setPhone] = useState<string>("");
-  const [editableAmount, setEditableAmount] = useState<number>(0);
+function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
+  // 💡 FIX APPLIED HERE: Added useTranslation hook inside child local scope to fix ReferenceError
+  const { t } = useTranslation();
+  const [phone, setPhone] = useState("");
+  const [editableAmount, setEditableAmount] = useState(0);
  
   const loggedInUser = useAuthStore((state) => state.user);
  
   const agentCodeStr = (loggedInUser?.agent?.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const agentNameStr = (loggedInUser?.agent?.name || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
- 
   const isTelebirrAgent =
     agentCodeStr.includes("TELEBIRR") ||
     agentCodeStr.includes("TELE") ||
@@ -401,7 +431,6 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
     const total = bill?.total_to_pay ?? bill?.amount_due ?? 0;
     return typeof total === "number" && !isNaN(total) ? total : 0;
   })();
- 
   const allowsPartial = bill?.allows_partial === true;
   const isExpired = bill?.status === "EXPIRED";
   const latePenalty = typeof bill?.late_penalty === "number" ? bill.late_penalty : 0;
@@ -409,9 +438,10 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
   const currency = bill?.currency || "ETB";
 
   useEffect(() => {
-    if (maxAmount > 0) {
+    const valTimer = setTimeout(() => {
       setEditableAmount(maxAmount);
-    }
+    }, 100);
+    return () => clearTimeout(valTimer);
   }, [bill, maxAmount]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -420,26 +450,22 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
     const parsedAmount = Number(editableAmount);
 
     if (parsedAmount > maxAmount) {
-      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You typed ${parsedAmount} ${currency}.`);
+      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You entered ${parsedAmount} ${currency}.`);
       return;
     }
 
-    if (parsedAmount <= 0) {
+    if (allowsPartial && parsedAmount <= 0) {
       alert("Please enter a valid payment amount greater than 0.");
       return;
     }
 
     const finalizedPhone = phone.trim();
     if (isTelebirrAgent && finalizedPhone === "") {
-      alert("Action Required: Payer phone number is strictly mandatory for all Telebirr agent payments.");
+      alert("Action Required: Payer phone number must be populated for all Telebirr payment transactions.");
       return;
     }
 
     onConfirm(finalizedPhone, allowsPartial ? parsedAmount : maxAmount);
-  };
-
-  const getFormCustomerName = (): string => {
-    return bill?.customer_name || bill?.customerName || bill?.customer?.fullName || "N/A";
   };
 
   return (
@@ -449,16 +475,9 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
           <div className="p-2 bg-red-50 rounded-xl">
             <CreditCard className="w-6 h-6 text-red-600" />
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Payment Processing</h2>
-            <p className="text-xs text-gray-400">Logged in as: {loggedInUser?.agent?.name || "System Agent"}</p>
-          </div>
+          <h2 className="text-xl font-bold text-gray-800">Payment Details</h2>
         </div>
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-gray-500 hover:text-red-600 font-medium transition flex items-center gap-1"
-        >
+        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-red-600 font-medium transition flex items-center gap-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
       </div>
@@ -498,7 +517,7 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
               disabled={isBlockedByExpiry}
             />
           </div>
-          <p className="text-xs text-gray-400 mt-1">Total Bill Balance Due: {maxAmount} {currency}</p>
+          <p className="text-xs text-gray-400 mt-1">Total Bill Invoice Balance: {maxAmount} {currency}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm bg-gray-50 p-4 rounded-xl">
@@ -506,8 +525,7 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
           <ReadOnlyField label="Agent ID" value={bill?.agent_id || "N/A"} />
           <ReadOnlyField label="Transaction ID" value={bill?.transactionId || "N/A"} />
           <ReadOnlyField label="Idempotency Key" value={bill?.idempotencyKey || "N/A"} />
-          <ReadOnlyField label="Customer" value={getFormCustomerName()} />
-          <ReadOnlyField label="Biller Organization" value={bill?.biller_name || "N/A"} />
+          <ReadOnlyField label="Due Date" value={bill?.due_date || "N/A"} />
         </div>
 
         <div>
@@ -522,37 +540,25 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
               onChange={(e) => setPhone(e.target.value)}
               placeholder="09xxxxxxxx"
               className={`w-full pl-10 p-3 border rounded-xl outline-none transition ${
-                isTelebirrAgent
-                  ? "border-amber-400 focus:ring-2 focus:ring-amber-500 bg-amber-50/10"
-                  : "border-gray-200 focus:ring-2 focus:ring-red-500"
+                isTelebirrAgent ? "border-amber-400 focus:ring-2 focus:ring-amber-500" : "border-gray-200 focus:ring-2 focus:ring-red-500"
               }`}
               required={isTelebirrAgent}
               disabled={isBlockedByExpiry}
             />
           </div>
-          {isTelebirrAgent && (
-            <p className="text-xs text-amber-600 font-medium mt-1">
-              ⚠️ System verified Telebirr Agent network. Payment cannot be verified without reference mobile number.
-            </p>
-          )}
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" /> Cancel
+          <button type="button" onClick={onBack} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> {t("back")}
           </button>
-         
           <button
             type="submit"
             disabled={loading || isBlockedByExpiry}
             className="flex-1 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-            {loading ? "Processing Payment..." : isBlockedByExpiry ? "Pipeline Blocked" : "Confirm Payment"}
+            {loading ? "Processing..." : isBlockedByExpiry ? "Payment Blocked" : "Confirm Payment"}
           </button>
         </div>
       </form>
@@ -561,14 +567,27 @@ export function PaymentForm({ bill, onConfirm, onBack, loading }: PaymentFormPro
 }
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  const [delayedValue, setDelayedValue] = useState("");
+
+  useEffect(() => {
+    setDelayedValue("");
+    const timer = setTimeout(() => {
+      setDelayedValue(value);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [value]);
+
   return (
     <div>
-      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">{label}</label>
+      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
       <input
         type="text"
-        value={value}
+        value={delayedValue}
         readOnly
-        className="w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono transition-all duration-300"
+        placeholder="Syncing..."
+        className={`w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono transition-all duration-1000 ${
+          delayedValue ? "opacity-100" : "opacity-40"
+        }`}
       />
     </div>
   );
