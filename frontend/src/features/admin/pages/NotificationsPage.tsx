@@ -70,6 +70,7 @@ const getStatusBadge = (type: string) => {
 };
 
 export default function NotificationsPage() {
+  console.log("NotificationsPage is mounting");
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [loading, setLoading] = useState(true);
