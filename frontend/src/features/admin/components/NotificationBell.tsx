@@ -14,6 +14,7 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  console.log("NotificationBell is mounting");
   const { user } = useAuthStore();
   if (!user || user.role !== "SYSTEM_ADMIN") return null;
   const [notifications, setNotifications] = useState<Notification[]>([]);
