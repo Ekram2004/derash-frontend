@@ -7,6 +7,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import Navbar from "@/shared/components/layout/Navbar";
 import Sidebar from "@/shared/components/layout/Sidebar";
+import NotificationBell from "@/features/admin/components/NotificationBell";
 
 interface LinkItem {
   label: string;
@@ -189,7 +190,10 @@ export default function DashboardLayout({ title, links, children }: Props) {
           role={user?.role}
           onLogout={() => setIsLogoutModalOpen(true)}
           onMenuClick={() => setMobileSidebarOpen(true)}
-        />
+        >
+          {/* ONLY mount the component if the user is an Admin */}
+          {user?.role === "SYSTEM_ADMIN" && <NotificationBell />}
+        </Navbar>
 
         {/* Page Content */}
         <motion.main

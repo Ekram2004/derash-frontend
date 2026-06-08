@@ -11,9 +11,10 @@ interface Props {
   role?: string;
   onLogout: () => void;
   onMenuClick?: () => void;
+  children?: React.ReactNode;
 }
 
-export default function Navbar({ onLogout, onMenuClick }: Props) {
+export default function Navbar({ userName, role, onLogout, onMenuClick, children }: Props) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -51,7 +52,6 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
         } dark:bg-gray-900/95 dark:backdrop-blur-md dark:border-gray-800`}
       >
         <div className="relative flex items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
-          
           {/* LEFT SIDE - Menu Button (Mobile) */}
           <div className="flex items-center gap-2 md:hidden">
             <button
@@ -84,19 +84,17 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
                 className="relative"
               >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg sm:rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300">
-                  <img 
-                    src={derashLogo} 
-                    alt="DERASH Logo" 
+                  <img
+                    src={derashLogo}
+                    alt="DERASH Logo"
                     className="w-full h-full object-cover"
                   />
                 </div>
               </motion.div>
-              
+
               {/* Brand Name */}
               <div className="flex flex-col">
-                <motion.h1 
-                  className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent dark:from-red-400 dark:via-gray-300 dark:to-red-400"
-                >
+                <motion.h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-red-600 via-gray-700 to-red-600 bg-clip-text text-transparent dark:from-red-400 dark:via-gray-300 dark:to-red-400">
                   DERASH
                 </motion.h1>
                 <span className="text-[8px] sm:text-[10px] md:text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
@@ -108,16 +106,18 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
 
           {/* RIGHT SIDE - Actions */}
           <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+            {/* NEW: Render the children (NotificationBell) here */}
+            {children}
             {/* Language Switcher */}
             <LanguageSwitcher />
 
             {/* Theme Toggle */}
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? (
+              {theme === "dark" ? (
                 <SunIcon className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
               ) : (
                 <MoonIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
@@ -141,8 +141,18 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
               className="sm:hidden flex items-center justify-center p-1.5 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-lg transition-all duration-200 shadow-md"
               aria-label="Logout"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
             </motion.button>
           </div>
@@ -153,14 +163,14 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
       {mobileMenuOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity duration-300"
             onClick={() => {
               setMobileMenuOpen(false);
               if (onMenuClick) onMenuClick();
             }}
           />
-          
+
           {/* Menu Panel */}
           <motion.div
             initial={{ x: "-100%" }}
@@ -173,9 +183,15 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg overflow-hidden">
-                  <img src={derashLogo} alt="Logo" className="w-full h-full object-cover" />
+                  <img
+                    src={derashLogo}
+                    alt="Logo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <span className="font-bold text-gray-800 dark:text-white">DERASH</span>
+                <span className="font-bold text-gray-800 dark:text-white">
+                  DERASH
+                </span>
               </div>
               <button
                 onClick={() => {
@@ -193,25 +209,27 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
               <div className="space-y-4">
                 <div className="pb-4 border-b border-gray-100 dark:border-gray-800">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Appearance</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Appearance
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => setTheme('light')}
+                      onClick={() => setTheme("light")}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                        theme === 'light' 
-                          ? 'bg-red-500 text-white' 
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        theme === "light"
+                          ? "bg-red-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       <SunIcon className="w-4 h-4" /> Light
                     </button>
                     <button
-                      onClick={() => setTheme('dark')}
+                      onClick={() => setTheme("dark")}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                        theme === 'dark' 
-                          ? 'bg-red-500 text-white' 
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        theme === "dark"
+                          ? "bg-red-500 text-white"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       <MoonIcon className="w-4 h-4" /> Dark
@@ -221,7 +239,9 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
 
                 <div className="pb-4 border-b border-gray-100 dark:border-gray-800">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Language</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Language
+                    </span>
                   </div>
                   <LanguageSwitcher />
                 </div>
@@ -234,8 +254,18 @@ export default function Navbar({ onLogout, onMenuClick }: Props) {
                 onClick={onLogout}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-lg font-medium text-sm transition-all"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
                 Logout
               </button>
