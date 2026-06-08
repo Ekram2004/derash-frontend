@@ -80,6 +80,7 @@ export default function DashboardLayout({ title, links, children }: Props) {
   const user = useAuthStore((state) => state.user);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Check screen size
   useEffect(() => {
@@ -99,22 +100,73 @@ export default function DashboardLayout({ title, links, children }: Props) {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    const isConfirmed = window.confirm("Are you sure you want to log out?");
-    if (isConfirmed) {
-      logout();
-      navigate("/login", { replace: true });
-    }
+    logout();
+    setIsLogoutModalOpen(false);
+    navigate("/login", { replace: true });
   };
-
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {isLogoutModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm w-full border border-gray-200 dark:border-gray-700"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Confirm Logout
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Are you sure you want to end your session? You will need to log
+                back in to continue.
+              </p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Subtle Background Pattern */}
       <div className="fixed inset-0 pointer-events-none z-0 opacity-30">
-        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
-            <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-gray-300 dark:text-gray-700" />
+            <pattern
+              id="grid"
+              width="32"
+              height="32"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 32 0 L 0 0 0 32"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.5"
+                className="text-gray-300 dark:text-gray-700"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -122,21 +174,20 @@ export default function DashboardLayout({ title, links, children }: Props) {
       </div>
 
       {/* Sidebar */}
-      <Sidebar 
-        title={title} 
-        links={links} 
+      <Sidebar
+        title={title}
+        links={links}
         isMobileOpen={mobileSidebarOpen}
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-        
         {/* Navbar */}
         <Navbar
           userName={user?.name || "User"}
           role={user?.role}
-          onLogout={handleLogout}
+          onLogout={() => setIsLogoutModalOpen(true)}
           onMenuClick={() => setMobileSidebarOpen(true)}
         />
 
