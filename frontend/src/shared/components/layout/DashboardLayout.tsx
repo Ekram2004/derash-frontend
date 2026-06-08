@@ -99,8 +99,11 @@ export default function DashboardLayout({ title, links, children }: Props) {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
+    const isConfirmed = window.confirm("Are you sure you want to log out?");
+    if (isConfirmed) {
+      logout();
+      navigate("/login", { replace: true });
+    }
   };
 
   return (
