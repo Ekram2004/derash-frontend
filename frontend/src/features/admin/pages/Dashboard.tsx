@@ -1,3 +1,4 @@
+// src/features/admin/pages/Dashboard.tsx
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "../../../shared/components/layout/DashboardLayout";
@@ -69,7 +70,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-// Loading Skeleton
+// Loading Skeleton (also responsive)
 const StatCardSkeleton = () => (
   <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 border border-gray-100 shadow-sm animate-pulse">
     <div className="flex items-center justify-between">
@@ -83,7 +84,6 @@ const StatCardSkeleton = () => (
   </div>
 );
 
-// Safe conversion for any nullable number
 const toNumber = (value: unknown): number => {
   const num = Number(value);
   return isNaN(num) ? 0 : num;
@@ -248,27 +248,27 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-500 via-gray-900 to-red-500 bg-clip-text text-transparent">
               {t("welcome_derash_admin")}
             </h1>
             <p className="text-gray-500 text-sm mt-1">{t("platform_description")}</p>
           </div>
-          <div className="flex items-center gap-2 text-sm bg-gray-50 px-4 py-2 rounded-full">
+          <div className="flex items-center gap-2 text-xs sm:text-sm bg-gray-50 px-3 sm:px-4 py-2 rounded-full self-start lg:self-auto">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span>{t("live_data")}</span>
           </div>
         </div>
 
-        {/* Main KPI Cards */}
+        {/* Main KPI Cards - fully responsive grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {mainCards.map((card) => (
             <div
               key={card.title}
-              className="group bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="group bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="flex items-center justify-between">
-                <div className={`p-2.5 rounded-xl bg-${card.color}-50 group-hover:scale-110 transition-transform`}>
-                  <card.icon className={`w-6 h-6 text-${card.color}-600`} />
+                <div className={`p-2 rounded-xl bg-${card.color}-50 group-hover:scale-110 transition-transform`}>
+                  <card.icon className={`w-5 h-5 sm:w-6 sm:h-6 text-${card.color}-600`} />
                 </div>
                 {card.growth !== undefined && card.growth !== 0 && (
                   <div className="flex items-center gap-1 bg-gray-50 rounded-full px-2 py-1">
@@ -279,56 +279,53 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              <div className="mt-4">
+              <div className="mt-3 sm:mt-4">
                 <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{card.title}</p>
-                <h2 className="text-2xl font-extrabold text-gray-900 mt-1">{card.formatted}</h2>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1">{card.formatted}</h2>
                 {card.subtext && <p className="text-xs text-gray-400 mt-1">{card.subtext}</p>}
-                <div className="mt-3 h-1 w-10 bg-red-500 rounded-full opacity-70"></div>
+                <div className="mt-2 sm:mt-3 h-1 w-10 bg-red-500 rounded-full opacity-70"></div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Additional Metrics Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {additionalMetrics.map((metric) => {
-            const bgClass = `bg-${metric.bg}-50`;
-            return (
-              <div key={metric.title} className={`${bgClass} rounded-xl p-4 border border-gray-100`}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <metric.icon className={`w-5 h-5 text-${metric.bg}-600`} />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">{metric.title}</p>
-                    <p className="text-base font-bold text-gray-900">{metric.formatted}</p>
-                  </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {additionalMetrics.map((metric) => (
+            <div key={metric.title} className={`bg-${metric.bg}-50 rounded-xl p-3 sm:p-4 border border-gray-100`}>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-white rounded-lg shadow-sm">
+                  <metric.icon className={`w-4 h-4 sm:w-5 sm:h-5 text-${metric.bg}-600`} />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium">{metric.title}</p>
+                  <p className="text-sm sm:text-base font-bold text-gray-900">{metric.formatted}</p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">{t("transaction")} <span className="text-red-500">{t("trends")}</span></h2>
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{t("transaction")} <span className="text-red-500">{t("trends")}</span></h2>
               <p className="text-gray-400 text-xs">{t("monthly_volume")}</p>
             </div>
-            <div className="p-4">
-              <div className="w-full h-80">
+            <div className="p-3 sm:p-4">
+              <div className="w-full h-64 sm:h-72 md:h-80">
                 <Line data={trendChartData} options={trendOptions} />
               </div>
             </div>
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">{t("payment")} <span className="text-red-500">{t("methods")}</span></h2>
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{t("payment")} <span className="text-red-500">{t("methods")}</span></h2>
               <p className="text-gray-400 text-xs">{t("distribution_by_channel")}</p>
             </div>
-            <div className="p-4">
-              <div className="w-full h-80">
+            <div className="p-3 sm:p-4">
+              <div className="w-full h-64 sm:h-72 md:h-80">
                 <Doughnut data={paymentChartData} options={doughnutOptions} />
               </div>
             </div>
@@ -338,41 +335,40 @@ export default function Dashboard() {
         {/* Second Row – Bar Chart & Top Billers */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">{t("system")} <span className="text-red-500">{t("analytics")}</span></h2>
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{t("system")} <span className="text-red-500">{t("analytics")}</span></h2>
               <p className="text-gray-400 text-xs">{t("key_metrics_overview")}</p>
             </div>
-            <div className="p-4">
-              <div className="w-full h-80">
+            <div className="p-3 sm:p-4">
+              <div className="w-full h-64 sm:h-72 md:h-80">
                 <Bar data={barChartData} options={barOptions} />
               </div>
             </div>
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">{t("top")} <span className="text-red-500">{t("billers")}</span></h2>
+            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{t("top")} <span className="text-red-500">{t("billers")}</span></h2>
               <p className="text-gray-400 text-xs">{t("highest_transaction_volume")}</p>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[300px]">
                 <thead className="bg-gray-50 text-xs font-semibold text-gray-600">
                   <tr>
-                    <th className="px-5 py-3 text-left">{t("biller")}</th>
-                    <th className="px-5 py-3 text-right">{t("transactions")}</th>
-                    <th className="px-5 py-3 text-right">{t("revenue")}</th>
+                    <th className="px-4 sm:px-5 py-3 text-left">{t("biller")}</th>
+                    <th className="px-4 sm:px-5 py-3 text-right">{t("transactions")}</th>
+                    <th className="px-4 sm:px-5 py-3 text-right">{t("revenue")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {topBillers.map((biller, idx) => (
                     <tr key={idx} className="hover:bg-gray-50 transition">
-                      <td className="px-5 py-3 text-sm font-medium text-gray-900">{biller.name}</td>
-                      <td className="px-5 py-3 text-sm text-right text-gray-600">{formatNumber(biller.transactions)}</td>
-                      <td className="px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(biller.revenue)}</td>
+                      <td className="px-4 sm:px-5 py-3 text-sm font-medium text-gray-900">{biller.name}</td>
+                      <td className="px-4 sm:px-5 py-3 text-sm text-right text-gray-600">{formatNumber(biller.transactions)}</td>
+                      <td className="px-4 sm:px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(biller.revenue)}</td>
                     </tr>
                   ))}
                   {topBillers.length === 0 && (
-                    <tr><td colSpan={3} className="text-center py-6 text-gray-500">
-                      {t("no_data")}</td></tr>
+                    <tr><td colSpan={3} className="text-center py-6 text-gray-500">{t("no_data")}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -382,34 +378,34 @@ export default function Dashboard() {
 
         {/* Recent Transactions Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">{t("recent")} <span className="text-red-500">{t("transactions")}</span></h2>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">{t("recent")} <span className="text-red-500">{t("transactions")}</span></h2>
               <p className="text-gray-400 text-xs">{t("latest_payment_activities")}</p>
             </div>
-            <button className="text-red-500 text-sm font-medium hover:text-red-600 transition-colors">{t("view_all")} →</button>
+            <button className="text-red-500 text-sm font-medium hover:text-red-600 transition-colors text-left sm:text-right">{t("view_all")} →</button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead className="bg-gray-50 text-xs font-semibold text-gray-600">
                 <tr>
-                  <th className="px-5 py-3 text-left">{t("id")}</th>
-                  <th className="px-5 py-3 text-left">{t("biller")}</th>
-                  <th className="px-5 py-3 text-left">{t("agent")}</th>
-                  <th className="px-5 py-3 text-right">{t("amount")}</th>
-                  <th className="px-5 py-3 text-left">{t("date")}</th>
-                  <th className="px-5 py-3 text-center">{t("status")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-left">{t("id")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-left">{t("biller")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-left">{t("agent")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-right">{t("amount")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-left">{t("date")}</th>
+                  <th className="px-4 sm:px-5 py-3 text-center">{t("status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {recentTransactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-gray-50 transition">
-                    <td className="px-5 py-3 text-sm font-mono text-gray-600">{tx.id}</td>
-                    <td className="px-5 py-3 text-sm text-gray-900">{tx.biller}</td>
-                    <td className="px-5 py-3 text-sm text-gray-600">{tx.agent}</td>
-                    <td className="px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(tx.amount)}</td>
-                    <td className="px-5 py-3 text-sm text-gray-500">{tx.date}</td>
-                    <td className="px-5 py-3 text-center">
+                    <td className="px-4 sm:px-5 py-3 text-sm font-mono text-gray-600">{tx.id}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-900">{tx.biller}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-600">{tx.agent}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(tx.amount)}</td>
+                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-500">{tx.date}</td>
+                    <td className="px-4 sm:px-5 py-3 text-center">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColor(tx.status)}`}>
                         {t(tx.status)}
                       </span>
@@ -417,8 +413,7 @@ export default function Dashboard() {
                   </tr>
                 ))}
                 {recentTransactions.length === 0 && (
-                  <tr><td colSpan={6} className="text-center py-8 text-gray-500">
-                    {t("no_transactions")}</td></tr>
+                  <tr><td colSpan={6} className="text-center py-8 text-gray-500">{t("no_transactions")}</td></tr>
                 )}
               </tbody>
             </table>
@@ -426,20 +421,20 @@ export default function Dashboard() {
         </div>
 
         {/* System Health Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4">
             <div className="flex items-center gap-2"><ShieldCheckIcon className="w-5 h-5 text-green-600" /><span className="text-xs font-semibold text-green-700">{t("system_health")}</span></div>
-            <p className="text-xl font-bold text-green-900 mt-1">99.95% {t("uptime")}</p>
+            <p className="text-lg sm:text-xl font-bold text-green-900 mt-1">99.95% {t("uptime")}</p>
             <p className="text-xs text-green-600 mt-1">{t("response_time")}: 245ms</p>
           </div>
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4">
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-3 sm:p-4">
             <div className="flex items-center gap-2"><ExclamationTriangleIcon className="w-5 h-5 text-blue-600" /><span className="text-xs font-semibold text-blue-700">{t("digital_payment_goal")}</span></div>
-            <p className="text-xl font-bold text-blue-900 mt-1">80% {t("population")}</p>
+            <p className="text-lg sm:text-xl font-bold text-blue-900 mt-1">80% {t("population")}</p>
             <p className="text-xs text-blue-600 mt-1">{t("target")}: 5 {t("years")}</p>
           </div>
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4">
             <div className="flex items-center gap-2"><CreditCardIcon className="w-5 h-5 text-purple-600" /><span className="text-xs font-semibold text-purple-700">{t("cashless_society")}</span></div>
-            <p className="text-xl font-bold text-purple-900 mt-1">{t("in_progress")}</p>
+            <p className="text-lg sm:text-xl font-bold text-purple-900 mt-1">{t("in_progress")}</p>
             <p className="text-xs text-purple-600 mt-1">{t("minimizing_laundry")}</p>
           </div>
         </div>

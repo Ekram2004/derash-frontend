@@ -174,8 +174,10 @@ export default function Home() {
             >
               {/* Typewriter effect – ultra slow */}
               <div className="mb-6">
-                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight">
-                  <TypewriterText texts={typewriterTexts} typingSpeed={180} pauseDuration={4500} />
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl 
+                xl:text-7xl font-bold leading-tight tracking-tight">
+                  <TypewriterText texts={typewriterTexts} typingSpeed={200} 
+                  pauseDuration={4500} />
                 </div>
               </div>
 
@@ -434,7 +436,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.8 }}
+            transition={{ duration: 2 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
@@ -445,10 +447,10 @@ export default function Home() {
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center">
             {[
-              { label: "Active Users", val: "370K+", suffix: "", delay: 0 },
-              { label: "Transactions", val: "650K+", suffix: "", delay: 0.3 },
-              { label: "Birr Processed", val: "60", suffix: "B+", delay: 0.6 },
-              { label: "Integrated Banks", val: "16", suffix: "+", delay: 0.9 },
+              { label: "Active Users", val: "370K+", suffix: "", delay: 1},
+              { label: "Transactions", val: "650K+", suffix: "", delay: 1 },
+              { label: "Birr Processed", val: "60", suffix: "B+", delay: 1 },
+              { label: "Integrated Banks", val: "16", suffix: "+", delay: 1 },
             ].map((stat, i) => (
               <motion.div
                 key={i}
