@@ -1,25 +1,26 @@
 import axios from "axios";
 
-const ADMIN_SECRET = "DERASH_SUPER_SECRET_2026";
-const BASE_URL = "https://derash-bill-aggregator.onrender.com/api/v1";
+const ADMIN_SECRET = "DERASH_SUPER_SECRET_2026"; 
+// 💡 Linked to your live Render backend deployment link
+const BASE_URL = "https://derash-bill-aggregator.onrender.com/api/v1"; 
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,
+  withCredentials: true, 
   headers: {
     "Content-Type": "application/json",
-    "x-admin-secret": ADMIN_SECRET,
+    "x-admin-secret": ADMIN_SECRET,   
   },
 });
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-if (error.response?.status === 403) {
-  console.warn("Access Denied: Not an admin. Stopping retry.");
-  return Promise.reject(error);
-}
+    
+    if (error.response?.status === 403) {
+      console.warn("Access Denied: Not an admin. Stopping retry.");
+      return Promise.reject(error);
+    }
     
     if (
       error.response?.status === 401 &&
@@ -30,7 +31,7 @@ if (error.response?.status === 403) {
 
       try {
         await axios.post(
-          `${BASE_URL}/auth/refresh`,
+          `${BASE_URL}/auth/refresh`, // 💡 Fixed: Uses the defined BASE_URL constant
           {},
           { withCredentials: true },
         );

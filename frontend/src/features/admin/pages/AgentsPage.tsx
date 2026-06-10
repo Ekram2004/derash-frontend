@@ -1,4 +1,3 @@
-// src/features/admin/pages/AgentsPage.tsx
 
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

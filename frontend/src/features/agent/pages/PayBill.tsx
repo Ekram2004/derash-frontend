@@ -1,9 +1,10 @@
-// src/features/agent/pages/PayBill.tsx
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/shared/components/layout/DashboardLayout";
 import { agentLinks } from "../agentLinks";
 import { searchBills, processPayment } from "../api/agent.api";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+
 import {
   Search,
   AlertCircle,
@@ -17,7 +18,6 @@ import {
   XCircle,
 } from "lucide-react";
 
-// ------------------ Types ------------------
 interface Bill {
   bill_id: string;
   agent_id: string;
@@ -48,22 +48,6 @@ interface Receipt {
   paymentDate: string;
 }
 
-const HARDCODED_AGENT_CODE = "CBE-1001";
-
-// Helper to map frontend payment method to backend enum
-const mapPaymentMethod = (method: string): string => {
-  switch (method) {
-    case "CBE":
-      return "BANK_TRANSFER";
-    case "TELEBIRR":
-      return "MOBILE_APP";
-    case "CASH":
-      return "CASH";
-    default:
-      return "BANK_TRANSFER";
-  }
-};
-
 export default function PayBill() {
   const { t } = useTranslation();
   const [view, setView] = useState<"search" | "pay" | "receipt">("search");
@@ -76,45 +60,32 @@ export default function PayBill() {
 
   const handleSearch = async () => {
     if (!billReference.trim()) {
-      setError(t("please_enter_bill_ref"));
-      setErrorDetails(null);
+      setError("Please enter a Bill Reference.");
       return;
     }
     try {
       setLoading(true);
-      setError(null);
+      setError("");
       setErrorDetails(null);
+     
       const response = await searchBills({
-        billReference: billReference.trim(),
-        agentCode: HARDCODED_AGENT_CODE,
+        billReference: billReference.trim()
       });
+     
       const billData = response.data || response;
-      setSelectedBill(billData);
+
+      const stabilizedBillData = {
+        ...billData,
+        amount_due: billData.amount_due ?? billData.amountDue ?? null,
+        total_to_pay: billData.total_to_pay ?? billData.totalToPay ?? null,
+      };
+
+      setSelectedBill(stabilizedBillData);
       setView("search");
     } catch (err: any) {
-      const message = err.response?.data?.message || t("no_unpaid_bill_found");
-      setSelectedBill(null);
-      
-      if (message.toLowerCase().includes("already fully paid")) {
-        setErrorDetails({
-          title: t("bill_already_paid_title"),
-          message: t("bill_already_paid_message"),
-          billRef: billReference.trim(),
-        });
-      } else if (message.toLowerCase().includes("no unpaid bill found")) {
-        setErrorDetails({
-          title: t("bill_not_found_title"),
-          message: t("bill_not_found_message", { ref: billReference.trim() }),
-          billRef: billReference.trim(),
-        });
-      } else {
-        setErrorDetails({
-          title: t("search_failed_title"),
-          message: message,
-          billRef: billReference.trim(),
-        });
-      }
+      const message = err.response?.data?.message || "No unpaid bill found.";
       setError(message);
+      setSelectedBill(null);
     } finally {
       setLoading(false);
     }
@@ -123,7 +94,6 @@ export default function PayBill() {
   const goToPay = () => setView("pay");
 
   const handleConfirmPayment = async (
-    paymentMethod: string,
     phone: string,
     manualAmount: number
   ) => {
@@ -132,45 +102,43 @@ export default function PayBill() {
       setLoading(true);
       setError(null);
       setErrorDetails(null);
-      const finalAmount =
-        manualAmount > 0
-          ? Number(manualAmount)
-          : Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
-      if (finalAmount <= 0) throw new Error(t("invalid_payment_amount"));
-      
-      const backendPaymentMethod = mapPaymentMethod(paymentMethod);
+
+      const fallbackAmount = Number(selectedBill.total_to_pay) || Number(selectedBill.amount_due) || 0;
+      const finalAmount = manualAmount > 0 ? Number(manualAmount) : fallbackAmount;
+     
+      if (finalAmount <= 0) throw new Error("Invalid payment amount.");
+     
       const payerPhone = phone.trim() || "0000000000";
-      
+     
+      const freshTxId = selectedBill.transactionId || `TXN-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const freshIdempotencyKey = selectedBill.idempotencyKey || `IDEM-${selectedBill.bill_id}-${Date.now()}`;
+
       const payload = {
-        billId: selectedBill.bill_id,
-        agentId: selectedBill.agent_id,
-        amount: finalAmount,
-        transactionId: selectedBill.transactionId,
-        idempotencyKey: selectedBill.idempotencyKey,
-        paymentMethod: backendPaymentMethod,
+        billId: String(selectedBill.bill_id),
+        agentId: String(selectedBill.agent_id),
+        amount: Number(Number(finalAmount).toFixed(2)),
+        transactionId: String(freshTxId),
+        idempotencyKey: String(freshIdempotencyKey),
         payerPhone: payerPhone,
       };
-      const result = await processPayment(payload);
-      const receiptData = result?.receipt || result?.data?.receipt;
+
+      const result = await processPayment(payload as any);
+      const receiptData = result?.receipt || result?.data?.receipt || result;
+     
       if (receiptData) {
         setReceipt(receiptData);
         setView("receipt");
       } else {
-        throw new Error(t("receipt_missing"));
+        throw new Error("Payment succeeded but receipt details missing from response mapping.");
       }
     } catch (err: any) {
-      const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message;
-      if (serverMessage.includes("Unique constraint")) {
-        alert(t("transaction_id_expired"));
-        setView("search");
-        setSelectedBill(null);
-      } else {
-        setErrorDetails({
-          title: t("payment_failed_title"),
-          message: serverMessage,
-        });
-        setError(serverMessage);
-      }
+      const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Bad Request";
+     
+      setErrorDetails({
+        title: "Payment Processing Failed",
+        message: serverMessage,
+      });
+      setError(serverMessage);
     } finally {
       setLoading(false);
     }
@@ -370,12 +338,12 @@ export default function PayBill() {
                     disabled={
                       selectedBill.is_blocked || selectedBill.status === "PAID"
                     }
-                    className={`w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 
+                    className={`w-full mt-6 py-3 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center gap-2
     ${
       selectedBill.status === "PAID"
         ? "bg-green-600 cursor-default"
         : "bg-gradient-to-r from-red-600 via-gray-700 to-red-900 hover:shadow-lg hover:scale-[1.02]"
-    } 
+    }
     disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {selectedBill.status === "PAID" ? (
@@ -401,7 +369,6 @@ export default function PayBill() {
           </div>
         )}
 
-        {/* VIEW 2: PAYMENT FORM */}
         {view === "pay" && selectedBill && (
           <PaymentForm
             bill={selectedBill}
@@ -411,53 +378,30 @@ export default function PayBill() {
           />
         )}
 
-        {/* VIEW 3: RECEIPT */}
         {view === "receipt" && receipt && (
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-500 animate-fade-in-up">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                {t("payment_successful")}
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">{t("receipt_generated")}</p>
+              <h2 className="text-2xl font-bold text-gray-800">Payment Successful</h2>
+              <p className="text-gray-500 text-sm mt-1">Receipt generated</p>
             </div>
             <div className="bg-gray-50 p-6 font-mono text-xs space-y-3 border-t border-gray-100">
-              <div className="flex justify-between">
-                <span>{t("transaction_ref")}:</span>{" "}
-                <strong>{receipt.transaction_ref}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("customer")}:</span>{" "}
-                <strong>
-                  {selectedBill
-                    ? getCustomerName(selectedBill)
-                    : receipt.customer}
-                </strong>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("amount_paid")}:</span>{" "}
-                <strong className="text-red-600">{receipt.amount_paid}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("remaining_balance")}:</span>{" "}
-                <strong>{receipt.remaining_balance || "0.00"}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("status")}:</span> <strong>{receipt.status}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>{t("due_date")}:</span> <strong>{receipt.due_date}</strong>
-              </div>
+              <div className="flex justify-between"><span>TRANSACTION REF:</span> <strong>{receipt.transaction_ref}</strong></div>
+              <div className="flex justify-between"><span>CUSTOMER:</span> <strong>{selectedBill ? getCustomerName(selectedBill) : receipt.customer}</strong></div>
+              <div className="flex justify-between"><span>AMOUNT PAID:</span> <strong className="text-red-600">{receipt.amount_paid}</strong></div>
+              <div className="flex justify-between"><span>REM. BALANCE:</span> <strong>{receipt.remaining_balance ?? "0.00"}</strong></div>
+              <div className="flex justify-between"><span>STATUS:</span> <strong>{receipt.status}</strong></div>
+              <div className="flex justify-between"><span>DUE DATE:</span> <strong>{receipt.due_date}</strong></div>
               <hr />
-              <p className="text-center">{t("paid_on")} {receipt.paymentDate}</p>
+              <p className="text-center">PAID ON: {receipt.paymentDate || new Date().toISOString().split("T")[0]}</p>
             </div>
             <button
               onClick={resetPayment}
               className="w-full bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-4 font-bold rounded-b-2xl hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
             >
-              <RefreshCw className="w-5 h-5" /> {t("done_new_payment")}
+              <RefreshCw className="w-5 h-5" /> Done / New Payment
             </button>
           </div>
         )}
@@ -465,65 +409,63 @@ export default function PayBill() {
     </DashboardLayout>
   );
 }
+// Payment Form Component
 
-// ------------------ Enhanced Payment Form (slow staggered auto‑fill) ------------------
 function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
+  // 💡 FIX APPLIED HERE: Added useTranslation hook inside child local scope to fix ReferenceError
   const { t } = useTranslation();
-  const [paymentMethod, setPaymentMethod] = useState("CBE");
   const [phone, setPhone] = useState("");
-  const [editableAmount, setEditableAmount] = useState(() => {
-    const amount = bill?.total_to_pay ?? bill?.amount_due ?? 0;
-    return typeof amount === "number" && !isNaN(amount) ? amount : 0;
-  });
-  const [isSyncing, setIsSyncing] = useState(true);
-  const [fieldsVisible, setFieldsVisible] = useState({
-    bill_id: false,
-    agent_id: false,
-    transactionId: false,
-    idempotencyKey: false,
-    due_date: false,
-  });
-
-  useEffect(() => {
-    const syncTimer = setTimeout(() => {
-      setIsSyncing(false);
-      const fieldNames = ["bill_id", "agent_id", "transactionId", "idempotencyKey", "due_date"];
-      fieldNames.forEach((field, idx) => {
-        setTimeout(() => {
-          setFieldsVisible(prev => ({ ...prev, [field]: true }));
-        }, idx * 150);
-      });
-    }, 800);
-    return () => clearTimeout(syncTimer);
-  }, [bill]);
+  const [editableAmount, setEditableAmount] = useState(0);
+ 
+  const loggedInUser = useAuthStore((state) => state.user);
+ 
+  const agentCodeStr = (loggedInUser?.agent?.code || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const agentNameStr = (loggedInUser?.agent?.name || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const isTelebirrAgent =
+    agentCodeStr.includes("TELEBIRR") ||
+    agentCodeStr.includes("TELE") ||
+    agentCodeStr.startsWith("TEL") ||
+    agentNameStr.includes("TELEBIRR");
 
   const maxAmount = (() => {
     const total = bill?.total_to_pay ?? bill?.amount_due ?? 0;
     return typeof total === "number" && !isNaN(total) ? total : 0;
   })();
   const allowsPartial = bill?.allows_partial === true;
-  const isTelebirr = paymentMethod === "TELEBIRR";
-  const isPhoneMissing = isTelebirr && !phone.trim();
   const isExpired = bill?.status === "EXPIRED";
   const latePenalty = typeof bill?.late_penalty === "number" ? bill.late_penalty : 0;
   const isBlockedByExpiry = isExpired && latePenalty <= 0;
   const currency = bill?.currency || "ETB";
 
+  useEffect(() => {
+    const valTimer = setTimeout(() => {
+      setEditableAmount(maxAmount);
+    }, 100);
+    return () => clearTimeout(valTimer);
+  }, [bill, maxAmount]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (maxAmount <= 0) {
-      alert(t("bill_already_settled"));
+   
+    const parsedAmount = Number(editableAmount);
+
+    if (parsedAmount > maxAmount) {
+      alert(`Overpayment is prohibited. The maximum allowed amount is ${maxAmount} ${currency}. You entered ${parsedAmount} ${currency}.`);
       return;
     }
-    if (isTelebirr && !phone.trim()) {
-      alert(t("phone_required_telebirr"));
+
+    if (allowsPartial && parsedAmount <= 0) {
+      alert("Please enter a valid payment amount greater than 0.");
       return;
     }
-    if (editableAmount <= 0 || editableAmount > maxAmount) {
-      alert(t("valid_amount_required", { max: maxAmount }));
+
+    const finalizedPhone = phone.trim();
+    if (isTelebirrAgent && finalizedPhone === "") {
+      alert("Action Required: Payer phone number must be populated for all Telebirr payment transactions.");
       return;
     }
-    onConfirm(paymentMethod, phone, editableAmount);
+
+    onConfirm(finalizedPhone, allowsPartial ? parsedAmount : maxAmount);
   };
 
   return (
@@ -533,58 +475,62 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           <div className="p-2 bg-red-50 rounded-xl">
             <CreditCard className="w-6 h-6 text-red-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800">{t("payment_details")}</h2>
-          {isSyncing && (
-            <span className="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded-full animate-pulse font-bold flex items-center gap-1">
-              <RefreshCw className="w-3 h-3" /> {t("syncing")}
-            </span>
-          )}
+          <h2 className="text-xl font-bold text-gray-800">Payment Details</h2>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-red-600 font-medium transition flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" /> {t("back")}
+        <button type="button" onClick={onBack} className="text-sm text-gray-500 hover:text-red-600 font-medium transition flex items-center gap-1">
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
       </div>
 
       {isBlockedByExpiry && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-bold text-sm flex items-start gap-2">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <span>{t("expired_blocked_message")}</span>
+          <span>ERROR: This bill has expired and late payments are disabled.</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {allowsPartial && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("amount_to_pay")} <span className="text-xs text-red-500">{t("partial_allowed")}</span>
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                value={editableAmount}
-                onChange={(e) => setEditableAmount(Number(e.target.value))}
-                min={1}
-                max={maxAmount}
-                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition"
-                required
-                disabled={isSyncing || isBlockedByExpiry}
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">{t("max_amount", { max: maxAmount, currency })}</p>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1 flex justify-between items-center">
+            <span>Amount to Pay ({currency})</span>
+            {allowsPartial ? (
+              <span className="text-xs bg-green-100 text-green-700 font-bold px-2.5 py-0.5 rounded-full">Partial Allowed</span>
+            ) : (
+              <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2.5 py-0.5 rounded-full">Fixed Full Payment Only</span>
+            )}
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              step="any"
+              value={editableAmount || ""}
+              onChange={(e) => setEditableAmount(Number(e.target.value))}
+              min={1}
+              max={maxAmount}
+              readOnly={!allowsPartial}
+              className={`w-full p-3 border rounded-xl outline-none transition font-semibold text-lg ${
+                !allowsPartial
+                  ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              }`}
+              required
+              disabled={isBlockedByExpiry}
+            />
           </div>
-        )}
+          <p className="text-xs text-gray-400 mt-1">Total Bill Invoice Balance: {maxAmount} {currency}</p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm bg-gray-50 p-4 rounded-xl">
-          <SlowReadOnlyField label={t("bill_id")} value={bill?.bill_id || t("na")} isVisible={fieldsVisible.bill_id} />
-          <SlowReadOnlyField label={t("agent_id")} value={bill?.agent_id || t("na")} isVisible={fieldsVisible.agent_id} />
-          <SlowReadOnlyField label={t("transaction_id")} value={bill?.transactionId || t("na")} isVisible={fieldsVisible.transactionId} />
-          <SlowReadOnlyField label={t("idempotency_key")} value={bill?.idempotencyKey || t("na")} isVisible={fieldsVisible.idempotencyKey} />
-          <SlowReadOnlyField label={t("due_date")} value={bill?.due_date || t("na")} isVisible={fieldsVisible.due_date} />
+          <ReadOnlyField label="Bill ID" value={bill?.bill_id || "N/A"} />
+          <ReadOnlyField label="Agent ID" value={bill?.agent_id || "N/A"} />
+          <ReadOnlyField label="Transaction ID" value={bill?.transactionId || "N/A"} />
+          <ReadOnlyField label="Idempotency Key" value={bill?.idempotencyKey || "N/A"} />
+          <ReadOnlyField label="Due Date" value={bill?.due_date || "N/A"} />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {t("phone_number")} {isTelebirr && <span className="text-red-500">*</span>}
+            Payer Phone Number {isTelebirrAgent ? <span className="text-red-500 font-bold">(Required for Telebirr)</span> : "(Optional)"}
           </label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
@@ -593,18 +539,13 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="09xxxxxxxx"
-              className={`w-full pl-10 p-3 border rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition ${
-                isPhoneMissing ? "border-red-500 bg-red-50" : "border-gray-200"
+              className={`w-full pl-10 p-3 border rounded-xl outline-none transition ${
+                isTelebirrAgent ? "border-amber-400 focus:ring-2 focus:ring-amber-500" : "border-gray-200 focus:ring-2 focus:ring-red-500"
               }`}
-              required={isTelebirr}
+              required={isTelebirrAgent}
               disabled={isBlockedByExpiry}
             />
           </div>
-          {isPhoneMissing && (
-            <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> {t("phone_required_telebirr")}
-            </p>
-          )}
         </div>
 
         <div className="flex gap-3 pt-2">
@@ -613,17 +554,11 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
           </button>
           <button
             type="submit"
-            disabled={loading || isSyncing || isPhoneMissing || isBlockedByExpiry}
+            disabled={loading || isBlockedByExpiry}
             className="flex-1 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 text-white py-3 rounded-xl font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-            {loading
-              ? t("processing")
-              : isBlockedByExpiry
-              ? t("payment_blocked")
-              : isPhoneMissing
-              ? t("phone_required")
-              : t("confirm_payment")}
+            {loading ? "Processing..." : isBlockedByExpiry ? "Payment Blocked" : "Confirm Payment"}
           </button>
         </div>
       </form>
@@ -631,18 +566,29 @@ function PaymentForm({ bill, onConfirm, onBack, loading }: any) {
   );
 }
 
-// Helper component for read-only fields with staggered fade-in
-function SlowReadOnlyField({ label, value, isVisible }: { label: string; value: string; isVisible: boolean }) {
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  const [delayedValue, setDelayedValue] = useState("");
+
+  useEffect(() => {
+    setDelayedValue("");
+    const timer = setTimeout(() => {
+      setDelayedValue(value);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [value]);
+
   return (
-    <div className={`transition-all duration-500 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"}`}>
+    <div>
       <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{label}</label>
       <input
         type="text"
-        value={value}
+        value={delayedValue}
         readOnly
-        className="w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono"
+        placeholder="Syncing..."
+        className={`w-full p-2 rounded-lg border bg-gray-100 text-gray-700 text-xs font-mono transition-all duration-1000 ${
+          delayedValue ? "opacity-100" : "opacity-40"
+        }`}
       />
     </div>
   );
 }
-

@@ -1,12 +1,16 @@
-// src/features/agent/api/agent.api.ts
 import api from "../../../services/api";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
-// Hardcoded agent code (from your admin dashboard)
-const AGENT_CODE = "CBE-1001";
-const API_KEY = "cbe_agent_key_12345";
+// 💡 DYNAMIC LOOKUPS: Replaced hardcoded constants with dynamic selectors from your store
+const getAgentApiKey = () => {
+  const state = useAuthStore.getState();
+  return state.user?.agent?.apiKey || "";
+};
 
-const getAgentApiKey = () => API_KEY;
-const getAgentCode = () => AGENT_CODE;
+const getAgentCode = () => {
+  const state = useAuthStore.getState();
+  return state.user?.agent?.code || "";
+};
 
 // Dashboard
 export async function getAgentDashboard() {
@@ -32,15 +36,17 @@ export async function searchBills(params: {
   if (billerCode) queryParams.append("billerCode", billerCode);
   const queryString = queryParams.toString();
   const url = `/agent/bill-inquiry/${encodeURIComponent(billReference)}${queryString ? `?${queryString}` : ""}`;
+  
   const headers: Record<string, string> = {
     "x-api-key": getAgentApiKey(),
-    "x-agent-code": agentCode || getAgentCode(),
+    "x-agent-code": agentCode || getAgentCode(), // Uses override or falls back to logged-in agent code
   };
+  
   const response = await api.get(url, { headers });
   return response.data;
 }
 
-// ✅ Process payment – now accepts camelCase fields (matches backend)
+// Process payment – accepts dynamic parameters cleanly
 export async function processPayment(data: {
   billId: string;
   agentId: string;

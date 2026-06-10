@@ -21,11 +21,15 @@ export default function LanguageSwitcher() {
     }
     setLoading(true);
     try {
+      // 1. Change locally immediately so the UI changes instantly
       await i18n.changeLanguage(langCode);
-      await api.patch('/user/settings', { language: langCode });
       setIsOpen(false);
+      
+      // 2. Sync to backend settings database
+      await api.patch('/user/settings', { language: langCode });
     } catch (error) {
-      console.error('Failed to change language', error);
+      console.error('Failed to sync language selection to server:', error);
+      // Optional: alert user or handle fallback silently
     } finally {
       setLoading(false);
     }

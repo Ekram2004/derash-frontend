@@ -1,15 +1,34 @@
 import { create } from "zustand";
 
+// 💡 1. Define types for the nested objects matching your dynamic banks/agents
+export interface UserAgentRelation {
+  id: string;
+  code: string;
+  apiKey: string;
+  name: string;
+}
+
+export interface UserBillerRelation {
+  id: string;
+  name: string;
+}
+
+// Define the type of the user
 export interface User {
   id?: string;
   name: string;
   email: string;
-  role: "SYSTEM_ADMIN" | "AGENT_USER" | "BILLER_USER";
+  // 💡 Updated role to allow both styles ('AGENT' or 'AGENT_USER') used in your backend/frontend
+  role: "ADMIN" | "AGENT" | "BILLER" | "SYSTEM_ADMIN" | "BILLER_USER" | "AGENT_USER";
   phone?: string;
   company?: string;
   address?: string;
   avatar?: string;
   mustChangePassword?: boolean;
+  
+  // 💡 2. Add these relational fields here so TypeScript stops complaining!
+  agent?: UserAgentRelation | null;
+  biller?: UserBillerRelation | null;
 }
 
 interface AuthState {

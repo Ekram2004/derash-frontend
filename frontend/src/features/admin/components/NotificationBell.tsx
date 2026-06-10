@@ -1,4 +1,4 @@
-// src/features/admin/components/NotificationBell.tsx
+
 import { useState, useEffect, useRef } from "react";
 import { BellIcon } from "@heroicons/react/24/outline";
 import api from "@/services/api";
@@ -14,6 +14,7 @@ interface Notification {
 }
 
 export default function NotificationBell() {
+  console.log("NotificationBell is mounting");
   const { user } = useAuthStore();
   if (!user || user.role !== "SYSTEM_ADMIN") return null;
   const [notifications, setNotifications] = useState<Notification[]>([]);
