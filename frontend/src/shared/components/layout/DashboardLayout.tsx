@@ -192,7 +192,7 @@ export default function DashboardLayout({ title, links, children }: Props) {
           onMenuClick={() => setMobileSidebarOpen(true)}
         >
           {/* ONLY mount the component if the user is an Admin */}
-          {user?.role === "SYSTEM_ADMIN" && <NotificationBell />}
+          {user?.role === "SYSTEM_ADMIN" }
         </Navbar>
 
         {/* Page Content */}
