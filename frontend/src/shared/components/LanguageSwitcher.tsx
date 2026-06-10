@@ -5,8 +5,8 @@ import api from '@/services/api';
 
 const languages = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'am', label: 'አማርኛ', flag: '🇪🇹' },
-  { code: 'om', label: 'Oromo', flag: '🇪🇹' },
+  { code: 'am', label: 'አማርኛ', flag: '🇪🇹' }
+  
 ];
 
 export default function LanguageSwitcher() {
