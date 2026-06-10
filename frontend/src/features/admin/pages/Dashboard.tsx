@@ -70,7 +70,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-// Loading Skeleton (also responsive)
+// Loading Skeleton
 const StatCardSkeleton = () => (
   <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 border border-gray-100 shadow-sm animate-pulse">
     <div className="flex items-center justify-between">
@@ -259,7 +259,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main KPI Cards - fully responsive grid */}
+        {/* Main KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {mainCards.map((card) => (
             <div
@@ -365,18 +365,16 @@ export default function Dashboard() {
                       <td className="px-4 sm:px-5 py-3 text-sm font-medium text-gray-900">{biller.name}</td>
                       <td className="px-4 sm:px-5 py-3 text-sm text-right text-gray-600">{formatNumber(biller.transactions)}</td>
                       <td className="px-4 sm:px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(biller.revenue)}</td>
-                    </tr>
+                     </tr>
                   ))}
-                  {topBillers.length === 0 && (
-                    <tr><td colSpan={3} className="text-center py-6 text-gray-500">{t("no_data")}</td></tr>
-                  )}
+                  {topBillers.length === 0 && <tr><td colSpan={3} className="text-center py-6 text-gray-500">{t("no_data")}</td></tr>}
                 </tbody>
-              </table>
+               </table>
             </div>
           </div>
         </div>
 
-        {/* Recent Transactions Table */}
+        {/* Recent Transactions – Mobile Card View + Desktop Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -385,27 +383,58 @@ export default function Dashboard() {
             </div>
             <button className="text-red-500 text-sm font-medium hover:text-red-600 transition-colors text-left sm:text-right">{t("view_all")} →</button>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile Card View (visible on screens below 640px) */}
+          <div className="block sm:hidden divide-y divide-gray-100">
+            {recentTransactions.map((tx) => (
+              <div key={tx.id} className="p-4 hover:bg-gray-50 transition">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-mono text-sm font-semibold text-blue-600">{tx.id}</span>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColor(tx.status)}`}>
+                    {t(tx.status)}
+                  </span>
+                </div>
+                <div className="text-sm font-medium text-gray-800 mb-1">{tx.biller}</div>
+                <div className="text-xs text-gray-500 mb-2">{tx.agent}</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">{t("amount")}:</span>
+                    <span className="ml-1 font-semibold text-gray-800">{formatETB(tx.amount)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">{t("date")}:</span>
+                    <span className="ml-1 font-semibold text-gray-600">{tx.date}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {recentTransactions.length === 0 && (
+              <div className="text-center py-8 text-gray-500">{t("no_transactions")}</div>
+            )}
+          </div>
+
+          {/* Desktop Table View (visible on screens 640px and above) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead className="bg-gray-50 text-xs font-semibold text-gray-600">
                 <tr>
-                  <th className="px-4 sm:px-5 py-3 text-left">{t("id")}</th>
-                  <th className="px-4 sm:px-5 py-3 text-left">{t("biller")}</th>
-                  <th className="px-4 sm:px-5 py-3 text-left">{t("agent")}</th>
-                  <th className="px-4 sm:px-5 py-3 text-right">{t("amount")}</th>
-                  <th className="px-4 sm:px-5 py-3 text-left">{t("date")}</th>
-                  <th className="px-4 sm:px-5 py-3 text-center">{t("status")}</th>
+                  <th className="px-5 py-3 text-left">{t("id")}</th>
+                  <th className="px-5 py-3 text-left">{t("biller")}</th>
+                  <th className="px-5 py-3 text-left">{t("agent")}</th>
+                  <th className="px-5 py-3 text-right">{t("amount")}</th>
+                  <th className="px-5 py-3 text-left">{t("date")}</th>
+                  <th className="px-5 py-3 text-center">{t("status")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {recentTransactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 sm:px-5 py-3 text-sm font-mono text-gray-600">{tx.id}</td>
-                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-900">{tx.biller}</td>
-                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-600">{tx.agent}</td>
-                    <td className="px-4 sm:px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(tx.amount)}</td>
-                    <td className="px-4 sm:px-5 py-3 text-sm text-gray-500">{tx.date}</td>
-                    <td className="px-4 sm:px-5 py-3 text-center">
+                    <td className="px-5 py-3 text-sm font-mono text-gray-600">{tx.id}</td>
+                    <td className="px-5 py-3 text-sm text-gray-900">{tx.biller}</td>
+                    <td className="px-5 py-3 text-sm text-gray-600">{tx.agent}</td>
+                    <td className="px-5 py-3 text-sm text-right font-semibold text-gray-900">{formatETB(tx.amount)}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">{tx.date}</td>
+                    <td className="px-5 py-3 text-center">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${getStatusColor(tx.status)}`}>
                         {t(tx.status)}
                       </span>
