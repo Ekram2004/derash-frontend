@@ -30,6 +30,7 @@ interface UploadResult {
   fileName?: string;
   uploadDate?: string;
   rawResponse?: any;
+  duplicates?: number;
 }
 
 interface FilePreview {
@@ -233,6 +234,12 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
         if (uploadResult.success > 0) {
           setUploadSuccess(true);
           setSuccessResult(uploadResult);
+          if ((uploadResult.duplicates ?? 0) > 0) {
+            setError(
+              `${uploadResult.duplicates ?? 0} duplicate bills were found and skipped.`,
+            );
+          }
+
           setShowSuccessModal(true);
           saveToHistory(uploadResult);
           await checkDatabaseStats();
