@@ -204,19 +204,22 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
   };
 
   const handleUpload = async () => {
-    if (!file) { setError(t('error_no_file')); return; }
-    
+    if (!file) {
+      setError(t("error_no_file"));
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
       setShowSuccessModal(false);
       setSuccessResult(null);
-      
+
       const response = await uploadBillsCsv(file);
-      
+
       if (response?.status === "SUCCESS") {
         const respData = response.data || {};
-        
+
         const uploadResult: UploadResult = {
           total: respData.total || 0,
           success: respData.success || 0,
@@ -226,40 +229,51 @@ BL-2024-005,Samuel Bekele,450.00,2026-06,2026-06-07`;
           fileName: file.name,
           uploadDate: new Date().toISOString(),
           rawResponse: respData,
+          duplicates: respData.duplicates || 0, // Ensure this matches your API response
         };
-        
+
         setResult(uploadResult);
-        
-        // ONLY show success modal if at least one bill was uploaded successfully
+
+        // 1. Handle Duplicates First (Warning message)
+        if ((uploadResult.duplicates ?? 0) > 0) {
+          setError(
+            `${uploadResult.duplicates ?? 0} duplicate bills were found and skipped.`,
+          );
+        }
+
+        // 2. Handle Success
         if (uploadResult.success > 0) {
           setUploadSuccess(true);
           setSuccessResult(uploadResult);
-          if ((uploadResult.duplicates ?? 0) > 0) {
-            setError(
-              `${uploadResult.duplicates ?? 0} duplicate bills were found and skipped.`,
-            );
-          }
-
           setShowSuccessModal(true);
           saveToHistory(uploadResult);
           await checkDatabaseStats();
-          // Clear the file after successful upload
+
+          // Reset state
           setFile(null);
           setFilePreview(null);
           setShowPreview(false);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        } 
-        // If no bills were uploaded successfully (all failed)
-        else if (uploadResult.failed > 0 && uploadResult.success === 0) {
-          setError(`${t('error_upload_failed')} ${uploadResult.failed} ${t('error_out_of')} ${uploadResult.total} ${t('error_bills_rejected')}`);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+        // 3. Handle Total Failure
+        else if (uploadResult.failed > 0) {
+          // This will now show the duplicate message (from above) AND this error message
+          setError(
+            (prev) =>
+              `${prev}\n${t("error_upload_failed")} ${uploadResult.failed} ${t("error_bills_rejected")}`,
+          );
           setDetailedErrors(respData.errors || []);
         }
       } else {
-        setError(response?.message || t('error_upload_failed_general'));
+        setError(response?.message || t("error_upload_failed_general"));
       }
     } catch (err: any) {
       console.error("Upload error:", err);
-      setError(err.response?.data?.message || err.message || t('error_upload_failed_general'));
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          t("error_upload_failed_general"),
+      );
     } finally {
       setLoading(false);
     }
