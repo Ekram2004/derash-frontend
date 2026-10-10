@@ -61,6 +61,14 @@ export default function UsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    userId: string | null;
+  }>({
+    isOpen: false,
+    userId: null,
+  });
+
   const [notification, setNotification] = useState<NotificationState>({
     isOpen: false,
     message: "",
@@ -225,15 +233,41 @@ export default function UsersPage() {
     }
   };
 
-  const deleteUser = async (id: string) => {
-    if (window.confirm(t("confirm_delete_user"))) {
-      try {
-        await adminApi.deleteUser(id);
-        await loadData();
-        setNotification({ isOpen: true, message: t("user_deleted"), type: "success", title: t("deletion_successful") });
-      } catch (error: any) {
-        setNotification({ isOpen: true, message: t("delete_failed"), type: "error", title: t("deletion_failed"), details: error.response?.data?.message || t("try_again_later") });
-      }
+  const deleteUser = (id: string) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      userId: id,
+    });
+  };
+
+  const confirmDeleteUser = async () => {
+    const id = deleteConfirmation.userId;
+
+    if (!id) return;
+
+    setDeleteConfirmation({
+      isOpen: false,
+      userId: null,
+    });
+
+    try {
+      await adminApi.deleteUser(id);
+      await loadData();
+
+      setNotification({
+        isOpen: true,
+        message: t("user_deleted"),
+        type: "success",
+        title: t("deletion_successful"),
+      });
+    } catch (error: any) {
+      setNotification({
+        isOpen: true,
+        message: t("delete_failed"),
+        type: "error",
+        title: t("deletion_failed"),
+        details: error.response?.data?.message || t("try_again_later"),
+      });
     }
   };
 
@@ -283,7 +317,10 @@ export default function UsersPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={openAddModal} className="relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-bold text-sm text-white overflow-hidden group active:scale-95 transition-all w-full sm:w-auto justify-center">
+          <button
+            onClick={openAddModal}
+            className="relative flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3.5 rounded-xl md:rounded-2xl font-bold text-sm text-white overflow-hidden group active:scale-95 transition-all w-full sm:w-auto justify-center"
+          >
             <span className="absolute inset-0 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 opacity-90 group-hover:opacity-100 transition"></span>
             <span className="absolute -inset-1 bg-gradient-to-r from-red-600 via-gray-700 to-red-900 blur-xl opacity-40 group-hover:opacity-70 transition"></span>
             <span className="relative flex items-center gap-2">
@@ -299,26 +336,58 @@ export default function UsersPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between">
-            <div><p className="text-xs text-gray-400 font-medium">{t("total_users")}</p><p className="text-xl md:text-2xl font-bold text-gray-900 mt-1">{users.length}</p></div>
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-50 rounded-lg md:rounded-xl flex items-center justify-center"><UserGroupIcon className="w-4 h-4 md:w-5 md:h-5 text-red-500" /></div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">
+                {t("total_users")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                {users.length}
+              </p>
+            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-red-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <UserGroupIcon className="w-4 h-4 md:w-5 md:h-5 text-red-500" />
+            </div>
           </div>
         </div>
         <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between">
-            <div><p className="text-xs text-gray-400 font-medium">{t("active")}</p><p className="text-xl md:text-2xl font-bold text-emerald-600 mt-1">{users.filter(u => u.status === "active").length}</p></div>
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 rounded-lg md:rounded-xl flex items-center justify-center"><ShieldCheckIcon className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" /></div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">{t("active")}</p>
+              <p className="text-xl md:text-2xl font-bold text-emerald-600 mt-1">
+                {users.filter((u) => u.status === "active").length}
+              </p>
+            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <ShieldCheckIcon className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
+            </div>
           </div>
         </div>
         <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between">
-            <div><p className="text-xs text-gray-400 font-medium">{t("disabled")}</p><p className="text-xl md:text-2xl font-bold text-rose-600 mt-1">{users.filter(u => u.status === "disabled").length}</p></div>
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-rose-50 rounded-lg md:rounded-xl flex items-center justify-center"><UserGroupIcon className="w-4 h-4 md:w-5 md:h-5 text-rose-500" /></div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">
+                {t("disabled")}
+              </p>
+              <p className="text-xl md:text-2xl font-bold text-rose-600 mt-1">
+                {users.filter((u) => u.status === "disabled").length}
+              </p>
+            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-rose-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <UserGroupIcon className="w-4 h-4 md:w-5 md:h-5 text-rose-500" />
+            </div>
           </div>
         </div>
         <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between">
-            <div><p className="text-xs text-gray-400 font-medium">{t("admins")}</p><p className="text-xl md:text-2xl font-bold text-purple-600 mt-1">{users.filter(u => u.role === "SYSTEM_ADMIN").length}</p></div>
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-50 rounded-lg md:rounded-xl flex items-center justify-center"><ShieldCheckIcon className="w-4 h-4 md:w-5 md:h-5 text-purple-500" /></div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">{t("admins")}</p>
+              <p className="text-xl md:text-2xl font-bold text-purple-600 mt-1">
+                {users.filter((u) => u.role === "SYSTEM_ADMIN").length}
+              </p>
+            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-50 rounded-lg md:rounded-xl flex items-center justify-center">
+              <ShieldCheckIcon className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
+            </div>
           </div>
         </div>
       </div>
@@ -327,51 +396,329 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 mb-6 md:mb-8">
         <div className="relative flex-1 max-w-full sm:max-w-md group">
           <MagnifyingGlassIcon className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
-          <input type="text" placeholder={t("search_placeholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="w-full bg-white border border-gray-100 py-2.5 md:py-3.5 pl-9 md:pl-12 pr-3 md:pr-4 rounded-xl md:rounded-2xl outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500/20 shadow-sm transition-all font-medium text-sm text-gray-600 placeholder:text-gray-300" />
+          <input
+            type="text"
+            placeholder={t("search_placeholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-white border border-gray-100 py-2.5 md:py-3.5 pl-9 md:pl-12 pr-3 md:pr-4 rounded-xl md:rounded-2xl outline-none focus:ring-2 focus:ring-red-500/10 focus:border-red-500/20 shadow-sm transition-all font-medium text-sm text-gray-600 placeholder:text-gray-300"
+          />
         </div>
-        <button onClick={() => setShowFilters(!showFilters)} className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-3.5 bg-white border border-gray-200 rounded-xl md:rounded-2xl text-gray-600 hover:bg-gray-50 transition text-sm font-medium">
-          <FunnelIcon className="w-4 h-4 md:w-5 md:h-5" /> {t("filters")} {(roleFilter || statusFilter) && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-3.5 bg-white border border-gray-200 rounded-xl md:rounded-2xl text-gray-600 hover:bg-gray-50 transition text-sm font-medium"
+        >
+          <FunnelIcon className="w-4 h-4 md:w-5 md:h-5" /> {t("filters")}{" "}
+          {(roleFilter || statusFilter) && (
+            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+          )}
         </button>
-        {(roleFilter || statusFilter || search) && <button onClick={clearFilters} className="text-sm text-red-500 hover:text-red-600 font-medium px-3 py-2">{t("clear_all")}</button>}
+        {(roleFilter || statusFilter || search) && (
+          <button
+            onClick={clearFilters}
+            className="text-sm text-red-500 hover:text-red-600 font-medium px-3 py-2"
+          >
+            {t("clear_all")}
+          </button>
+        )}
       </div>
 
       {/* Filter Panel */}
       {showFilters && (
         <div className="mb-6 p-4 bg-gray-50 rounded-xl md:rounded-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-semibold text-gray-600 mb-1 block">{t("role")}</label><select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20"><option value="">{t("all_roles")}</option><option value="SYSTEM_ADMIN">{t("system_admin")}</option><option value="AGENT_USER">{t("agent_user")}</option><option value="BILLER_USER">{t("biller_user")}</option></select></div>
-            <div><label className="text-xs font-semibold text-gray-600 mb-1 block">{t("status")}</label><select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20"><option value="">{t("all_status")}</option><option value="active">{t("active")}</option><option value="disabled">{t("disabled")}</option></select></div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block">
+                {t("role")}
+              </label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20"
+              >
+                <option value="">{t("all_roles")}</option>
+                <option value="SYSTEM_ADMIN">{t("system_admin")}</option>
+                <option value="AGENT_USER">{t("agent_user")}</option>
+                <option value="BILLER_USER">{t("biller_user")}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block">
+                {t("status")}
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500/20"
+              >
+                <option value="">{t("all_status")}</option>
+                <option value="active">{t("active")}</option>
+                <option value="disabled">{t("disabled")}</option>
+              </select>
+            </div>
           </div>
         </div>
       )}
 
       {/* User Table */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <UserTable users={filtered} currentUserId={currentUserId} onEdit={openEditModal} onDelete={deleteUser} onToggleStatus={toggleStatus} />
+        <UserTable
+          users={filtered}
+          currentUserId={currentUserId}
+          onEdit={openEditModal}
+          onDelete={deleteUser}
+          onToggleStatus={toggleStatus}
+        />
       </div>
 
       {/* Modal */}
-      <Modal isOpen={isModalOpen} title={editingUser ? t("user_configuration") : t("new_user_registration")} onClose={() => setIsModalOpen(false)}>
+      <Modal
+        isOpen={isModalOpen}
+        title={
+          editingUser ? t("user_configuration") : t("new_user_registration")
+        }
+        onClose={() => setIsModalOpen(false)}
+      >
         <div className="p-1 sm:p-2">
-          <div className="mb-6 md:mb-8"><h2 className="text-xl md:text-2xl font-bold text-gray-900">{editingUser ? t("edit_user_details") : t("register_user")}</h2><p className="text-sm text-gray-400 mt-1">{t("fill_user_credentials")}</p></div>
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              {editingUser ? t("edit_user_details") : t("register_user")}
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">
+              {t("fill_user_credentials")}
+            </p>
+          </div>
           <div className="space-y-4 md:space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-              <div className="space-y-1.5"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("full_name")} <span className="text-red-500">*</span></label><div className="relative"><UserGroupIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="text" placeholder={t("full_name_placeholder")} className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div></div>
-              <div className="space-y-1.5"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("email_address")} <span className="text-red-500">*</span></label><div className="relative"><EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="email" placeholder={t("email_placeholder")} className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></div></div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  {t("full_name")} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <UserGroupIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder={t("full_name_placeholder")}
+                    className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  {t("email_address")} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder={t("email_placeholder")}
+                    className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition"
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-1.5"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("password")} {!editingUser && <span className="text-red-500">*</span>}</label><div className="relative"><KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="password" placeholder={editingUser ? t("leave_blank_keep") : t("enter_password")} className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editingUser} /></div>{!editingUser && <p className="text-xs text-gray-400 ml-1">{t("password_hint")}</p>}</div>
-            <div className="space-y-1.5"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("user_role")} <span className="text-red-500">*</span></label><div className="relative"><ShieldCheckIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><select className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value, agent_id: "", biller_id: "" })} required><option value="SYSTEM_ADMIN">{t("system_administrator")}</option><option value="AGENT_USER">{t("agent_user")}</option><option value="BILLER_USER">{t("biller_user")}</option></select></div></div>
-            {form.role === "AGENT_USER" && (<div className="space-y-1.5 animate-in fade-in duration-300"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("assign_agent")} <span className="text-red-500">*</span></label><div className="relative"><CpuChipIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><select className="w-full bg-blue-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none" value={form.agent_id} onChange={(e) => setForm({ ...form, agent_id: e.target.value })} required><option value="">{t("select_agent")}</option>{agents.map((a) => (<option key={a.id} value={a.id}>{a.name}</option>))}</select></div><p className="text-xs text-gray-400 ml-1">{t("agent_user_description")}</p></div>)}
-            {form.role === "BILLER_USER" && (<div className="space-y-1.5 animate-in fade-in duration-300"><label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">{t("assign_biller")} <span className="text-red-500">*</span></label><div className="relative"><BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" /><select className="w-full bg-yellow-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none" value={form.biller_id} onChange={(e) => setForm({ ...form, biller_id: e.target.value })} required><option value="">{t("select_biller")}</option>{billers.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}</select></div><p className="text-xs text-gray-400 ml-1">{t("biller_user_description")}</p></div>)}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                {t("password")}{" "}
+                {!editingUser && <span className="text-red-500">*</span>}
+              </label>
+              <div className="relative">
+                <KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="password"
+                  placeholder={
+                    editingUser ? t("leave_blank_keep") : t("enter_password")
+                  }
+                  className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  required={!editingUser}
+                />
+              </div>
+              {!editingUser && (
+                <p className="text-xs text-gray-400 ml-1">
+                  {t("password_hint")}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                {t("user_role")} <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <ShieldCheckIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <select
+                  className="w-full bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none"
+                  value={form.role}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      role: e.target.value,
+                      agent_id: "",
+                      biller_id: "",
+                    })
+                  }
+                  required
+                >
+                  <option value="SYSTEM_ADMIN">
+                    {t("system_administrator")}
+                  </option>
+                  <option value="AGENT_USER">{t("agent_user")}</option>
+                  <option value="BILLER_USER">{t("biller_user")}</option>
+                </select>
+              </div>
+            </div>
+            {form.role === "AGENT_USER" && (
+              <div className="space-y-1.5 animate-in fade-in duration-300">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  {t("assign_agent")} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <CpuChipIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <select
+                    className="w-full bg-blue-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none"
+                    value={form.agent_id}
+                    onChange={(e) =>
+                      setForm({ ...form, agent_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">{t("select_agent")}</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-gray-400 ml-1">
+                  {t("agent_user_description")}
+                </p>
+              </div>
+            )}
+            {form.role === "BILLER_USER" && (
+              <div className="space-y-1.5 animate-in fade-in duration-300">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  {t("assign_biller")} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <select
+                    className="w-full bg-yellow-50 border-none rounded-xl focus:ring-2 focus:ring-red-500/20 py-2.5 md:py-3 pl-9 md:pl-10 pr-3 md:pr-4 font-semibold text-sm text-gray-700 transition appearance-none"
+                    value={form.biller_id}
+                    onChange={(e) =>
+                      setForm({ ...form, biller_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">{t("select_biller")}</option>
+                    {billers.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-gray-400 ml-1">
+                  {t("biller_user_description")}
+                </p>
+              </div>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 mt-6 md:mt-8">
-            <button className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl md:rounded-2xl transition font-bold text-sm order-2 sm:order-1" onClick={() => setIsModalOpen(false)}>{t("discard")}</button>
-            <button className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-xl md:rounded-2xl shadow-lg shadow-red-200 transition font-bold text-sm order-1 sm:order-2" onClick={handleSave}>{editingUser ? t("apply_changes") : t("confirm_registration")}</button>
+            <button
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl md:rounded-2xl transition font-bold text-sm order-2 sm:order-1"
+              onClick={() => setIsModalOpen(false)}
+            >
+              {t("discard")}
+            </button>
+            <button
+              className="px-6 py-3 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-xl md:rounded-2xl shadow-lg shadow-red-200 transition font-bold text-sm order-1 sm:order-2"
+              onClick={handleSave}
+            >
+              {editingUser ? t("apply_changes") : t("confirm_registration")}
+            </button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={deleteConfirmation.isOpen}
+        title={t("confirm_delete_user")}
+        onClose={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            userId: null,
+          })
+        }
+      >
+        <div className="p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
+              <UserGroupIcon className="h-5 w-5 text-red-600" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">
+                {t("confirm_delete_user")}
+              </h3>
+
+              <p className="mt-2 text-sm text-gray-500">
+                {t("confirm_delete_user")}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                setDeleteConfirmation({
+                  isOpen: false,
+                  userId: null,
+                })
+              }
+              className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
+            >
+              {t("cancel")}
+            </button>
+
+            <button
+              type="button"
+              onClick={confirmDeleteUser}
+              className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+            >
+              {t("delete")}
+            </button>
           </div>
         </div>
       </Modal>
 
-      <NotificationModal isOpen={notification.isOpen} message={notification.message} type={notification.type} title={notification.title} details={notification.details} onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))} duration={notification.type === "error" ? 5000 : 3000} onRetry={notification.type === "error" && notification.title !== t("validation_error") && notification.title !== t("validation_failed") ? handleSave : undefined} />
+      <NotificationModal
+        isOpen={notification.isOpen}
+        message={notification.message}
+        type={notification.type}
+        title={notification.title}
+        details={notification.details}
+        onClose={() => setNotification((prev) => ({ ...prev, isOpen: false }))}
+        duration={notification.type === "error" ? 5000 : 3000}
+        onRetry={
+          notification.type === "error" &&
+          notification.title !== t("validation_error") &&
+          notification.title !== t("validation_failed")
+            ? handleSave
+            : undefined
+        }
+      />
     </DashboardLayout>
   );
 }
