@@ -22,7 +22,11 @@ import {
   ChevronRightIcon,
   DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
-import { getBillerBills, deleteBillerBill } from "../api/biller.api";
+import {
+  getBillerBills,
+  deleteBillerBill,
+  deleteAllBillerBills,
+} from "../api/biller.api";
 import { billerLinks } from "../billerLinks";
 import * as XLSX from "xlsx";
 
@@ -126,13 +130,23 @@ const deleteSingleBill = async (id: string) => {
 
   const deleteAllBills = async () => {
     setDeleting(true);
+
     try {
+      // Delete all active bills for the logged-in biller.
+      await deleteAllBillerBills();
+
+      // Update the UI only after the backend succeeds.
       setBills([]);
       setShowDeleteAllConfirm(false);
+
       showToastMessage(t("delete_all_success"), "success");
     } catch (error) {
       console.error("Delete all failed:", error);
-      showToastMessage(t("delete_all_failed"), "error");
+
+      const message =
+        error instanceof Error ? error.message : t("delete_all_failed");
+
+      showToastMessage(message || t("delete_all_failed"), "error");
     } finally {
       setDeleting(false);
     }

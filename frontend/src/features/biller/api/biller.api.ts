@@ -10,24 +10,24 @@ export const uploadBillsCsv = async (file: File) => {
         "Content-Type": "multipart/form-data",
       },
     });
-    
+
     console.log("Upload response:", response.data);
     return response.data;
   } catch (error: any) {
     console.error("Upload error:", error);
-    
+
     // Extract detailed error message from backend
     if (error.response) {
       // The backend responded with an error status
       const errorData = error.response.data;
       console.error("Error response data:", errorData);
-      
+
       return {
         status: "ERROR",
         message: errorData.message || "Upload failed",
         data: errorData.data || null,
         errors: errorData.errors || [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } else if (error.request) {
       // The request was made but no response received
@@ -36,7 +36,7 @@ export const uploadBillsCsv = async (file: File) => {
         message: "No response from server. Please check your connection.",
         data: null,
         errors: [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } else {
       // Something happened in setting up the request
@@ -45,7 +45,7 @@ export const uploadBillsCsv = async (file: File) => {
         message: error.message || "Request failed",
         data: null,
         errors: [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -61,7 +61,7 @@ export const getBillerStats = async () => {
     return {
       status: "ERROR",
       message: error.response?.data?.message || "Failed to fetch stats",
-      data: null
+      data: null,
     };
   }
 };
@@ -75,15 +75,15 @@ export const getBillerBills = async () => {
     return {
       status: "ERROR",
       message: error.response?.data?.message || "Failed to fetch bills",
-      data: []
+      data: [],
     };
   }
 };
 
 export const getBillerReport = async (fromDate?: string, toDate?: string) => {
   try {
-    const response = await api.get('/report', {
-      params: { fromDate, toDate }
+    const response = await api.get("/report", {
+      params: { fromDate, toDate },
     });
     return response.data;
   } catch (error: any) {
@@ -91,10 +91,10 @@ export const getBillerReport = async (fromDate?: string, toDate?: string) => {
     return {
       status: "ERROR",
       message: error.response?.data?.message || "Failed to fetch report",
-      data: null
+      data: null,
     };
   }
-}
+};
 
 export const deleteBillerBill = async (billId: string) => {
   try {
@@ -103,8 +103,19 @@ export const deleteBillerBill = async (billId: string) => {
   } catch (error: any) {
     console.error("Delete bill error:", error);
 
+    throw new Error(error.response?.data?.message || "Failed to delete bill");
+  }
+};
+
+export const deleteAllBillerBills = async () => {
+  try {
+    const response = await api.delete("/bills/all");
+    return response.data;
+  } catch (error: any) {
+    console.error("Delete all bills error:", error);
+
     throw new Error(
-      error.response?.data?.message || "Failed to delete bill"
+      error.response?.data?.message || "Failed to delete all bills",
     );
   }
 };
