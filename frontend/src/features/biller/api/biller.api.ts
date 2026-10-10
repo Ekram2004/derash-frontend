@@ -95,3 +95,16 @@ export const getBillerReport = async (fromDate?: string, toDate?: string) => {
     };
   }
 }
+
+export const deleteBillerBill = async (billId: string) => {
+  try {
+    const response = await api.delete(`/bills/${encodeURIComponent(billId)}`);
+    return response.data;
+  } catch (error: any) {
+    console.error("Delete bill error:", error);
+
+    throw new Error(
+      error.response?.data?.message || "Failed to delete bill"
+    );
+  }
+};

@@ -22,9 +22,10 @@ import {
   ChevronRightIcon,
   DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
-import { getBillerBills } from "../api/biller.api";
+import { getBillerBills, deleteBillerBill } from "../api/biller.api";
 import { billerLinks } from "../billerLinks";
 import * as XLSX from "xlsx";
+
 
 type BillStatus = "UNPAID" | "PARTIALLY_PAID" | "PAID" | "CANCELLED" | "EXPIRED";
 
@@ -94,20 +95,34 @@ export default function BillsPage() {
     }
   }, [t]);
 
-  const deleteSingleBill = async (id: string) => {
-    setDeleting(true);
-    try {
-      setBills((prev) => prev.filter((bill) => bill.id !== id));
-      setShowDeleteConfirm(false);
-      setBillToDelete(null);
-      showToastMessage(t("delete_success"), "success");
-    } catch (error) {
-      console.error("Delete failed:", error);
-      showToastMessage(t("delete_failed"), "error");
-    } finally {
-      setDeleting(false);
-    }
-  };
+  
+const deleteSingleBill = async (id: string) => {
+  setDeleting(true);
+
+  try {
+    // Send the delete request to the backend.
+    await deleteBillerBill(id);
+
+    // Update the UI only after the request succeeds.
+    setBills((prev) => prev.filter((bill) => bill.id !== id));
+
+    // Close the confirmation and details modals if necessary.
+    setShowDeleteConfirm(false);
+    setBillToDelete(null);
+    setSelectedBill((prev) => (prev?.id === id ? null : prev));
+
+    showToastMessage(t("delete_success"), "success");
+  } catch (error) {
+    console.error("Delete failed:", error);
+
+    const message = error instanceof Error ? error.message : t("delete_failed");
+
+    showToastMessage(message || t("delete_failed"), "error");
+  } finally {
+    setDeleting(false);
+  }
+};
+
 
   const deleteAllBills = async () => {
     setDeleting(true);
