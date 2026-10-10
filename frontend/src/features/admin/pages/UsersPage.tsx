@@ -653,7 +653,7 @@ export default function UsersPage() {
       </Modal>
       <Modal
         isOpen={deleteConfirmation.isOpen}
-        title={t("confirm_delete_user")}
+        title={t("delete")}
         onClose={() =>
           setDeleteConfirmation({
             isOpen: false,
@@ -662,21 +662,7 @@ export default function UsersPage() {
         }
       >
         <div className="p-5">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100">
-              <UserGroupIcon className="h-5 w-5 text-red-600" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">
-                {t("confirm_delete_user")}
-              </h3>
-
-              <p className="mt-2 text-sm text-gray-500">
-                {t("confirm_delete_user")}
-              </p>
-            </div>
-          </div>
+          <p className="text-sm text-gray-600">{t("confirm_delete_user")}</p>
 
           <div className="mt-6 flex justify-end gap-3">
             <button
