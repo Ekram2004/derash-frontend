@@ -69,7 +69,7 @@ export default function AppProvider({ children }: AppProviderProps) {
       textAlign: "center",
     }}
   >
-    ⚠️ You will be logged out in {WARNING_MINUTES} minute
+   You will be logged out in {WARNING_MINUTES} minute
     {WARNING_MINUTES > 1 ? "s" : ""} due to inactivity.
   </div>
 )}

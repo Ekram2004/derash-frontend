@@ -205,7 +205,7 @@ export default function ChangePasswordPage() {
               onClick={handleGenerate}
               className="w-full py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition text-sm flex items-center justify-center gap-2"
             >
-              🔒 Generate Strong Password
+          Generate Strong Password
             </button>
 
             {/* Requirements Checklist */}
